@@ -46,6 +46,16 @@ export class CreateJobInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  sourceUrl?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  sourceId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   salaryRange?: string;
 
   @Field({ nullable: true })

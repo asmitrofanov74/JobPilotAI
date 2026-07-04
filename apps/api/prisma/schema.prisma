@@ -112,6 +112,9 @@ model JobApplication {
   workMode       String?         // Remote, Hybrid, On-site
   status         JobStatus       @default(SAVED)
   source         ApplicationSource @default(MANUAL)
+  sourceUrl      String?           // URL the job was scraped from
+  sourceId       String?           // External ID from the source (e.g. LinkedIn job ID)
+  scrapedAt      DateTime?         // When this job was scraped
   notes          String?
   appliedAt      DateTime?
   rejectedAt     DateTime?

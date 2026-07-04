@@ -16,6 +16,7 @@ import { InterviewsModule } from './modules/interviews/interviews.module';
 import { InterviewQuestionsModule } from './modules/interview-questions/interview-questions.module';
 import { SkillGapReportsModule } from './modules/skill-gap-reports/skill-gap-reports.module';
 import { AiModule } from './modules/ai/ai.module';
+import { ScraperModule } from './modules/scraper/scraper.module';
 import { APP_GUARD } from '@nestjs/core';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 
@@ -43,6 +44,7 @@ import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
     InterviewQuestionsModule,
     SkillGapReportsModule,
     AiModule,
+    ScraperModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: GqlThrottlerGuard },

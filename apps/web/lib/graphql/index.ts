@@ -373,6 +373,26 @@ export const MONTHLY_STATS_QUERY = `
   }
 `;
 
+export const SCRAPE_JOBS_MUTATION = `
+  mutation ScrapeJobs($input: ScrapeJobsInput!) {
+    scrapeJobs(input: $input) {
+      total
+      imported
+      jobs {
+        companyName
+        jobTitle
+        jobDescription
+        jobUrl
+        location
+        salaryRange
+        source
+        employmentType
+        workMode
+      }
+    }
+  }
+`;
+
 export const UPDATE_PROFILE_MUTATION = `
   mutation UpdateProfile($input: UpdateProfileInput!) {
     updateProfile(input: $input) {

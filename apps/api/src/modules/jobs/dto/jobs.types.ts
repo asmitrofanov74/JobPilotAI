@@ -19,6 +19,7 @@ export enum ApplicationSource {
   GLASSDOOR = 'GLASSDOOR',
   COMPANY_SITE = 'COMPANY_SITE',
   REFERRAL = 'REFERRAL',
+  SCRAPED = 'SCRAPED',
   OTHER = 'OTHER',
 }
 
@@ -62,6 +63,15 @@ export class JobType {
 
   @Field(() => ApplicationSource, { nullable: true })
   source?: ApplicationSource;
+
+  @Field({ nullable: true })
+  sourceUrl?: string;
+
+  @Field({ nullable: true })
+  sourceId?: string;
+
+  @Field(() => Date, { nullable: true })
+  scrapedAt?: Date;
 
   @Field({ nullable: true })
   salaryRange?: string;
