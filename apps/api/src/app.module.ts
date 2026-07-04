@@ -9,6 +9,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { ResumesModule } from './modules/resumes/resumes.module';
+import { CoverLettersModule } from './modules/cover-letters/cover-letters.module';
+import { InterviewsModule } from './modules/interviews/interviews.module';
+import { InterviewQuestionsModule } from './modules/interview-questions/interview-questions.module';
+import { SkillGapReportsModule } from './modules/skill-gap-reports/skill-gap-reports.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -27,6 +33,12 @@ import { JobsModule } from './modules/jobs/jobs.module';
     AuthModule,
     UsersModule,
     JobsModule,
+    ResumesModule,
+    CoverLettersModule,
+    InterviewsModule,
+    InterviewQuestionsModule,
+    SkillGapReportsModule,
+    AiModule,
   ],
   providers: [],
 })

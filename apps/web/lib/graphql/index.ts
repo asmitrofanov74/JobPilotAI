@@ -126,3 +126,263 @@ export const DELETE_JOB_MUTATION = `
     deleteJob(id: $id)
   }
 `;
+
+export const RESUMES_QUERY = `
+  query Resumes {
+    resumes {
+      id
+      title
+      fileUrl
+      fileKey
+      fileSize
+      mimeType
+      isPrimary
+      parsedSkills
+      parsedExperience
+      parsedEducation
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CREATE_RESUME_MUTATION = `
+  mutation CreateResume($input: CreateResumeInput!) {
+    createResume(input: $input) {
+      id
+      title
+      fileUrl
+      isPrimary
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_RESUME_MUTATION = `
+  mutation DeleteResume($id: String!) {
+    deleteResume(id: $id)
+  }
+`;
+
+export const SET_PRIMARY_RESUME_MUTATION = `
+  mutation SetPrimaryResume($id: String!) {
+    setPrimaryResume(id: $id) {
+      id
+      title
+      isPrimary
+    }
+  }
+`;
+
+export const COVER_LETTERS_QUERY = `
+  query CoverLetters {
+    coverLetters {
+      id
+      jobTitle
+      companyName
+      content
+      tone
+      jobDescription
+      isGenerated
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CREATE_COVER_LETTER_MUTATION = `
+  mutation CreateCoverLetter($input: CreateCoverLetterInput!) {
+    createCoverLetter(input: $input) {
+      id
+      jobTitle
+      companyName
+      content
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_COVER_LETTER_MUTATION = `
+  mutation DeleteCoverLetter($id: String!) {
+    deleteCoverLetter(id: $id)
+  }
+`;
+
+export const INTERVIEWS_QUERY = `
+  query Interviews {
+    interviews {
+      id
+      type
+      round
+      scheduledAt
+      durationMinutes
+      interviewers
+      location
+      notes
+      feedback
+      rating
+      isCompleted
+      jobApplicationId
+      createdAt
+    }
+  }
+`;
+
+export const CREATE_INTERVIEW_MUTATION = `
+  mutation CreateInterview($input: CreateInterviewInput!) {
+    createInterview(input: $input) {
+      id
+      type
+      round
+      scheduledAt
+      isCompleted
+    }
+  }
+`;
+
+export const UPDATE_INTERVIEW_MUTATION = `
+  mutation UpdateInterview($id: String!, $input: UpdateInterviewInput!) {
+    updateInterview(id: $id, input: $input)
+  }
+`;
+
+export const DELETE_INTERVIEW_MUTATION = `
+  mutation DeleteInterview($id: String!) {
+    deleteInterview(id: $id)
+  }
+`;
+
+export const INTERVIEW_QUESTIONS_QUERY = `
+  query InterviewQuestionsByUser {
+    interviewQuestionsByUser {
+      id
+      question
+      answer
+      type
+      category
+      difficulty
+      source
+      isFavorite
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const TOGGLE_FAVORITE_QUESTION_MUTATION = `
+  mutation ToggleFavoriteQuestion($id: String!) {
+    toggleFavoriteQuestion(id: $id) {
+      id
+      isFavorite
+    }
+  }
+`;
+
+export const SKILL_GAP_REPORTS_QUERY = `
+  query SkillGapReports {
+    skillGapReports {
+      id
+      jobDescription
+      jobTitle
+      companyName
+      requiredSkills
+      userSkills
+      missingSkills
+      matchScore
+      recommendations
+      createdAt
+    }
+  }
+`;
+
+export const GENERATE_COVER_LETTER_MUTATION = `
+  mutation GenerateCoverLetter($input: GenerateCoverLetterInput!) {
+    generateCoverLetter(input: $input) {
+      coverLetter {
+        id
+        jobTitle
+        companyName
+        content
+        tone
+        isGenerated
+        createdAt
+      }
+      content
+    }
+  }
+`;
+
+export const ANALYZE_SKILL_GAP_MUTATION = `
+  mutation AnalyzeSkillGap($input: SkillGapInput!) {
+    analyzeSkillGap(input: $input) {
+      report {
+        id
+        jobTitle
+        companyName
+        matchScore
+        requiredSkills
+        missingSkills
+        recommendations
+        createdAt
+      }
+      requiredSkills
+      missingSkills
+      matchScore
+      recommendations
+    }
+  }
+`;
+
+export const GENERATE_INTERVIEW_QUESTIONS_MUTATION = `
+  mutation GenerateInterviewQuestions($input: InterviewQuestionsInput!) {
+    generateInterviewQuestions(input: $input) {
+      questions {
+        id
+        question
+        answer
+        type
+        category
+        difficulty
+      }
+    }
+  }
+`;
+
+export const FUNNEL_ANALYTICS_QUERY = `
+  query FunnelAnalytics {
+    funnelAnalytics {
+      saved
+      applied
+      phoneScreen
+      technical
+      onsite
+      offer
+      rejected
+      accepted
+    }
+  }
+`;
+
+export const MONTHLY_STATS_QUERY = `
+  query MonthlyStats($from: DateTime!, $to: DateTime!) {
+    monthlyStats(from: $from, to: $to) {
+      month
+      applications
+      interviews
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_MUTATION = `
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      id
+      firstName
+      lastName
+      title
+      targetRole
+      experienceLevel
+      targetLocations
+    }
+  }
+`;
