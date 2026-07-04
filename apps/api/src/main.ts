@@ -17,8 +17,16 @@ async function bootstrap() {
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(compression());
 
+  const allowedOrigins = (configService.get<string>('CORS_ORIGIN', 'http://localhost:3000,http://localhost:3001') || '').split(',').map((s: string) => s.trim());
+
   app.enableCors({
-    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 

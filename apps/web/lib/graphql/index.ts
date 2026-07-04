@@ -84,7 +84,7 @@ export const JOBS_QUERY = `
           id
           type
           scheduledAt
-          status
+          isCompleted
         }
       }
       meta {

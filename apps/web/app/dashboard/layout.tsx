@@ -1,156 +1,128 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
-import { useLogout } from '@/lib/hooks/use-auth';
-import { useMe } from '@/lib/hooks/use-me';
 import {
-  LayoutDashboard,
-  Briefcase,
-  FileText,
-  PenLine,
-  MessageSquare,
-  TrendingUp,
-  BarChart3,
-  Settings,
-  LogOut,
-  ChevronDown,
+  LayoutDashboard, Briefcase, FileText, FileEdit, Calendar,
+  BarChart3, Settings, Sparkles, Menu, X, LogOut, ChevronRight
 } from 'lucide-react';
-import { useState } from 'react';
 
-const navItems = [
+
+const NAV = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { label: 'Resumes', href: '/dashboard/resumes', icon: FileText },
-  { label: 'Cover Letters', href: '/dashboard/cover-letters', icon: PenLine },
-  { label: 'Interviews', href: '/dashboard/interviews', icon: MessageSquare },
-  { label: 'Skill Gap', href: '/dashboard/skills', icon: TrendingUp },
+  { label: 'Cover Letters', href: '/dashboard/cover-letters', icon: FileEdit },
+  { label: 'Interviews', href: '/dashboard/interviews', icon: Calendar },
+  { label: 'Skills', href: '/dashboard/skills', icon: Sparkles },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, clearAuth } = useAuthStore();
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const logout = useLogout();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  useMe();
-
-  if (!isAuthenticated) {
-    return <>{children}</>;
-  }
-
-  function handleLogout() {
-    logout();
-    router.push('/login');
-  }
+  const initials = user?.firstName?.[0] && user?.lastName?.[0]
+    ? `${user.firstName[0]}${user.lastName[0]}`
+    : '?';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 max-md:hidden">
-        <div className="p-6 border-b border-gray-200">
-          <Link href="/dashboard" className="text-xl font-bold text-gray-900">
-            JobPilot AI
-          </Link>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+    <div className="min-h-screen bg-gray-50">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-sm">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
               </div>
-              <div className="text-sm">
-                <p className="font-medium text-gray-900 truncate max-w-[120px]">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-gray-500 text-xs truncate max-w-[120px]">{user?.email}</p>
+              <span className="font-bold text-gray-900 text-lg">JobPilot</span>
+            </Link>
+            <button onClick={() => setOpen(false)} className="lg:hidden text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            {NAV.map(({ label, href, icon: Icon }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+                >
+                  <Icon className={`w-4 h-4 ${active ? 'text-blue-600' : 'text-gray-400'}`} strokeWidth={1.8} />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-gray-100 lg:hidden">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-              title="Sign out"
-            >
+            <button onClick={() => { clearAuth(); router.push('/login'); }} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
               <LogOut className="w-4 h-4" />
+              Sign out
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col max-md:w-full md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between md:hidden">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-          <span className="font-bold text-gray-900">JobPilot AI</span>
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 sm:px-6 h-16">
+            <button onClick={() => setOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="hidden lg:flex items-center gap-2 text-sm text-gray-400">
+              <Link href="/dashboard" className="hover:text-gray-600">Dashboard</Link>
+              {(() => {
+                const current = NAV.find((n) => pathname.startsWith(n.href) && n.href !== '/dashboard');
+                return current ? (
+                  <>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                    <span className="text-gray-900 font-medium">{current.label}</span>
+                  </>
+                ) : null;
+              })()}
+            </div>
+            <div className="hidden lg:flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-gray-400">{user?.email}</p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {initials}
+              </div>
+              <button onClick={() => { clearAuth(); router.push('/login'); }} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors" title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="lg:hidden w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-medium">
+              {initials}
+            </div>
           </div>
         </header>
 
-        {sidebarOpen && (
-          <div className="md:hidden bg-white border-b border-gray-200 px-4 pb-4">
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </nav>
-          </div>
-        )}
-
-        <main className="flex-1 p-6">{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

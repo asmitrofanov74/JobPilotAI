@@ -1,117 +1,128 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuthStore } from '@/lib/auth-store';
-import { useMe } from '@/lib/hooks/use-me';
-import {
-  Briefcase,
-  FileText,
-  PenLine,
-  MessageSquare,
-  TrendingUp,
-  ArrowUpRight,
-} from 'lucide-react';
-
-const stats = [
-  { label: 'Active Applications', value: '12', icon: Briefcase, color: 'text-blue-600 bg-blue-50' },
-  { label: 'Resumes', value: '3', icon: FileText, color: 'text-green-600 bg-green-50' },
-  { label: 'Cover Letters', value: '8', icon: PenLine, color: 'text-purple-600 bg-purple-50' },
-  { label: 'Upcoming Interviews', value: '2', icon: MessageSquare, color: 'text-orange-600 bg-orange-50' },
-  { label: 'Skill Gap Score', value: '74%', icon: TrendingUp, color: 'text-cyan-600 bg-cyan-50' },
-];
+import { useQuery } from '@tanstack/react-query';
+import { client } from '@/lib/graphql/client';
+import { JOBS_QUERY, RESUMES_QUERY, COVER_LETTERS_QUERY, INTERVIEW_QUESTIONS_QUERY } from '@/lib/graphql';
+import Link from 'next/link';
+import { Briefcase, FileText, FileEdit, MessageSquare, ArrowRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-  const { data: me, isLoading } = useMe();
+  const { data: jobs } = useQuery({
+    queryKey: ['jobs', 'dashboard'],
+    queryFn: async () => {
+      const { jobs } = await client.request(JOBS_QUERY, { pagination: { page: 1, limit: 100 } });
+      return jobs;
+    },
+  });
+  const { data: resumes } = useQuery({
+    queryKey: ['resumes', 'dashboard'],
+    queryFn: async () => {
+      const { resumes } = await client.request(RESUMES_QUERY);
+      return resumes;
+    },
+  });
+  const { data: coverLetters } = useQuery({
+    queryKey: ['coverLetters', 'dashboard'],
+    queryFn: async () => {
+      const { coverLetters } = await client.request(COVER_LETTERS_QUERY);
+      return coverLetters;
+    },
+  });
+  const { data: questions } = useQuery({
+    queryKey: ['interviewQuestions', 'dashboard'],
+    queryFn: async () => {
+      const { interviewQuestionsByUser } = await client.request(INTERVIEW_QUESTIONS_QUERY);
+      return interviewQuestionsByUser;
+    },
+  });
 
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, isLoading, router]);
+  const stats = [
+    { label: 'Job Applications', value: jobs?.paginatedItems?.length ?? jobs?.edges?.length ?? 0, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50', href: '/dashboard/jobs' },
+    { label: 'Resumes', value: resumes?.length ?? 0, icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50', href: '/dashboard/resumes' },
+    { label: 'Cover Letters', value: coverLetters?.length ?? 0, icon: FileEdit, color: 'text-violet-600', bg: 'bg-violet-50', href: '/dashboard/cover-letters' },
+    { label: 'Interview Questions', value: questions?.length ?? 0, icon: MessageSquare, color: 'text-amber-600', bg: 'bg-amber-50', href: '/dashboard/skills' },
+  ];
 
-  if (isLoading || !me) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
-    );
-  }
+  const actions = [
+    { label: 'Browse Jobs', desc: 'Find your next opportunity', href: '/dashboard/jobs', icon: Briefcase },
+    { label: 'Upload Resume', desc: 'Let AI analyze your profile', href: '/dashboard/resumes', icon: FileText },
+    { label: 'Generate Cover Letter', desc: 'AI-powered in seconds', href: '/dashboard/cover-letters', icon: FileEdit },
+    { label: 'Practice Interview', desc: 'Prepare with AI questions', href: '/dashboard/skills', icon: MessageSquare },
+  ];
+
+  const aiLinks = [
+    { text: 'Need a cover letter?', desc: 'Generate one from any job posting', href: '/dashboard/cover-letters' },
+    { text: 'Identify skill gaps', desc: 'Compare your profile to job requirements', href: '/dashboard/skills' },
+    { text: 'Track your progress', desc: 'View application analytics', href: '/dashboard/analytics' },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.firstName}
-        </h1>
-        <p className="text-gray-500 mt-1">Here&apos;s your job search overview</p>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-500 mt-1">Here&apos;s what&apos;s happening with your job search.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div className={`p-2 rounded-lg ${stat.color}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-gray-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 mt-4">{stat.value}</p>
-              <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map(({ label, value, icon: Icon, color, bg, href }) => (
+          <Link key={label} href={href} className="block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all">
+            <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center mb-3`}>
+              <Icon className={`w-5 h-5 ${color}`} strokeWidth={1.5} />
             </div>
-          );
-        })}
+            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
+          </Link>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            {[
-              { action: 'Applied to Senior Developer at Shopify', time: '2 hours ago' },
-              { action: 'Generated cover letter for Staff Engineer at Coinbase', time: '1 day ago' },
-              { action: 'Interview scheduled with Google (Technical Screen)', time: '2 days ago' },
-              { action: 'Resume optimized for AWS position', time: '3 days ago' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0">
-                <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-700">{item.action}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.time}</p>
-                </div>
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {actions.map(({ label, desc, href, icon: Icon }) => (
+            <Link key={href} href={href} className="block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all group">
+              <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-50 transition-colors">
+                <Icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" strokeWidth={1.5} />
               </div>
+              <p className="font-semibold text-gray-900 text-sm">{label}</p>
+              <p className="text-xs text-gray-400 mt-1">{desc}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <div className="flex items-start gap-3 text-sm">
+            <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
+              <Briefcase className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-gray-700">No recent applications</p>
+              <p className="text-gray-400 text-xs mt-0.5">Start by browsing jobs</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">AI Assistant</h3>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">Beta</span>
+          </div>
+          <div className="space-y-3">
+            {aiLinks.map(({ text, desc, href }) => (
+              <Link key={text} href={href} className="group flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors">{text}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
+              </Link>
             ))}
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Add Job', href: '/dashboard/jobs', icon: Briefcase },
-              { label: 'Upload Resume', href: '/dashboard/resumes', icon: FileText },
-              { label: 'Generate Cover Letter', href: '/dashboard/cover-letters', icon: PenLine },
-              { label: 'View Analytics', href: '/dashboard/analytics', icon: TrendingUp },
-            ].map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.label}
-                  onClick={() => router.push(action.href)}
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-gray-700 hover:text-blue-700"
-                >
-                  <Icon className="w-6 h-6" />
-                  <span className="text-sm font-medium">{action.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

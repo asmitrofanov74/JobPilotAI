@@ -9,7 +9,7 @@ interface User {
   title?: string | null;
   targetRole?: string | null;
   experienceLevel?: string | null;
-  targetLocations?: string[] | null;
+  targetLocations?: string | null;
   subscription?: { tier: string; currentPeriodEnd?: string | null } | null;
 }
 

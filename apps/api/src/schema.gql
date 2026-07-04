@@ -18,6 +18,52 @@ type AuthPayload {
   user: UserType!
 }
 
+type CoverLetterType {
+  companyName: String!
+  content: String!
+  createdAt: DateTime!
+  id: String!
+  isGenerated: Boolean!
+  jobDescription: String
+  jobTitle: String!
+  tone: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input CreateCoverLetterInput {
+  companyName: String!
+  content: String!
+  isGenerated: Boolean
+  jobDescription: String
+  jobTitle: String!
+  tone: String = "professional"
+}
+
+input CreateInterviewInput {
+  durationMinutes: Int
+  feedback: String
+  interviewers: String
+  isCompleted: Boolean
+  jobApplicationId: String!
+  location: String
+  notes: String
+  rating: Int
+  round: Int = 1
+  scheduledAt: String
+  type: InterviewTypeEnum!
+}
+
+input CreateInterviewQuestionInput {
+  answer: String
+  category: String
+  difficulty: Int
+  isFavorite: Boolean
+  question: String!
+  source: String
+  type: QuestionTypeEnum!
+}
+
 input CreateJobInput {
   companyName: String!
   jobDescription: String
@@ -28,6 +74,24 @@ input CreateJobInput {
   salaryRange: String
   source: ApplicationSource
   status: JobStatus = SAVED
+}
+
+input CreateResumeInput {
+  fileKey: String!
+  fileSize: Int
+  fileUrl: String!
+  isPrimary: Boolean
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
+  title: String!
+}
+
+input CreateSkillGapReportInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
 }
 
 """
@@ -46,7 +110,76 @@ type FunnelAnalytics {
   technical: Int!
 }
 
+input GenerateCoverLetterInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
+  tone: String = "professional"
+}
+
+type GeneratedCoverLetter {
+  content: String!
+  coverLetter: CoverLetterType!
+}
+
+type GeneratedQuestions {
+  questions: [InterviewQuestionType!]!
+}
+
+type InterviewQuestionType {
+  answer: String
+  category: String
+  createdAt: DateTime!
+  difficulty: Int
+  id: String!
+  isFavorite: Boolean!
+  question: String!
+  source: String
+  type: QuestionTypeEnum!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input InterviewQuestionsInput {
+  jobDescription: String!
+  questionType: QuestionTypeEnum
+  role: String!
+}
+
 type InterviewType {
+  createdAt: DateTime!
+  durationMinutes: Int
+  feedback: String
+  id: String!
+  interviewers: String
+  isCompleted: Boolean!
+  jobApplicationId: String!
+  location: String
+  notes: String
+  rating: Int
+  round: Int!
+  scheduledAt: DateTime
+  type: InterviewTypeEnum!
+  updatedAt: DateTime!
+}
+
+enum InterviewTypeEnum {
+  BEHAVIORAL
+  CODING
+  ONSITE
+  PANEL
+  PHONE
+  SYSTEM_DESIGN
+  TAKE_HOME
+  TECHNICAL
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type JobInterviewBrief {
   id: String!
   isCompleted: Boolean
   scheduledAt: DateTime
@@ -69,7 +202,7 @@ type JobType {
   companyName: String!
   createdAt: DateTime!
   id: String!
-  interviews: [InterviewType!]
+  interviews: [JobInterviewBrief!]
   jobDescription: String
   jobTitle: String!
   jobUrl: String
@@ -94,13 +227,32 @@ type MonthlyStat {
 }
 
 type Mutation {
+  analyzeSkillGap(input: SkillGapInput!): SkillGapResult!
+  createCoverLetter(input: CreateCoverLetterInput!): CoverLetterType!
+  createInterview(input: CreateInterviewInput!): InterviewType!
+  createInterviewQuestion(input: CreateInterviewQuestionInput!): InterviewQuestionType!
   createJob(input: CreateJobInput!): JobType!
+  createResume(input: CreateResumeInput!): ResumeType!
+  createSkillGapReport(input: CreateSkillGapReportInput!): SkillGapReportType!
+  deleteCoverLetter(id: String!): Boolean!
+  deleteInterview(id: String!): Boolean!
+  deleteInterviewQuestion(id: String!): Boolean!
   deleteJob(id: String!): Boolean!
+  deleteResume(id: String!): Boolean!
+  deleteSkillGapReport(id: String!): Boolean!
+  generateCoverLetter(input: GenerateCoverLetterInput!): GeneratedCoverLetter!
+  generateInterviewQuestions(input: InterviewQuestionsInput!): GeneratedQuestions!
   login(input: LoginInput!): AuthPayload!
   refreshToken(token: String!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
+  setPrimaryResume(id: String!): ResumeType!
+  toggleFavoriteQuestion(id: String!): InterviewQuestionType
+  updateCoverLetter(id: String!, input: UpdateCoverLetterInput!): Boolean!
+  updateInterview(id: String!, input: UpdateInterviewInput!): Boolean!
+  updateInterviewQuestion(id: String!, input: UpdateInterviewQuestionInput!): Boolean!
   updateJob(id: String!, input: UpdateJobInput!): Boolean!
   updateProfile(input: UpdateProfileInput!): UserType!
+  updateResume(id: String!, input: UpdateResumeInput!): Boolean!
 }
 
 type PaginatedJobs {
@@ -121,11 +273,28 @@ type PaginationMeta {
 }
 
 type Query {
+  coverLetter(id: String!): CoverLetterType
+  coverLetters: [CoverLetterType!]!
   funnelAnalytics: FunnelAnalytics!
+  interview(id: String!): InterviewType
+  interviewQuestion(id: String!): InterviewQuestionType
+  interviewQuestionsByUser: [InterviewQuestionType!]!
+  interviews: [InterviewType!]!
   job(id: String!): JobType
   jobs(pagination: PaginationInput, search: String, status: JobStatus): PaginatedJobs!
   me: UserType!
   monthlyStats(from: DateTime!, to: DateTime!): [MonthlyStat!]!
+  resume(id: String!): ResumeType
+  resumes: [ResumeType!]!
+  skillGapReport(id: String!): SkillGapReportType
+  skillGapReports: [SkillGapReportType!]!
+}
+
+enum QuestionTypeEnum {
+  BEHAVIORAL
+  CODING
+  SYSTEM_DESIGN
+  TECHNICAL
 }
 
 input RegisterInput {
@@ -135,11 +304,89 @@ input RegisterInput {
   password: String!
 }
 
+type ResumeType {
+  createdAt: DateTime!
+  fileKey: String!
+  fileSize: Int
+  fileUrl: String!
+  id: String!
+  isPrimary: Boolean!
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input SkillGapInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
+  userSkills: String!
+}
+
+type SkillGapReportType {
+  companyName: String!
+  createdAt: DateTime!
+  id: String!
+  jobDescription: String!
+  jobTitle: String!
+  matchScore: Float!
+  missingSkills: JSON!
+  recommendations: JSON
+  requiredSkills: JSON!
+  userId: String!
+  userSkills: JSON!
+}
+
+type SkillGapResult {
+  matchScore: Float!
+  missingSkills: JSON!
+  recommendations: JSON
+  report: SkillGapReportType!
+  requiredSkills: JSON!
+}
+
 type SubscriptionType {
   currentPeriodEnd: DateTime
   id: String!
   isActive: Boolean!
   tier: String!
+}
+
+input UpdateCoverLetterInput {
+  companyName: String
+  content: String
+  isGenerated: Boolean
+  jobDescription: String
+  jobTitle: String
+  tone: String
+}
+
+input UpdateInterviewInput {
+  durationMinutes: Int
+  feedback: String
+  interviewers: String
+  isCompleted: Boolean
+  jobApplicationId: String
+  location: String
+  notes: String
+  rating: Int
+  round: Int
+  scheduledAt: String
+  type: InterviewTypeEnum
+}
+
+input UpdateInterviewQuestionInput {
+  answer: String
+  category: String
+  difficulty: Int
+  isFavorite: Boolean
+  question: String
+  source: String
+  type: QuestionTypeEnum
 }
 
 input UpdateJobInput {
@@ -161,6 +408,18 @@ input UpdateProfileInput {
   summary: String
   targetLocations: String
   targetRole: String
+  title: String
+}
+
+input UpdateResumeInput {
+  fileKey: String
+  fileSize: Int
+  fileUrl: String
+  isPrimary: Boolean
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
   title: String
 }
 

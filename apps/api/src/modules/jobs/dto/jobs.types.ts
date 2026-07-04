@@ -26,7 +26,7 @@ registerEnumType(JobStatus, { name: 'JobStatus' });
 registerEnumType(ApplicationSource, { name: 'ApplicationSource' });
 
 @ObjectType()
-export class InterviewType {
+export class JobInterviewBrief {
   @Field()
   id: string;
 
@@ -81,8 +81,8 @@ export class JobType {
   @Field(() => Date)
   updatedAt: Date;
 
-  @Field(() => [InterviewType], { nullable: true })
-  interviews?: InterviewType[];
+  @Field(() => [JobInterviewBrief], { nullable: true })
+  interviews?: JobInterviewBrief[];
 }
 
 @ObjectType()

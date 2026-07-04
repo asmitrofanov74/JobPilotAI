@@ -29,7 +29,7 @@ export class AuthResolver {
 
   @Query(() => UserType)
   @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: UserType): Promise<UserType> {
-    return user;
+  async me(@CurrentUser() user: { id: string }): Promise<UserType> {
+    return this.authService.getProfile(user.id);
   }
 }

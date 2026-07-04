@@ -87,6 +87,15 @@ export class AuthService {
     }
   }
 
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { subscription: true },
+    });
+    if (!user) throw new UnauthorizedException('User not found');
+    return this.mapUser(user);
+  }
+
   private generateAuthPayload(user: any) {
     const payload = { sub: user.id, email: user.email };
 
