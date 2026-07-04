@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 import { Request, Response } from 'express';
 import { join } from 'path';
@@ -15,6 +16,8 @@ import { InterviewsModule } from './modules/interviews/interviews.module';
 import { InterviewQuestionsModule } from './modules/interview-questions/interview-questions.module';
 import { SkillGapReportsModule } from './modules/skill-gap-reports/skill-gap-reports.module';
 import { AiModule } from './modules/ai/ai.module';
+import { APP_GUARD } from '@nestjs/core';
+import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 
 @Module({
   imports: [
@@ -29,6 +32,7 @@ import { AiModule } from './modules/ai/ai.module';
       playground: process.env.NODE_ENV !== 'production',
       context: ({ req, res }: { req: Request; res: Response }) => ({ req, res }),
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 10 }]),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -40,6 +44,8 @@ import { AiModule } from './modules/ai/ai.module';
     SkillGapReportsModule,
     AiModule,
   ],
-  providers: [],
+  providers: [
+    { provide: APP_GUARD, useClass: GqlThrottlerGuard },
+  ],
 })
 export class AppModule {}

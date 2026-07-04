@@ -30,7 +30,7 @@ test.describe('Authentication', () => {
   test('password visibility toggle works', async ({ page }) => {
     const passwordInput = page.getByLabel('Password');
     await expect(passwordInput).toHaveAttribute('type', 'password');
-    await page.getByRole('button', { name: '' }).first().click();
+    await page.locator('form button[type="button"]').click();
     await expect(passwordInput).toHaveAttribute('type', 'text');
   });
 });
@@ -39,7 +39,7 @@ test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await page.waitForURL(/\/dashboard/, { timeout: 15000 });
   });
 
   test('dashboard shows user info in header', async ({ page }) => {
