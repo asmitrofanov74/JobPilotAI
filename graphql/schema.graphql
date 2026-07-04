@@ -1,0 +1,487 @@
+# ------------------------------------------------------------
+# JobPilot AI — GraphQL Schema
+# ------------------------------------------------------------
+
+# ── Enums ──
+
+enum JobStatus {
+  SAVED
+  APPLIED
+  PHONE_SCREEN
+  TECHNICAL
+  ONSITE
+  OFFER
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewType {
+  PHONE
+  TECHNICAL
+  BEHAVIORAL
+  SYSTEM_DESIGN
+  CODING
+  ONSITE
+  PANEL
+  TAKE_HOME
+}
+
+enum QuestionType {
+  TECHNICAL
+  BEHAVIORAL
+  SYSTEM_DESIGN
+  CODING
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+}
+
+enum ApplicationSource {
+  MANUAL
+  LINKEDIN
+  INDEED
+  GLASSDOOR
+  COMPANY_SITE
+  REFERRAL
+  OTHER
+}
+
+# ── Scalars ──
+
+scalar DateTime
+scalar JSON
+scalar Upload
+
+# ── Pagination ──
+
+input PaginationInput {
+  page: Int = 1
+  limit: Int = 20
+}
+
+type PaginationMeta {
+  total: Int!
+  page: Int!
+  limit: Int!
+  totalPages: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type JobConnection {
+  edges: [JobApplication!]!
+  meta: PaginationMeta!
+}
+
+# ── Filters ──
+
+input JobFilter {
+  status: JobStatus
+  companyName: String
+  search: String
+  dateFrom: DateTime
+  dateTo: DateTime
+  source: ApplicationSource
+}
+
+# ── Auth Types ──
+
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+# ── User Types ──
+
+type User {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  title: String
+  targetRole: String
+  experienceLevel: String
+  targetLocations: String
+  summary: String
+  avatarUrl: String
+  isActive: Boolean!
+  subscription: Subscription
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input UpdateProfileInput {
+  firstName: String
+  lastName: String
+  title: String
+  targetRole: String
+  experienceLevel: String
+  targetLocations: String
+  summary: String
+}
+
+# ── Subscription Types ──
+
+type Subscription {
+  id: ID!
+  tier: SubscriptionTier!
+  currentPeriodEnd: DateTime
+  isActive: Boolean!
+}
+
+# ── Job Application Types ──
+
+type JobApplication {
+  id: ID!
+  companyName: String!
+  companyWebsite: String
+  companyLogo: String
+  jobTitle: String!
+  jobUrl: String
+  jobDescription: String
+  location: String
+  salaryRange: String
+  salaryMin: Int
+  salaryMax: Int
+  currency: String!
+  employmentType: String
+  workMode: String
+  status: JobStatus!
+  source: ApplicationSource!
+  notes: String
+  appliedAt: DateTime
+  rejectedAt: DateTime
+  rejectionReason: String
+  offerSalary: Int
+  offerEquity: String
+  offerBenefits: String
+  offerDeadline: DateTime
+  offerAcceptedAt: DateTime
+  rating: Int
+  interviews: [Interview!]!
+  events: [ApplicationEvent!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateJobInput {
+  companyName: String!
+  companyWebsite: String
+  jobTitle: String!
+  jobUrl: String
+  jobDescription: String
+  location: String
+  salaryRange: String
+  salaryMin: Int
+  salaryMax: Int
+  currency: String
+  employmentType: String
+  workMode: String
+  source: ApplicationSource
+  notes: String
+}
+
+input UpdateJobInput {
+  companyName: String
+  companyWebsite: String
+  jobTitle: String
+  jobUrl: String
+  jobDescription: String
+  location: String
+  salaryRange: String
+  salaryMin: Int
+  salaryMax: Int
+  currency: String
+  employmentType: String
+  workMode: String
+  notes: String
+  rating: Int
+}
+
+# ── Interview Types ──
+
+type Interview {
+  id: ID!
+  type: InterviewType!
+  round: Int!
+  scheduledAt: DateTime
+  durationMinutes: Int
+  interviewers: String
+  location: String
+  notes: String
+  feedback: String
+  rating: Int
+  isCompleted: Boolean!
+  jobApplicationId: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateInterviewInput {
+  type: InterviewType!
+  round: Int
+  scheduledAt: DateTime
+  durationMinutes: Int
+  interviewers: String
+  location: String
+  notes: String
+}
+
+input UpdateInterviewInput {
+  type: InterviewType
+  round: Int
+  scheduledAt: DateTime
+  durationMinutes: Int
+  interviewers: String
+  location: String
+  notes: String
+  feedback: String
+  rating: Int
+  isCompleted: Boolean
+}
+
+# ── Application Event Types ──
+
+type ApplicationEvent {
+  id: ID!
+  eventType: String!
+  description: String
+  metadata: JSON
+  createdAt: DateTime!
+}
+
+# ── Resume Types ──
+
+type Resume {
+  id: ID!
+  title: String!
+  fileUrl: String!
+  fileSize: Int
+  mimeType: String
+  isPrimary: Boolean!
+  parsedSkills: String
+  parsedExperience: String
+  parsedEducation: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# ── Cover Letter Types ──
+
+type CoverLetter {
+  id: ID!
+  jobTitle: String!
+  companyName: String!
+  content: String!
+  tone: String!
+  isGenerated: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CoverLetterInput {
+  jobTitle: String!
+  companyName: String!
+  jobDescription: String!
+  tone: String = "professional"
+  resumeId: ID
+}
+
+# ── Interview Question Types ──
+
+type InterviewQuestion {
+  id: ID!
+  question: String!
+  answer: String
+  type: QuestionType!
+  category: String
+  difficulty: Int
+  isFavorite: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# ── Skill Gap Types ──
+
+type SkillGapAnalysis {
+  jobTitle: String!
+  companyName: String!
+  matchScore: Float!
+  requiredSkills: [SkillWithImportance!]!
+  userSkills: [String!]!
+  missingSkills: [MissingSkill!]!
+  recommendations: [String!]
+}
+
+type SkillWithImportance {
+  skill: String!
+  importance: String!
+}
+
+type MissingSkill {
+  skill: String!
+  importance: String!
+  recommendation: String!
+}
+
+# ── Analytics Types ──
+
+type FunnelAnalytics {
+  saved: Int!
+  applied: Int!
+  phoneScreen: Int!
+  technical: Int!
+  onsite: Int!
+  offer: Int!
+  accepted: Int!
+  rejected: Int!
+  conversionRate: Float!
+  interviewRate: Float!
+  offerRate: Float!
+}
+
+type MonthlyStat {
+  month: String!
+  applications: Int!
+  interviews: Int!
+  offers: Int!
+  rejections: Int!
+}
+
+type CompanyAnalytics {
+  companyName: String!
+  totalApplications: Int!
+  interviews: Int!
+  offers: Int!
+  responseRate: Float!
+  avgResponseDays: Float
+}
+
+# ── Market Analytics Types ──
+
+type SkillDemand {
+  skill: String!
+  count: Int!
+  month: String!
+  role: String
+  trend: String
+}
+
+type SalaryAnalytics {
+  role: String!
+  location: String
+  minSalary: Int!
+  maxSalary: Int!
+  avgSalary: Int!
+  sampleSize: Int!
+  currency: String!
+}
+
+type DemandTrend {
+  month: String!
+  totalJobs: Int!
+  avgSalary: Int!
+  topSkills: [SkillDemand!]!
+}
+
+# ── Stats ──
+
+type JobStats {
+  total: Int!
+  byStatus: JSON!
+  activeApplications: Int!
+  thisWeekApplications: Int!
+  thisMonthInterviews: Int!
+}
+
+# ── Root Queries ──
+
+type Query {
+  # Auth / User
+  me: User!
+
+  # Jobs
+  jobs(filter: JobFilter, pagination: PaginationInput): JobConnection!
+  job(id: ID!): JobApplication!
+  jobStats: JobStats!
+
+  # Resumes
+  resumes: [Resume!]!
+  resume(id: ID!): Resume
+
+  # Cover Letters
+  coverLetters: [CoverLetter!]!
+  coverLetter(id: ID!): CoverLetter
+
+  # Interview Questions
+  interviewQuestions(jobId: ID, type: QuestionType): [InterviewQuestion!]!
+  generateInterviewQuestions(jobId: ID!, type: QuestionType!): [InterviewQuestion!]!
+
+  # Skill Gap
+  skillGapAnalysis(jobId: ID!): SkillGapAnalysis!
+
+  # Analytics
+  funnelAnalytics: FunnelAnalytics!
+  monthlyStats(from: DateTime!, to: DateTime!): [MonthlyStat!]!
+  companyAnalytics: [CompanyAnalytics!]!
+
+  # Market Analytics
+  marketSkillsDemand(role: String): [SkillDemand!]!
+  salaryAnalytics(role: String, location: String): SalaryAnalytics!
+  demandTrends: [DemandTrend!]!
+}
+
+# ── Root Mutations ──
+
+type Mutation {
+  # Auth
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  refreshToken(token: String!): AuthPayload!
+
+  # Profile
+  updateProfile(input: UpdateProfileInput!): User!
+
+  # Jobs
+  createJob(input: CreateJobInput!): JobApplication!
+  updateJob(id: ID!, input: UpdateJobInput!): JobApplication!
+  deleteJob(id: ID!): Boolean!
+  updateJobStatus(id: ID!, status: JobStatus!): JobApplication!
+
+  # Interviews
+  addInterview(jobId: ID!, input: CreateInterviewInput!): Interview!
+  updateInterview(id: ID!, input: UpdateInterviewInput!): Interview!
+  deleteInterview(id: ID!): Boolean!
+
+  # Resumes
+  uploadResume(title: String!, file: Upload!): Resume!
+  deleteResume(id: ID!): Boolean!
+
+  # Cover Letters
+  generateCoverLetter(input: CoverLetterInput!): CoverLetter!
+  saveCoverLetter(id: ID!, content: String!): CoverLetter!
+  deleteCoverLetter(id: ID!): Boolean!
+
+  # Interview Questions
+  saveInterviewQuestion(question: String!, answer: String, type: QuestionType!, category: String, difficulty: Int): InterviewQuestion!
+  deleteInterviewQuestion(id: ID!): Boolean!
+
+  # Skill Gap
+  analyzeSkillGap(jobId: ID!): SkillGapAnalysis!
+}

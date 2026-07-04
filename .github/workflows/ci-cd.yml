@@ -1,0 +1,141 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '22'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+jobs:
+  quality:
+    name: Quality Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jobpilot_test
+          POSTGRES_USER: jobpilot
+          POSTGRES_PASSWORD: jobpilot_secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./apps/api
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://jobpilot:jobpilot_secret@localhost:5432/jobpilot_test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: npx turbo typecheck
+
+      - name: Test
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://jobpilot:jobpilot_secret@localhost:5432/jobpilot_test
+
+  build:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    needs: [quality]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'ca-central-1' }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push API
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
+          target: production
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/jobpilot-api:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/jobpilot-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & Push Web
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/web
+          file: ./apps/web/Dockerfile
+          target: production
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/jobpilot-web:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/jobpilot-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'ca-central-1' }}
+
+      - name: Deploy API
+        run: |
+          aws ecs update-service \
+            --cluster jobpilot-cluster \
+            --service api-service \
+            --force-new-deployment
+
+      - name: Deploy Web
+        run: |
+          aws ecs update-service \
+            --cluster jobpilot-cluster \
+            --service web-service \
+            --force-new-deployment
+
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://api.jobpilot.ai/graphql || exit 1
+          curl -f https://jobpilot.ai || exit 1
