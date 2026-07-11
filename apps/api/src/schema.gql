@@ -10,6 +10,7 @@ enum ApplicationSource {
   MANUAL
   OTHER
   REFERRAL
+  SCRAPED
 }
 
 type AuthPayload {
@@ -73,6 +74,8 @@ input CreateJobInput {
   notes: String
   salaryRange: String
   source: ApplicationSource
+  sourceId: String
+  sourceUrl: String
   status: JobStatus = SAVED
 }
 
@@ -209,7 +212,10 @@ type JobType {
   location: String
   notes: String
   salaryRange: String
+  scrapedAt: DateTime
   source: ApplicationSource
+  sourceId: String
+  sourceUrl: String
   status: JobStatus!
   updatedAt: DateTime!
   userId: String!
@@ -245,6 +251,7 @@ type Mutation {
   login(input: LoginInput!): AuthPayload!
   refreshToken(token: String!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
+  scrapeJobs(input: ScrapeJobsInput!): ScrapeResult!
   setPrimaryResume(id: String!): ResumeType!
   toggleFavoriteQuestion(id: String!): InterviewQuestionType
   updateCoverLetter(id: String!, input: UpdateCoverLetterInput!): Boolean!
@@ -318,6 +325,30 @@ type ResumeType {
   title: String!
   updatedAt: DateTime!
   userId: String!
+}
+
+input ScrapeJobsInput {
+  importAll: Boolean = false
+  keywords: String!
+  location: String!
+}
+
+type ScrapeResult {
+  imported: Int!
+  jobs: [ScrapedJobType!]!
+  total: Int!
+}
+
+type ScrapedJobType {
+  companyName: String!
+  employmentType: String
+  jobDescription: String
+  jobTitle: String!
+  jobUrl: String
+  location: String
+  salaryRange: String
+  source: String!
+  workMode: String
 }
 
 input SkillGapInput {

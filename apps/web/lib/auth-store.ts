@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { setAuthToken } from '@/lib/graphql/client';
 
 interface User {
   id: string;
@@ -44,6 +45,9 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.accessToken) setAuthToken(state.accessToken);
+      },
     }
   )
 );

@@ -9,17 +9,32 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
-import { Search, Download, Briefcase, MapPin, DollarSign, ExternalLink, Globe } from 'lucide-react';
+import { toast } from 'sonner';
+import { Search, Download, MapPin, DollarSign, ExternalLink, Globe } from 'lucide-react';
 
-const SOURCE_BADGE: Record<string, 'blue' | 'orange' | 'purple'> = {
+const SOURCE_BADGE: Record<string, 'blue' | 'orange' | 'purple' | 'green' | 'red'> = {
   LINKEDIN: 'blue',
   INDEED: 'orange',
   GLASSDOOR: 'purple',
+  ZIPRECRUITER: 'green',
+  GOOGLE_JOBS: 'red',
 };
+
+const SOURCE_LABELS: Record<string, string> = {
+  LINKEDIN: 'LinkedIn',
+  INDEED: 'Indeed',
+  GLASSDOOR: 'Glassdoor',
+  ZIPRECRUITER: 'ZipRecruiter',
+  GOOGLE_JOBS: 'Google Jobs',
+};
+
+const ALL_SOURCES = ['INDEED', 'LINKEDIN', 'GLASSDOOR', 'ZIPRECRUITER', 'GOOGLE_JOBS'];
 
 export default function ScraperPage() {
   const [keywords, setKeywords] = useState('software engineer');
   const [location, setLocation] = useState('Toronto, ON');
+
+  const [sourceFilter, setSourceFilter] = useState<string>('ALL');
 
   const scrape = useMutation({
     mutationFn: async () => {
@@ -27,6 +42,10 @@ export default function ScraperPage() {
         input: { keywords, location, importAll: false },
       });
       return scrapeJobs;
+    },
+    onError: (err: any) => {
+      toast.error('Search failed — check console for details');
+      console.error('Scrape error:', err);
     },
   });
 
@@ -42,7 +61,9 @@ export default function ScraperPage() {
     },
   });
 
-  const jobs = scrape.data?.jobs ?? [];
+  const jobs = (scrape.data?.jobs ?? []).filter(
+    (j: any) => sourceFilter === 'ALL' || j.source === sourceFilter,
+  );
   const total = scrape.data?.total ?? 0;
   const imported = scrape.data?.imported ?? 0;
 
@@ -54,7 +75,7 @@ export default function ScraperPage() {
       </div>
 
       <Card padding="md" className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input
             label="Keywords"
             value={keywords}
@@ -67,6 +88,19 @@ export default function ScraperPage() {
             onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g. Toronto, ON"
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="ALL">All Sources</option>
+              {ALL_SOURCES.map((s) => (
+                <option key={s} value={s}>{SOURCE_LABELS[s]}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="flex gap-3">
           <Button onClick={() => scrape.mutate()} loading={scrape.isPending}>
@@ -104,7 +138,7 @@ export default function ScraperPage() {
       {jobs.length > 0 && !scrape.isPending && (
         <div className="space-y-3">
           <p className="text-sm text-gray-500">
-            Found {total} jobs from {['Indeed', 'LinkedIn', 'Glassdoor'].join(', ')}
+            Found {total} jobs{sourceFilter !== 'ALL' ? ` from ${SOURCE_LABELS[sourceFilter]}` : ''}
           </p>
           <div className="grid grid-cols-1 gap-3">
             {jobs.map((job: any, i: number) => (
@@ -163,7 +197,7 @@ export default function ScraperPage() {
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">Search for jobs</h3>
           <p className="text-sm text-gray-500 max-w-sm">
-            Enter keywords and location above to search for job listings from Indeed, LinkedIn, and Glassdoor.
+             Enter keywords and location above to search for job listings from Indeed, LinkedIn, Glassdoor, ZipRecruiter, and Google Jobs.
           </p>
         </div>
       )}
