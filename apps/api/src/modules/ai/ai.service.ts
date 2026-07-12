@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import OpenAI from 'openai';
+import { AIProvider } from './providers/ai-provider.interface';
+import { OpenRouterProvider } from './providers/openrouter.provider';
 import { GenerateCoverLetterInput, SkillGapInput, InterviewQuestionsInput } from './dto/ai.input';
 
 const SYSTEM_COVER_LETTER = `You are an expert cover letter writer. Create a professional, compelling cover letter based on the given job details and tone preference. Return only the cover letter content as plain text.`;
@@ -11,26 +12,22 @@ const SYSTEM_QUESTIONS = `You are an interview coach. Generate relevant intervie
 
 @Injectable()
 export class AiService {
-  private openai: OpenAI | null = null;
+  private readonly logger = new Logger(AiService.name);
 
-  constructor(private readonly prisma: PrismaService) {
-    if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    }
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provider: OpenRouterProvider,
+  ) {}
 
-  private ensureOpenAI() {
-    if (!this.openai) {
-      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY environment variable.');
-    }
-    return this.openai;
+  private ensureProvider(): AIProvider {
+    return this.provider;
   }
 
   async generateCoverLetter(userId: string, input: GenerateCoverLetterInput) {
-    const openai = this.ensureOpenAI();
+    const provider = this.ensureProvider();
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const { content } = await provider.chat({
+      model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_COVER_LETTER },
         {
@@ -41,8 +38,6 @@ export class AiService {
       temperature: 0.7,
       max_tokens: 1000,
     });
-
-    const content = completion.choices[0]?.message?.content || '';
 
     const coverLetter = await this.prisma.coverLetter.create({
       data: {
@@ -60,10 +55,10 @@ export class AiService {
   }
 
   async analyzeSkillGap(userId: string, input: SkillGapInput) {
-    const openai = this.ensureOpenAI();
+    const provider = this.ensureProvider();
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const { content: raw } = await provider.chat({
+      model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_SKILL_GAP },
         {
@@ -76,7 +71,6 @@ export class AiService {
       response_format: { type: 'json_object' },
     });
 
-    const raw = completion.choices[0]?.message?.content || '{}';
     const parsed = JSON.parse(raw);
 
     const report = await this.prisma.skillGapReport.create({
@@ -103,14 +97,14 @@ export class AiService {
   }
 
   async generateInterviewQuestions(userId: string, input: InterviewQuestionsInput) {
-    const openai = this.ensureOpenAI();
+    const provider = this.ensureProvider();
 
     const typeInstruction = input.questionType
       ? ` Question type: ${input.questionType}.`
       : '';
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const { content: raw } = await provider.chat({
+      model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_QUESTIONS },
         {
@@ -123,7 +117,6 @@ export class AiService {
       response_format: { type: 'json_object' },
     });
 
-    const raw = completion.choices[0]?.message?.content || '{}';
     const parsed = JSON.parse(raw);
     const questionsData = Array.isArray(parsed) ? parsed : parsed.questions || [];
 

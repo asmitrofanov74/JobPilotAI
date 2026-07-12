@@ -9,7 +9,7 @@ AI-powered job search platform for software engineers. Track applications, optim
 | Frontend | Next.js 15, React 19, TypeScript, TailwindCSS, Shadcn UI, TanStack Query |
 | Backend | NestJS 11, TypeScript, GraphQL (Apollo), Prisma ORM |
 | Database | PostgreSQL 16 |
-| AI | OpenAI SDK |
+| AI | OpenRouter (OpenAI-compatible) |
 | Cache | Redis 7 |
 | Container | Docker, Docker Compose |
 | Cloud | AWS ECS Fargate, RDS Aurora, S3, Lambda |
@@ -97,6 +97,31 @@ cp ../.env.example .env.local
 npm install
 npm run dev
 ```
+
+### AI Setup (OpenRouter)
+
+This project uses [OpenRouter](https://openrouter.ai/) for AI features (cover letter generation, skill gap analysis, interview questions). OpenRouter provides free and paid AI models through a single OpenAI-compatible API.
+
+1. Go to [openrouter.ai/keys](https://openrouter.ai/keys) and sign up
+2. Create a free API key
+3. Copy the key to your `.env` file:
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-your-key-here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=openrouter/free
+```
+
+**Switching models:**
+- For free models: `openrouter/free` (uses best available free model)
+- For paid models: `openai/gpt-4o`, `anthropic/claude-3.5-sonnet`, etc.
+- See [docs.openrouter.ai/models](https://docs.openrouter.ai/models) for the full list
+
+**Adding future providers:**
+The AI module uses a provider abstraction (`AIProvider` interface). To add a new provider:
+1. Create a new provider class implementing `AIProvider` in `apps/api/src/modules/ai/providers/`
+2. Set `AI_PROVIDER` env var to the provider name
+3. Register it in `ai.module.ts`
 
 ### Demo Credentials
 

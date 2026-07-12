@@ -16,6 +16,8 @@ export class JobsService {
     const page = pagination.page || 1;
     const limit = pagination.limit || 20;
     const skip = (page - 1) * limit;
+    const sortBy = pagination.sortBy || 'createdAt';
+    const sortOrder = pagination.sortOrder || 'desc';
 
     const where: any = { userId };
 
@@ -30,12 +32,15 @@ export class JobsService {
       ];
     }
 
+    const allowedSortFields = ['companyName', 'jobTitle', 'status', 'createdAt', 'updatedAt'];
+    const orderField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+
     const [edges, total] = await Promise.all([
       this.prisma.jobApplication.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [orderField]: sortOrder },
         include: {
           interviews: {
             select: { id: true, type: true, scheduledAt: true, isCompleted: true },
@@ -110,6 +115,40 @@ export class JobsService {
       where: { id, userId },
     });
     return true;
+  }
+
+  async removeAll(userId: string) {
+    const result = await this.prisma.jobApplication.deleteMany({
+      where: { userId },
+    });
+    return result.count;
+  }
+
+  async bulkImport(userId: string, jobs: CreateJobInput[]) {
+    let imported = 0;
+    let skipped = 0;
+
+    for (const job of jobs) {
+      if (job.sourceUrl) {
+        const existing = await this.prisma.jobApplication.findFirst({
+          where: { userId, sourceUrl: job.sourceUrl },
+          select: { id: true },
+        });
+        if (existing) {
+          skipped++;
+          continue;
+        }
+      }
+
+      try {
+        await this.create(userId, job);
+        imported++;
+      } catch {
+        skipped++;
+      }
+    }
+
+    return { imported, skipped };
   }
 
   async getFunnelAnalytics(userId: string) {

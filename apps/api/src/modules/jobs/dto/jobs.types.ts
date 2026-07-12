@@ -21,6 +21,11 @@ export enum ApplicationSource {
   REFERRAL = 'REFERRAL',
   SCRAPED = 'SCRAPED',
   OTHER = 'OTHER',
+  ZIPRECRUITER = 'ZIPRECRUITER',
+  WORKOPOLIS = 'WORKOPOLIS',
+  GREENHOUSE = 'GREENHOUSE',
+  LEVER = 'LEVER',
+  WORKDAY = 'WORKDAY',
 }
 
 registerEnumType(JobStatus, { name: 'JobStatus' });
@@ -144,6 +149,15 @@ export class FunnelAnalytics {
 
   @Field(() => Int)
   accepted: number;
+}
+
+@ObjectType()
+export class BulkImportResult {
+  @Field(() => Int)
+  imported: number;
+
+  @Field(() => Int)
+  skipped: number;
 }
 
 @ObjectType()

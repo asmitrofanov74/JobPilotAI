@@ -47,8 +47,20 @@ export class AppConfig {
     return process.env.CORS_ORIGIN || 'http://localhost:3000';
   }
 
-  get openAiApiKey(): string | undefined {
-    return process.env.OPENAI_API_KEY;
+  get openRouterApiKey(): string {
+    return process.env.OPENROUTER_API_KEY || '';
+  }
+
+  get openRouterBaseUrl(): string {
+    return process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
+  }
+
+  get openRouterModel(): string {
+    return process.env.OPENROUTER_MODEL || 'openrouter/free';
+  }
+
+  get aiProvider(): string {
+    return process.env.AI_PROVIDER || 'openrouter';
   }
 
   get awsRegion(): string {

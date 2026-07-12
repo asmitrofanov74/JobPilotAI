@@ -50,6 +50,11 @@ enum ApplicationSource {
   COMPANY_SITE
   REFERRAL
   OTHER
+  ZIPRECRUITER
+  WORKOPOLIS
+  GREENHOUSE
+  LEVER
+  WORKDAY
 }
 
 model User {

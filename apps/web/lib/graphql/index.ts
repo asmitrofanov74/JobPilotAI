@@ -127,6 +127,21 @@ export const DELETE_JOB_MUTATION = `
   }
 `;
 
+export const DELETE_ALL_JOBS_MUTATION = `
+  mutation DeleteAllJobs {
+    deleteAllJobs
+  }
+`;
+
+export const IMPORT_JOBS_MUTATION = `
+  mutation ImportJobs($jobs: [CreateJobInput!]!) {
+    importJobs(jobs: $jobs) {
+      imported
+      skipped
+    }
+  }
+`;
+
 export const RESUMES_QUERY = `
   query Resumes {
     resumes {
@@ -388,6 +403,16 @@ export const SCRAPE_JOBS_MUTATION = `
         source
         employmentType
         workMode
+        postedDate
+      }
+      stats {
+        linkedin
+        indeed
+        workopolis
+        ziprecruiter
+        greenhouse
+        lever
+        workday
       }
     }
   }

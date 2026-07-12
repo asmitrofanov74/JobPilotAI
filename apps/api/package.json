@@ -39,6 +39,7 @@
     "class-validator": "^0.14.0",
     "compression": "^1.7.0",
     "cookie-parser": "^1.4.0",
+    "crawlee": "^3.17.0",
     "dayjs": "^1.11.0",
     "graphql": "^16.0.0",
     "graphql-type-json": "^0.3.2",

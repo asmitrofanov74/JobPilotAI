@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { JobsService } from './jobs.service';
-import { JobType, PaginatedJobs, FunnelAnalytics, MonthlyStat } from './dto/jobs.types';
+import { JobType, PaginatedJobs, FunnelAnalytics, MonthlyStat, BulkImportResult } from './dto/jobs.types';
 import { CreateJobInput, UpdateJobInput, PaginationInput } from './dto/jobs.input';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -58,6 +58,23 @@ export class JobsResolver {
     @Args('id') id: string,
   ) {
     return this.jobsService.remove(id, user.id);
+  }
+
+  @Mutation(() => Int)
+  @UseGuards(JwtAuthGuard)
+  async deleteAllJobs(
+    @CurrentUser() user: { id: string },
+  ) {
+    return this.jobsService.removeAll(user.id);
+  }
+
+  @Mutation(() => BulkImportResult)
+  @UseGuards(JwtAuthGuard)
+  async importJobs(
+    @CurrentUser() user: { id: string },
+    @Args('jobs', { type: () => [CreateJobInput] }) jobs: CreateJobInput[],
+  ) {
+    return this.jobsService.bulkImport(user.id, jobs);
   }
 
   @Query(() => FunnelAnalytics)

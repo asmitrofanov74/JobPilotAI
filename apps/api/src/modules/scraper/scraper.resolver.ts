@@ -1,11 +1,52 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { ScraperService, ScrapedJob as ScrapedJobInterface } from './scraper.service';
+import { ScraperService, ScrapedJob as ScrapedJobInterface, PostedWithin, ProviderStats } from './scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JobsService } from '../jobs/jobs.service';
-import { ObjectType, Field, InputType, Int } from '@nestjs/graphql';
-import { IsString, IsOptional, MinLength } from 'class-validator';
+import { ObjectType, Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
+import { IsString, IsOptional, MinLength, IsBoolean } from 'class-validator';
+import { ProviderHealthService } from './services/provider-health.service';
+
+registerEnumType(PostedWithin, { name: 'PostedWithin' });
+
+@InputType()
+export class JobSourceInput {
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  linkedin?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  indeed?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  workopolis?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  ziprecruiter?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  greenhouse?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  lever?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsOptional()
+  @IsBoolean()
+  workday?: boolean;
+}
 
 @InputType()
 export class ScrapeJobsInput {
@@ -20,6 +61,19 @@ export class ScrapeJobsInput {
   @Field({ nullable: true, defaultValue: false })
   @IsOptional()
   importAll?: boolean;
+
+  @Field(() => PostedWithin, { nullable: true })
+  @IsOptional()
+  postedWithin?: PostedWithin;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  source?: string;
+
+  @Field(() => JobSourceInput, { nullable: true })
+  @IsOptional()
+  sources?: JobSourceInput;
 }
 
 @ObjectType()
@@ -50,6 +104,33 @@ export class ScrapedJobType {
 
   @Field({ nullable: true })
   workMode?: string;
+
+  @Field({ nullable: true })
+  postedDate?: string;
+}
+
+@ObjectType()
+export class ProviderStatsType {
+  @Field(() => Int)
+  linkedin: number;
+
+  @Field(() => Int)
+  indeed: number;
+
+  @Field(() => Int)
+  workopolis: number;
+
+  @Field(() => Int)
+  ziprecruiter: number;
+
+  @Field(() => Int)
+  greenhouse: number;
+
+  @Field(() => Int)
+  lever: number;
+
+  @Field(() => Int)
+  workday: number;
 }
 
 @ObjectType()
@@ -62,6 +143,24 @@ export class ScrapeResult {
 
   @Field(() => [ScrapedJobType])
   jobs: ScrapedJobType[];
+
+  @Field(() => ProviderStatsType, { nullable: true })
+  stats?: ProviderStatsType;
+}
+
+@ObjectType()
+export class ProviderHealthType {
+  @Field()
+  provider: string;
+
+  @Field()
+  healthy: boolean;
+
+  @Field(() => Date)
+  lastRun: Date;
+
+  @Field({ nullable: true })
+  lastError?: string;
 }
 
 @Resolver(() => ScrapedJobType)
@@ -69,6 +168,7 @@ export class ScraperResolver {
   constructor(
     private readonly scraperService: ScraperService,
     private readonly jobsService: JobsService,
+    private readonly healthService: ProviderHealthService,
   ) {}
 
   @Mutation(() => ScrapeResult)
@@ -77,7 +177,9 @@ export class ScraperResolver {
     @CurrentUser() user: { id: string },
     @Args('input') input: ScrapeJobsInput,
   ) {
-    const scraped = await this.scraperService.scrapeAll(input.keywords, input.location);
+    const { jobs: scraped, stats } = await this.scraperService.scrapeAll(
+      input.keywords, input.location, input.postedWithin, input.source,
+    );
 
     let imported = 0;
     if (input.importAll) {
@@ -115,7 +217,23 @@ export class ScraperResolver {
         source: j.source,
         employmentType: j.employmentType ?? undefined,
         workMode: j.workMode ?? undefined,
+        postedDate: j.postedDate ?? undefined,
       })),
+      stats: {
+        linkedin: stats['LINKEDIN'] || 0,
+        indeed: stats['INDEED'] || 0,
+        workopolis: stats['WORKOPOLIS'] || 0,
+        ziprecruiter: stats['ZIPRECRUITER'] || 0,
+        greenhouse: stats['GREENHOUSE'] || 0,
+        lever: stats['LEVER'] || 0,
+        workday: stats['WORKDAY'] || 0,
+      },
     };
+  }
+
+  @Query(() => [ProviderHealthType])
+  @UseGuards(JwtAuthGuard)
+  async scraperStatus() {
+    return this.healthService.getAll();
   }
 }
