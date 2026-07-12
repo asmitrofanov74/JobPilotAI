@@ -14,6 +14,7 @@ import { WorkopolisProvider } from './providers/workopolis.provider';
 import { DedupService } from './services/dedup.service';
 import { ProviderHealthService } from './services/provider-health.service';
 import { AtsDiscoveryService } from './services/ats-discovery.service';
+import { CompanyScraperService } from './services/company-scraper.service';
 
 @Module({
   imports: [ConfigModule, JobsModule],
@@ -24,6 +25,7 @@ import { AtsDiscoveryService } from './services/ats-discovery.service';
     DedupService,
     ProviderHealthService,
     AtsDiscoveryService,
+    CompanyScraperService,
     GreenhouseProvider,
     LeverProvider,
     WorkdayProvider,
@@ -32,6 +34,6 @@ import { AtsDiscoveryService } from './services/ats-discovery.service';
     ZipRecruiterProvider,
     WorkopolisProvider,
   ],
-  exports: [ScraperService, ProviderFactory, DedupService, ProviderHealthService, AtsDiscoveryService],
+  exports: [ScraperService, ProviderFactory, DedupService, ProviderHealthService, AtsDiscoveryService, CompanyScraperService],
 })
 export class ScraperModule {}

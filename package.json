@@ -14,13 +14,20 @@
     "docker:prod": "docker compose -f infrastructure/docker/docker-compose.yml -f infrastructure/docker/docker-compose.prod.yml up"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "prettier": "^3.0.0"
+    "@testing-library/dom": "^10.4.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.0.0"
   },
   "packageManager": "npm@10.8.0",
   "workspaces": [
     "apps/*",
     "packages/*",
     "packages/config/*"
-  ]
+  ],
+  "dependencies": {
+    "@sentry/core": "^10.65.0",
+    "@sentry/nestjs": "^10.65.0",
+    "@sentry/nextjs": "^10.65.0",
+    "@sentry/node": "^10.65.0"
+  }
 }

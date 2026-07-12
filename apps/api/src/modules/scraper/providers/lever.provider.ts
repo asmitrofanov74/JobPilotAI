@@ -6,10 +6,25 @@ import { NormalizedJob } from './normalized-job.interface';
 
 const execAsync = promisify(exec);
 
+const CURL_TIMEOUT = 30;
+
+async function curlJson(url: string): Promise<any> {
+  try {
+    const { stdout } = await execAsync(`curl -s --max-time ${CURL_TIMEOUT} "${url}"`, { timeout: CURL_TIMEOUT * 1000 + 5000 });
+    return JSON.parse(stdout);
+  } catch (err: any) {
+    if (err.stdout) {
+      try { return JSON.parse(err.stdout); } catch { /* not JSON */ }
+    }
+    throw err;
+  }
+}
+
 const KNOWN_BOARDS: Record<string, string> = {
-  shopify: 'Shopify',
   stripe: 'Stripe',
   simplisafe: 'SimpliSafe',
+  segment: 'Segment',
+  gusto: 'Gusto',
 };
 
 @Injectable()
@@ -19,43 +34,71 @@ export class LeverProvider implements JobProvider {
 
   async search(params: JobSearchInput): Promise<NormalizedJob[]> {
     const jobs: NormalizedJob[] = [];
-    const query = params.query.toLowerCase();
 
     await Promise.allSettled(
       Object.entries(KNOWN_BOARDS).map(([board, company]) =>
-        this.scrapeBoard(board, company, query, params.location).then((r) => jobs.push(...r)),
+        this.scrapeBoard(board, company, params).then((r) => jobs.push(...r)),
       ),
     );
 
     return jobs;
   }
 
-  private async scrapeBoard(board: string, company: string, query: string, location: string | undefined): Promise<NormalizedJob[]> {
+  private async scrapeBoard(board: string, company: string, params: JobSearchInput): Promise<NormalizedJob[]> {
     const result: NormalizedJob[] = [];
+    const { query, location, jobType, remote, salaryMin, salaryMax } = params;
+    const q = (query || '').toLowerCase();
+
     try {
       const url = `https://api.lever.co/v0/postings/${board}?mode=json`;
-      const { stdout } = await execAsync(`curl -s --max-time 10 "${url}"`, { timeout: 15000 });
-      const data: any[] = JSON.parse(stdout);
+      const data: any[] = await curlJson(url);
 
       for (const job of data || []) {
         const title = job.text || '';
-        const jobLocation = job.categories?.location || '';
         if (!title) continue;
-        if (query && !title.toLowerCase().includes(query)) continue;
+
+        const jobLocation = job.categories?.location || '';
+        const desc = (job.descriptionPlain || job.description || '').slice(0, 2000);
+        const haystack = `${title} ${desc} ${Object.values(job.categories || {}).join(' ')}`.toLowerCase();
+
+        if (q && !title.toLowerCase().includes(q)) continue;
         if (location && !jobLocation.toLowerCase().includes(location.toLowerCase())) continue;
+
+        if (jobType) {
+          const typeMap: Record<string, string[]> = { FULL_TIME: ['full-time', 'full time', 'fulltime', 'permanent'], PART_TIME: ['part-time', 'part time'], CONTRACT: ['contract', 'temporary', 'temp'], INTERNSHIP: ['intern', 'internship', 'co-op', 'coop'] };
+          const keywords = typeMap[jobType] || [];
+          if (!keywords.some((k) => haystack.includes(k))) continue;
+        }
+        if (remote === true && !haystack.includes('remote')) continue;
+        if (salaryMin || salaryMax) {
+          const salaryMatch = desc.toLowerCase().match(/\$[\d,]+(?:k)?(?:\s*-\s*\$?[\d,]+(?:k)?)?/g);
+          if (salaryMatch) {
+            const nums: number[] = salaryMatch.flatMap((s: string) => s.replace(/[$,k\s]/g, '').split('-').map(Number).filter((n: number) => !isNaN(n)));
+            if (salaryMin && !nums.some((n: number) => n >= salaryMin)) continue;
+            if (salaryMax && !nums.some((n: number) => n <= salaryMax)) continue;
+          }
+        }
+
+        let empType: string | undefined;
+        if (haystack.includes('intern') || haystack.includes('co-op')) empType = 'INTERNSHIP';
+        else if (haystack.includes('contract') || haystack.includes('temporary')) empType = 'CONTRACT';
+        else if (haystack.includes('part-time') || haystack.includes('part time')) empType = 'PART_TIME';
+        else if (haystack.includes('full-time') || haystack.includes('full time')) empType = 'FULL_TIME';
 
         result.push({
           title,
           company,
           location: jobLocation,
-          description: (job.descriptionPlain || job.description || '').slice(0, 2000),
+          remote: haystack.includes('remote'),
+          description: desc,
+          employmentType: empType,
           source: this.name,
           sourceUrl: job.hostedUrl || `https://jobs.lever.co/${board}/${job.id}`,
           postedAt: job.createdAt ? new Date(job.createdAt) : undefined,
         });
       }
     } catch (err) {
-      this.logger.warn(`Lever ${board}: ${err instanceof Error ? err.message : err}`);
+      this.logger.warn(`Lever ${board}: ${err instanceof Error ? err.message : String(err)}`);
     }
     return result;
   }

@@ -1,11 +1,12 @@
 import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ScraperService, ScrapedJob as ScrapedJobInterface, PostedWithin, ProviderStats } from './scraper.service';
+import { CompanyScraperService } from './services/company-scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JobsService } from '../jobs/jobs.service';
 import { ObjectType, Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
-import { IsString, IsOptional, MinLength, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, MinLength, IsBoolean, IsUrl } from 'class-validator';
 import { ProviderHealthService } from './services/provider-health.service';
 
 registerEnumType(PostedWithin, { name: 'PostedWithin' });
@@ -49,6 +50,18 @@ export class JobSourceInput {
 }
 
 @InputType()
+export class ScrapeCompanyInput {
+  @Field()
+  @IsUrl({ require_protocol: true })
+  careerUrl: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  query?: string;
+}
+
+@InputType()
 export class ScrapeJobsInput {
   @Field()
   @MinLength(1)
@@ -70,6 +83,24 @@ export class ScrapeJobsInput {
   @IsOptional()
   @IsString()
   source?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  jobType?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  remote?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  salaryMin?: number;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  salaryMax?: number;
 
   @Field(() => JobSourceInput, { nullable: true })
   @IsOptional()
@@ -167,6 +198,7 @@ export class ProviderHealthType {
 export class ScraperResolver {
   constructor(
     private readonly scraperService: ScraperService,
+    private readonly companyScraperService: CompanyScraperService,
     private readonly jobsService: JobsService,
     private readonly healthService: ProviderHealthService,
   ) {}
@@ -179,6 +211,7 @@ export class ScraperResolver {
   ) {
     const { jobs: scraped, stats } = await this.scraperService.scrapeAll(
       input.keywords, input.location, input.postedWithin, input.source,
+      input.jobType, input.remote, input.salaryMin, input.salaryMax,
     );
 
     let imported = 0;
@@ -229,6 +262,23 @@ export class ScraperResolver {
         workday: stats['WORKDAY'] || 0,
       },
     };
+  }
+
+  @Mutation(() => [ScrapedJobType])
+  @UseGuards(JwtAuthGuard)
+  async scrapeCompany(
+    @Args('input') input: ScrapeCompanyInput,
+  ) {
+    const jobs = await this.companyScraperService.detectAndScrape(input.careerUrl, input.query);
+    return jobs.map((j) => ({
+      companyName: j.company,
+      jobTitle: j.title,
+      jobDescription: j.description || undefined,
+      jobUrl: j.sourceUrl,
+      location: j.location || undefined,
+      source: j.source,
+      postedDate: j.postedAt?.toISOString() || undefined,
+    }));
   }
 
   @Query(() => [ProviderHealthType])

@@ -43,7 +43,7 @@ function toScrapedJob(n: NormalizedJob): ScrapedJob {
     source: n.source,
     sourceUrl: n.sourceUrl,
     sourceId: `${n.source.toLowerCase()}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    employmentType: null,
+    employmentType: n.employmentType || null,
     workMode: n.remote ? 'Remote' : null,
     postedDate: n.postedAt?.toISOString() || null,
   };
@@ -64,6 +64,10 @@ export class ScraperService {
     location: string,
     postedWithin?: PostedWithin,
     source?: string,
+    jobType?: string,
+    remote?: boolean,
+    salaryMin?: number,
+    salaryMax?: number,
   ): Promise<{ jobs: ScrapedJob[]; stats: ProviderStats }> {
     let providers: JobProvider[];
 
@@ -80,7 +84,14 @@ export class ScraperService {
     const results = await Promise.allSettled(
       providers.map(async (provider) => {
         try {
-          const jobs = await provider.search({ query: keywords, location });
+          const jobs = await provider.search({
+            query: keywords,
+            location,
+            jobType: jobType as any,
+            remote,
+            salaryMin,
+            salaryMax,
+          });
           this.healthService.recordSuccess(provider.name);
           stats[provider.name] = jobs.length;
           allNormalized.push(...jobs);

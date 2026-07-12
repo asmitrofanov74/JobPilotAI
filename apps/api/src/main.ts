@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/node';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import * as compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -8,9 +10,23 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
+  const dsn = process.env.SENTRY_DSN || '';
+  if (dsn) {
+    Sentry.init({
+      dsn,
+      environment: process.env.NODE_ENV || 'development',
+      tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1'),
+    });
+    logger.log('Sentry initialized');
+  }
+
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
+
+  if (dsn) {
+    app.useGlobalFilters(new SentryGlobalFilter());
+  }
 
   app.setGlobalPrefix('api', { exclude: ['graphql'] });
 

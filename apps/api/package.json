@@ -32,6 +32,8 @@
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/throttler": "^6.0.0",
     "@prisma/client": "^6.0.0",
+    "@sentry/nestjs": "^10.65.0",
+    "@sentry/node": "^10.65.0",
     "axios": "^1.18.1",
     "bcryptjs": "^2.4.0",
     "cheerio": "^1.2.0",

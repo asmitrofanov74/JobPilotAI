@@ -8,4 +8,5 @@ export interface NormalizedJob {
   source: string;
   sourceUrl: string;
   postedAt?: Date;
+  employmentType?: string;
 }
