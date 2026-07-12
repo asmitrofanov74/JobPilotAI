@@ -21,6 +21,8 @@ import {
   GenerateQuestionsResultType,
   EvaluateAnswerResultType,
   FrenchVariantComparisonType,
+  PronunciationResultType,
+  CareerSuggestionType,
 } from './dto/french-coach.types';
 import {
   StartFrenchSessionInput,
@@ -33,8 +35,13 @@ import {
   GenerateInterviewQuestionsInput,
   EvaluateInterviewAnswerInput,
   UpdateFrenchProfileInput,
+  EvaluatePronunciationInput,
+  GenerateCareerInterviewInput,
+  GenerateCareerConversationInput,
 } from './dto/french-coach.input';
 import { InterviewCoachService } from './interview-coach.service';
+import { PronunciationService } from './pronunciation.service';
+import { CareerFrenchCoachService } from './career-french-coach.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -47,6 +54,8 @@ export class FrenchCoachResolver {
     private readonly culturalTipsService: CulturalTipsService,
     private readonly vocabularyTrackerService: VocabularyTrackerService,
     private readonly interviewCoachService: InterviewCoachService,
+    private readonly pronunciationService: PronunciationService,
+    private readonly careerFrenchCoachService: CareerFrenchCoachService,
   ) {}
 
   @Query(() => FrenchProfileType)
@@ -172,6 +181,53 @@ export class FrenchCoachResolver {
     @Args('phrase') phrase: string,
   ) {
     return this.vocabularyService.compareVariants(user.id, phrase);
+  }
+
+  // --- Pronunciation ---
+
+  @Mutation(() => PronunciationResultType)
+  @UseGuards(JwtAuthGuard)
+  async evaluateFrenchPronunciation(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: EvaluatePronunciationInput,
+  ) {
+    return this.pronunciationService.evaluate(input.spokenText, input.expectedText ?? undefined);
+  }
+
+  // --- Career Integration ---
+
+  @Mutation(() => GenerateQuestionsResultType)
+  @UseGuards(JwtAuthGuard)
+  async generateCareerInterviewQuestions(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateCareerInterviewInput,
+  ) {
+    return this.careerFrenchCoachService.generateCareerInterviewQuestions(
+      user.id,
+      input.jobApplicationId ?? undefined,
+      input.resumeId ?? undefined,
+      input.targetRole ?? undefined,
+      input.questionCount,
+    );
+  }
+
+  @Mutation(() => SendFrenchMessageResult)
+  @UseGuards(JwtAuthGuard)
+  async generateCareerConversation(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateCareerConversationInput,
+  ) {
+    return this.careerFrenchCoachService.generateCareerConversation(
+      user.id,
+      input.jobApplicationId ?? undefined,
+      input.scenario ?? undefined,
+    );
+  }
+
+  @Query(() => [CareerSuggestionType])
+  @UseGuards(JwtAuthGuard)
+  async careerFrenchSuggestions(@CurrentUser() user: { id: string }) {
+    return this.careerFrenchCoachService.getCareerSuggestions(user.id);
   }
 
   // --- Cultural Tips ---

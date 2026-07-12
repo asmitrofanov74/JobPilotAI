@@ -6,11 +6,15 @@ import { VocabularyService } from './vocabulary.service';
 import { CulturalTipsService } from './cultural-tips.service';
 import { VocabularyTrackerService } from './vocabulary-tracker.service';
 import { InterviewCoachService } from './interview-coach.service';
+import { PronunciationService } from './pronunciation.service';
+import { CareerFrenchCoachService } from './career-french-coach.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { AiModule } from '../ai/ai.module';
+import { ResumesModule } from '../resumes/resumes.module';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
-  imports: [PrismaModule, AiModule],
+  imports: [PrismaModule, AiModule, ResumesModule, JobsModule],
   providers: [
     FrenchCoachService,
     FrenchCoachResolver,
@@ -19,6 +23,8 @@ import { AiModule } from '../ai/ai.module';
     CulturalTipsService,
     VocabularyTrackerService,
     InterviewCoachService,
+    PronunciationService,
+    CareerFrenchCoachService,
   ],
   exports: [FrenchCoachService],
 })

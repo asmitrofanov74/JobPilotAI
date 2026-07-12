@@ -21,6 +21,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Textarea } from '@/components/ui/textarea';
+import { VoiceInput } from '@/components/voice/voice-input';
 
 const SCENARIO_META: Record<string, { label: string; icon: any; color: string; bg: string }> = {
   job_interview: { label: 'Job Interview', icon: Mic, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -40,6 +41,7 @@ function FrenchConversationsContent() {
   const [showNew, setShowNew] = useState(!!initialScenario);
   const [newScenario, setNewScenario] = useState(initialScenario || 'job_interview');
   const [inputMessage, setInputMessage] = useState('');
+  const [voiceMode, setVoiceMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -98,6 +100,11 @@ function FrenchConversationsContent() {
     const msg = inputMessage.trim();
     if (!msg || sendMutation.isPending) return;
     sendMutation.mutate(msg);
+  };
+
+  const handleSendWithText = (text: string) => {
+    if (!text.trim() || sendMutation.isPending) return;
+    sendMutation.mutate(text);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -348,26 +355,58 @@ function FrenchConversationsContent() {
               </div>
 
               <div className="border-t border-gray-100 p-4 shrink-0">
-                <div className="flex gap-3">
-                  <Textarea
-                    ref={inputRef as any}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={showNew ? 'Type your first message in French...' : 'Type your message in French...'}
-                    rows={1}
-                    className="flex-1 min-h-[44px] max-h-[120px] resize-none"
-                  />
-                  <Button
-                    onClick={handleSend}
-                    loading={sendMutation.isPending}
-                    disabled={!inputMessage.trim()}
-                    className="self-end"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1.5">Press Enter to send, Shift+Enter for new line</p>
+                {voiceMode ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Mic className="w-3.5 h-3.5 text-blue-500" />
+                      <span>Voice mode — speak in French</span>
+                      <button
+                        onClick={() => setVoiceMode(false)}
+                        className="ml-auto text-gray-400 hover:text-gray-600 underline text-[10px]"
+                      >
+                        Switch to text
+                      </button>
+                    </div>
+                    <VoiceInput
+                      onTranscript={(text) => {
+                        handleSendWithText(text);
+                      }}
+                      disabled={sendMutation.isPending}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex gap-3">
+                      <Textarea
+                        ref={inputRef as any}
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={showNew ? 'Type your first message in French...' : 'Type your message in French...'}
+                        rows={1}
+                        className="flex-1 min-h-[44px] max-h-[120px] resize-none"
+                      />
+                      <Button
+                        onClick={handleSend}
+                        loading={sendMutation.isPending}
+                        disabled={!inputMessage.trim()}
+                        className="self-end"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <p className="text-[10px] text-gray-400">Press Enter to send, Shift+Enter for new line</p>
+                      <button
+                        onClick={() => setVoiceMode(true)}
+                        className="text-[10px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                      >
+                        <Mic className="w-3 h-3" />
+                        Voice
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

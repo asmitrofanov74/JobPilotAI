@@ -13,11 +13,74 @@ export const LOGIN_MUTATION = `
         subscription {
           tier
           currentPeriodEnd
-        }
       }
     }
   }
 `;
+
+export const EVALUATE_FRENCH_PRONUNCIATION_MUTATION = `
+  mutation EvaluateFrenchPronunciation($input: EvaluatePronunciationInput!) {
+    evaluateFrenchPronunciation(input: $input) {
+      overallScore
+      clarityScore
+      accuracyScore
+      fluencyScore
+      feedback
+      improvements {
+        text
+        suggestion
+      }
+    }
+  }
+`;
+
+export const GENERATE_CAREER_INTERVIEW_QUESTIONS_MUTATION = `
+  mutation GenerateCareerInterviewQuestions($input: GenerateCareerInterviewInput!) {
+    generateCareerInterviewQuestions(input: $input) {
+      questions {
+        id
+        question
+        category
+      }
+      interview {
+        id
+        scenario
+        questionCount
+        status
+        overallScore
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const GENERATE_CAREER_CONVERSATION_MUTATION = `
+  mutation GenerateCareerConversation($input: GenerateCareerConversationInput!) {
+    generateCareerConversation(input: $input) {
+      conversationId
+      response {
+        id
+        role
+        content
+        createdAt
+      }
+    }
+  }
+`;
+
+export const CAREER_FRENCH_SUGGESTIONS_QUERY = `
+  query CareerFrenchSuggestions {
+    careerFrenchSuggestions {
+      jobApplicationId
+      companyName
+      jobTitle
+      hasDescription
+      status
+    }
+  }
+`;
+
 
 export const REGISTER_MUTATION = `
   mutation Register($input: RegisterInput!) {

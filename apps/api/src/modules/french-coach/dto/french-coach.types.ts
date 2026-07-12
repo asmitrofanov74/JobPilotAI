@@ -441,6 +441,54 @@ export class EvaluateAnswerResultType {
 }
 
 @ObjectType()
+export class CareerSuggestionType {
+  @Field()
+  jobApplicationId: string;
+
+  @Field()
+  companyName: string;
+
+  @Field()
+  jobTitle: string;
+
+  @Field()
+  hasDescription: boolean;
+
+  @Field()
+  status: string;
+}
+
+@ObjectType()
+export class PronunciationImprovementType {
+  @Field()
+  text: string;
+
+  @Field()
+  suggestion: string;
+}
+
+@ObjectType()
+export class PronunciationResultType {
+  @Field(() => Int)
+  overallScore: number;
+
+  @Field(() => Int)
+  clarityScore: number;
+
+  @Field(() => Int)
+  accuracyScore: number;
+
+  @Field(() => Int)
+  fluencyScore: number;
+
+  @Field()
+  feedback: string;
+
+  @Field(() => [PronunciationImprovementType])
+  improvements: PronunciationImprovementType[];
+}
+
+@ObjectType()
 export class FrenchVariantComparisonType {
   @Field()
   france: string;

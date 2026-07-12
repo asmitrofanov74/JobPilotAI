@@ -115,6 +115,46 @@ export class EvaluateInterviewAnswerInput {
 }
 
 @InputType()
+export class GenerateCareerInterviewInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  jobApplicationId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  resumeId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  targetRole?: string;
+
+  @Field(() => Int, { defaultValue: 5 })
+  questionCount: number;
+}
+
+@InputType()
+export class GenerateCareerConversationInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  jobApplicationId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  scenario?: string;
+}
+
+@InputType()
+export class EvaluatePronunciationInput {
+  @Field()
+  @MinLength(1)
+  spokenText: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  expectedText?: string;
+}
+
+@InputType()
 export class UpdateFrenchProfileInput {
   @Field({ nullable: true })
   @IsOptional()
