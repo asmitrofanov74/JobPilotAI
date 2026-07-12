@@ -431,3 +431,100 @@ export const UPDATE_PROFILE_MUTATION = `
     }
   }
 `;
+
+// LinkedIn Optimizer
+export const LINKEDIN_OPTIMIZATIONS_QUERY = `
+  query LinkedinOptimizations($type: String) {
+    linkedinOptimizations(type: $type) {
+      id
+      type
+      inputData
+      outputData
+      createdAt
+    }
+  }
+`;
+
+export const ANALYZE_LINKEDIN_PROFILE_MUTATION = `
+  mutation AnalyzeLinkedinProfile($input: AnalyzeProfileInput!) {
+    analyzeLinkedinProfile(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;
+
+export const GENERATE_LINKEDIN_HEADLINES_MUTATION = `
+  mutation GenerateLinkedinHeadlines($input: GenerateHeadlineInput!) {
+    generateLinkedinHeadlines(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;
+
+export const GENERATE_LINKEDIN_ABOUT_MUTATION = `
+  mutation GenerateLinkedinAbout($input: GenerateAboutInput!) {
+    generateLinkedinAbout(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;
+
+export const OPTIMIZE_LINKEDIN_EXPERIENCE_MUTATION = `
+  mutation OptimizeLinkedinExperience($input: OptimizeExperienceInput!) {
+    optimizeLinkedinExperience(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;
+
+export const COMPARE_RESUME_LINKEDIN_MUTATION = `
+  mutation CompareResumeWithLinkedin($input: CompareResumeInput!) {
+    compareResumeWithLinkedin(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;
+
+export const ANALYZE_LINKEDIN_VISIBILITY_MUTATION = `
+  mutation AnalyzeLinkedinVisibility($input: AnalyzeVisibilityInput!) {
+    analyzeLinkedinVisibility(input: $input) {
+      optimization {
+        id
+        type
+        outputData
+        createdAt
+      }
+      output
+    }
+  }
+`;

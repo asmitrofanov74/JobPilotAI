@@ -7,7 +7,8 @@ import { useAuthStore } from '@/lib/auth-store';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   LayoutDashboard, Briefcase, FileText, FileEdit, Calendar,
-  BarChart3, Settings, Sparkles, Menu, X, LogOut, ChevronRight, Search
+  BarChart3, Settings, Sparkles, Menu, X, LogOut, ChevronRight, Search,
+  UserCheck
 } from 'lucide-react';
 
 
@@ -18,6 +19,7 @@ const NAV = [
   { label: 'Cover Letters', href: '/dashboard/cover-letters', icon: FileEdit },
   { label: 'Interviews', href: '/dashboard/interviews', icon: Calendar },
   { label: 'Skills', href: '/dashboard/skills', icon: Sparkles },
+  { label: 'LinkedIn', href: '/dashboard/linkedin', icon: UserCheck },
   { label: 'Job Scraper', href: '/dashboard/scraper', icon: Search },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },

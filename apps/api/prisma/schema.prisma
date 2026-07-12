@@ -79,6 +79,7 @@ model User {
   interviewQuestions InterviewQuestion[]
   subscription    Subscription?
   skillGapReports SkillGapReport[]
+  linkedinOptimizations LinkedinOptimization[]
 
   @@index([email])
   @@map("users")
@@ -265,6 +266,20 @@ model MarketSkill {
   @@index([month])
   @@index([skill])
   @@map("market_skills")
+}
+
+model LinkedinOptimization {
+  id         String   @id @default(cuid())
+  type       String   // 'profile_analysis', 'headline', 'about', 'experience_optimizer', 'resume_comparison', 'visibility_analysis'
+  inputData  Json     // Original input data
+  outputData Json     // Generated output data
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, type])
+  @@map("linkedin_optimizations")
 }
 
 model SalaryData {

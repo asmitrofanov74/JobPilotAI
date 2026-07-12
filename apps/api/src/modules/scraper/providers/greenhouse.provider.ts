@@ -7,6 +7,7 @@ import { NormalizedJob } from './normalized-job.interface';
 const execAsync = promisify(exec);
 
 const KNOWN_BOARDS: Record<string, string> = {
+  // US / global
   gitlab: 'GitLab',
   datadog: 'Datadog',
   dropbox: 'Dropbox',
@@ -23,6 +24,25 @@ const KNOWN_BOARDS: Record<string, string> = {
   linear: 'Linear',
   clerk: 'Clerk',
   supabase: 'Supabase',
+  // Canada
+  shopify: 'Shopify',
+  wealthsimple: 'Wealthsimple',
+  hootsuite: 'Hootsuite',
+  lightspeed: 'Lightspeed',
+  coveo: 'Coveo',
+  applyboard: 'ApplyBoard',
+  ritual: 'Ritual',
+  freshbooks: 'FreshBooks',
+  wave: 'Wave',
+  ada: 'Ada',
+  '1password': '1Password',
+  clio: 'Clio',
+  d2l: 'D2L',
+  wattpad: 'Wattpad',
+  stackadapt: 'StackAdapt',
+  borrowell: 'Borrowell',
+  koho: 'Koho',
+  fullscript: 'Fullscript',
 };
 
 const CURL_TIMEOUT = 30;

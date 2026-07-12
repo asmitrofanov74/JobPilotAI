@@ -30,12 +30,27 @@ interface TenantConfig {
 }
 
 const KNOWN_TENANTS: TenantConfig[] = [
+  // US / global
   { tenant: 'oracle', company: 'Oracle' },
   { tenant: 'adobe', company: 'Adobe' },
   { tenant: 'cisco', company: 'Cisco' },
   { tenant: 'intel', company: 'Intel' },
   { tenant: 'servicenow', company: 'ServiceNow' },
   { tenant: 'salesforce', company: 'Salesforce' },
+  // Canada
+  { tenant: 'rbc', company: 'RBC' },
+  { tenant: 'td', company: 'TD' },
+  { tenant: 'bmo', company: 'BMO' },
+  { tenant: 'scotiabank', company: 'Scotiabank' },
+  { tenant: 'cibc', company: 'CIBC' },
+  { tenant: 'rogers', company: 'Rogers' },
+  { tenant: 'bell', company: 'Bell' },
+  { tenant: 'telus', company: 'Telus' },
+  { tenant: 'sunlife', company: 'Sun Life' },
+  { tenant: 'manulife', company: 'Manulife' },
+  { tenant: 'canadapost', company: 'Canada Post' },
+  { tenant: 'loblaw', company: 'Loblaw' },
+  { tenant: 'aircanada', company: 'Air Canada' },
 ];
 
 @Injectable()

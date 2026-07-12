@@ -1,6 +1,6 @@
-import { type ReactNode } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 
-type CardProps = {
+type CardProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
   className?: string;
   hover?: boolean;
@@ -13,12 +13,13 @@ const paddings = {
   lg: 'p-6',
 };
 
-export function Card({ children, className = '', hover = false, padding = 'md' }: CardProps) {
+export function Card({ children, className = '', hover = false, padding = 'md', ...props }: CardProps) {
   return (
     <div
       className={`bg-white rounded-xl border border-gray-100 ${paddings[padding]} ${
         hover ? 'hover:shadow-md hover:border-gray-200 transition-all' : ''
       } ${className}`}
+      {...props}
     >
       {children}
     </div>

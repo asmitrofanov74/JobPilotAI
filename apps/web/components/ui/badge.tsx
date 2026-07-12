@@ -2,6 +2,7 @@ type BadgeProps = {
   children: React.ReactNode;
   variant?: 'gray' | 'blue' | 'green' | 'red' | 'amber' | 'purple' | 'orange' | 'emerald' | 'violet' | 'cyan';
   dot?: boolean;
+  className?: string;
 };
 
 const variants = {
@@ -17,9 +18,9 @@ const variants = {
   cyan: 'bg-cyan-100 text-cyan-700',
 };
 
-export function Badge({ children, variant = 'gray', dot }: BadgeProps) {
+export function Badge({ children, variant = 'gray', dot, className = '' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium ${variants[variant]}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium ${variants[variant]} ${className}`}>
       {dot && <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />}
       {children}
     </span>

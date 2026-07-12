@@ -25,6 +25,7 @@
     "packages/config/*"
   ],
   "dependencies": {
+    "@apollo/server": "^5.5.1",
     "@sentry/core": "^10.65.0",
     "@sentry/nestjs": "^10.65.0",
     "@sentry/nextjs": "^10.65.0",

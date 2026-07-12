@@ -21,10 +21,18 @@ async function curlJson(url: string): Promise<any> {
 }
 
 const KNOWN_BOARDS: Record<string, string> = {
+  // US / global
   stripe: 'Stripe',
   simplisafe: 'SimpliSafe',
   segment: 'Segment',
   gusto: 'Gusto',
+  // Canada
+  thinkific: 'Thinkific',
+  clearco: 'Clearco',
+  drop: 'Drop',
+  article: 'Article',
+  auvik: 'Auvik',
+  certn: 'Certn',
 };
 
 @Injectable()

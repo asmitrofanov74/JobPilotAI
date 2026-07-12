@@ -212,6 +212,7 @@ export class ScraperResolver {
     const { jobs: scraped, stats } = await this.scraperService.scrapeAll(
       input.keywords, input.location, input.postedWithin, input.source,
       input.jobType, input.remote, input.salaryMin, input.salaryMax,
+      input.sources as any,
     );
 
     let imported = 0;

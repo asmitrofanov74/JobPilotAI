@@ -32,6 +32,16 @@ export interface ProviderStats {
   [provider: string]: number;
 }
 
+export interface JobSourceFilter {
+  linkedin?: boolean;
+  indeed?: boolean;
+  workopolis?: boolean;
+  ziprecruiter?: boolean;
+  greenhouse?: boolean;
+  lever?: boolean;
+  workday?: boolean;
+}
+
 function toScrapedJob(n: NormalizedJob): ScrapedJob {
   return {
     companyName: n.company,
@@ -68,12 +78,30 @@ export class ScraperService {
     remote?: boolean,
     salaryMin?: number,
     salaryMax?: number,
+    sources?: JobSourceFilter,
   ): Promise<{ jobs: ScrapedJob[]; stats: ProviderStats }> {
     let providers: JobProvider[];
 
     if (source) {
       const p = this.providerFactory.getProvider(source);
       providers = p ? [p] : [];
+    } else if (sources) {
+      const providerNameMap: Record<string, string> = {
+        linkedin: 'LINKEDIN',
+        indeed: 'INDEED',
+        workopolis: 'WORKOPOLIS',
+        ziprecruiter: 'ZIPRECRUITER',
+        greenhouse: 'GREENHOUSE',
+        lever: 'LEVER',
+        workday: 'WORKDAY',
+      };
+      providers = [];
+      for (const [key, name] of Object.entries(providerNameMap)) {
+        if ((sources as any)[key] !== false) {
+          const p = this.providerFactory.getProvider(name);
+          if (p) providers.push(p);
+        }
+      }
     } else {
       providers = this.providerFactory.getAllProviders();
     }
