@@ -528,3 +528,441 @@ export const ANALYZE_LINKEDIN_VISIBILITY_MUTATION = `
     }
   }
 `;
+
+// French Coach
+export const FRENCH_PROFILE_QUERY = `
+  query FrenchProfile {
+    frenchProfile {
+      id
+      frenchLevel
+      frenchVariant
+      targetMarket
+      targetRole
+      targetIndustry
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_FRENCH_PROFILE_MUTATION = `
+  mutation UpdateFrenchProfile($input: UpdateFrenchProfileInput!) {
+    updateFrenchProfile(input: $input) {
+      id
+      frenchLevel
+      frenchVariant
+      targetMarket
+      targetRole
+      targetIndustry
+    }
+  }
+`;
+
+export const FRENCH_PROGRESS_QUERY = `
+  query FrenchProgress {
+    frenchProgress {
+      totalSessions
+      completedSessions
+      sessionsByType
+      averageScore
+      grammarAvg
+      vocabularyAvg
+      fluencyAvg
+      scoreHistory {
+        date
+        grammarScore
+        vocabularyScore
+        fluencyScore
+      }
+      vocabularyCount
+      masteredWords
+      streakDays
+      weaknesses
+    }
+  }
+`;
+
+export const FRENCH_SESSIONS_QUERY = `
+  query FrenchSessions($type: String) {
+    frenchSessions(type: $type) {
+      id
+      type
+      status
+      inputData
+      outputData
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const START_FRENCH_SESSION_MUTATION = `
+  mutation StartFrenchSession($input: StartFrenchSessionInput!) {
+    startFrenchSession(input: $input) {
+      id
+      type
+      status
+      inputData
+      createdAt
+    }
+  }
+`;
+
+export const FINISH_FRENCH_SESSION_MUTATION = `
+  mutation FinishFrenchSession($id: String!, $input: FinishFrenchSessionInput!) {
+    finishFrenchSession(id: $id, input: $input) {
+      id
+      type
+      status
+      outputData
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const FRENCH_CONVERSATIONS_QUERY = `
+  query FrenchConversations {
+    frenchConversations {
+      id
+      scenario
+      messages {
+        id
+        role
+        content
+        evaluation {
+          id
+          grammarScore
+          vocabularyScore
+          fluencyScore
+          corrections
+          improvedVersion
+          quebecAlternative
+        }
+        createdAt
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const FRENCH_CONVERSATION_QUERY = `
+  query FrenchConversation($id: String!) {
+    frenchConversation(id: $id) {
+      id
+      scenario
+      messages {
+        id
+        role
+        content
+        evaluation {
+          id
+          grammarScore
+          vocabularyScore
+          fluencyScore
+          corrections
+          improvedVersion
+          quebecAlternative
+        }
+        createdAt
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const SEND_FRENCH_MESSAGE_MUTATION = `
+  mutation SendFrenchMessage($input: SendFrenchMessageInput!) {
+    sendFrenchMessage(input: $input) {
+      conversationId
+      response {
+        id
+        role
+        content
+        evaluation {
+          id
+          grammarScore
+          vocabularyScore
+          fluencyScore
+          corrections
+          improvedVersion
+          quebecAlternative
+        }
+        createdAt
+      }
+    }
+  }
+`;
+
+export const FRENCH_VOCABULARY_QUERY = `
+  query FrenchVocabulary($filter: VocabularyFilterInput) {
+    frenchVocabulary(filter: $filter) {
+      id
+      word
+      translation
+      context
+      note
+      difficulty
+      timesReviewed
+      timesCorrect
+      nextReviewAt
+      mastered
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const FRENCH_VOCABULARY_STATS_QUERY = `
+  query FrenchVocabularyStats {
+    frenchVocabularyStats {
+      total
+      mastered
+      dueForReview
+      difficultyBreakdown
+    }
+  }
+`;
+
+export const ADD_FRENCH_VOCABULARY_WORD_MUTATION = `
+  mutation AddFrenchVocabularyWord($input: AddVocabularyWordInput!) {
+    addFrenchVocabularyWord(input: $input) {
+      id
+      word
+      translation
+      context
+      note
+      difficulty
+      mastered
+    }
+  }
+`;
+
+export const REVIEW_FRENCH_VOCABULARY_WORD_MUTATION = `
+  mutation ReviewFrenchVocabularyWord($input: ReviewVocabularyWordInput!) {
+    reviewFrenchVocabularyWord(input: $input) {
+      id
+      word
+      difficulty
+      timesReviewed
+      timesCorrect
+      nextReviewAt
+      mastered
+    }
+  }
+`;
+
+export const DELETE_FRENCH_VOCABULARY_WORD_MUTATION = `
+  mutation DeleteFrenchVocabularyWord($wordId: String!) {
+    deleteFrenchVocabularyWord(wordId: $wordId)
+  }
+`;
+
+export const EXTRACT_FRENCH_VOCABULARY_MUTATION = `
+  mutation ExtractFrenchVocabulary($conversationId: String!) {
+    extractFrenchVocabulary(conversationId: $conversationId) {
+      id
+      word
+      translation
+      context
+      difficulty
+    }
+  }
+`;
+
+export const FRENCH_CULTURAL_TIP_QUERY = `
+  query FrenchCulturalTip($topic: String) {
+    frenchCulturalTip(topic: $topic) {
+      id
+      topic
+      tip
+      translation
+      category
+      region
+      createdAt
+    }
+  }
+`;
+
+export const FRENCH_CULTURAL_TIP_HISTORY_QUERY = `
+  query FrenchCulturalTipHistory {
+    frenchCulturalTipHistory {
+      id
+      topic
+      tip
+      translation
+      category
+      region
+      createdAt
+    }
+  }
+`;
+
+// Vocabulary Tracker
+export const FRENCH_TRACKED_VOCABULARY_QUERY = `
+  query FrenchTrackedVocabulary {
+    frenchTrackedVocabulary {
+      id
+      word
+      translation
+      learned
+      difficult
+      reviewCount
+      lastReviewAt
+      addedAt
+    }
+  }
+`;
+
+export const FRENCH_TODAY_VOCABULARY_QUERY = `
+  query FrenchTodayVocabulary {
+    frenchTodayVocabulary {
+      date
+      words {
+        id
+        word
+        translation
+        learned
+        difficult
+        reviewCount
+        lastReviewAt
+      }
+      totalCount
+      learnedCount
+      difficultCount
+    }
+  }
+`;
+
+export const FRENCH_VOCABULARY_TRACKER_STATS_QUERY = `
+  query FrenchVocabularyTrackerStats {
+    frenchVocabularyTrackerStats {
+      total
+      learned
+      difficult
+    }
+  }
+`;
+
+export const ADD_TRACKED_VOCABULARY_MUTATION = `
+  mutation AddTrackedVocabulary($input: AddTrackedVocabularyInput!) {
+    addTrackedVocabulary(input: $input) {
+      id
+      word
+      translation
+      learned
+      difficult
+      reviewCount
+    }
+  }
+`;
+
+export const MARK_VOCABULARY_LEARNED_MUTATION = `
+  mutation MarkVocabularyLearned($id: String!) {
+    markVocabularyLearned(id: $id) {
+      id
+      word
+      learned
+      reviewCount
+      lastReviewAt
+    }
+  }
+`;
+
+export const MARK_VOCABULARY_DIFFICULT_MUTATION = `
+  mutation MarkVocabularyDifficult($id: String!, $difficult: Boolean!) {
+    markVocabularyDifficult(id: $id, difficult: $difficult) {
+      id
+      word
+      difficult
+      reviewCount
+      lastReviewAt
+    }
+  }
+`;
+
+export const DELETE_TRACKED_VOCABULARY_MUTATION = `
+  mutation DeleteTrackedVocabulary($id: String!) {
+    deleteTrackedVocabulary(id: $id)
+  }
+`;
+
+// Interview Coach
+export const FRENCH_INTERVIEWS_QUERY = `
+  query FrenchInterviews {
+    frenchInterviews {
+      id
+      scenario
+      questionCount
+      status
+      questions
+      answers
+      evaluations
+      overallScore
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const FRENCH_INTERVIEW_QUERY = `
+  query FrenchInterview($id: String!) {
+    frenchInterview(id: $id) {
+      id
+      scenario
+      questionCount
+      status
+      questions
+      answers
+      evaluations
+      overallScore
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GENERATE_FRENCH_INTERVIEW_QUESTIONS_MUTATION = `
+  mutation GenerateFrenchInterviewQuestions($input: GenerateInterviewQuestionsInput!) {
+    generateFrenchInterviewQuestions(input: $input) {
+      questions {
+        id
+        question
+        category
+      }
+      interview {
+        id
+        scenario
+        questionCount
+        status
+        questions
+        overallScore
+      }
+    }
+  }
+`;
+
+export const EVALUATE_FRENCH_INTERVIEW_ANSWER_MUTATION = `
+  mutation EvaluateFrenchInterviewAnswer($input: EvaluateInterviewAnswerInput!) {
+    evaluateFrenchInterviewAnswer(input: $input) {
+      evaluation {
+        questionId
+        grammarScore
+        confidenceScore
+        technicalScore
+        feedback
+        improvedAnswer
+        corrections
+      }
+      interview {
+        id
+        status
+        overallScore
+        answers
+        evaluations
+      }
+    }
+  }
+`;

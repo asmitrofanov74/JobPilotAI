@@ -80,6 +80,7 @@ model User {
   subscription    Subscription?
   skillGapReports SkillGapReport[]
   linkedinOptimizations LinkedinOptimization[]
+  frenchProfile FrenchProfile?
 
   @@index([email])
   @@map("users")
@@ -298,4 +299,142 @@ model SalaryData {
   @@index([role, location])
   @@index([month])
   @@map("salary_data")
+}
+
+model FrenchProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  frenchLevel    String?
+  frenchVariant  String   @default("france")
+  targetMarket   String?
+  targetRole     String?
+  targetIndustry String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sessions       FrenchSession[]
+  conversations  FrenchConversation[]
+  vocabularyWords FrenchVocabularyWord[]
+  vocabulary      FrenchVocabulary[]
+  interviews      FrenchInterview[]
+
+  @@map("french_profiles")
+}
+
+model FrenchSession {
+  id         String   @id @default(cuid())
+  type       String
+  status     String   @default("in_progress")
+  inputData  Json?
+  outputData Json?
+  profileId  String
+  profile    FrenchProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([profileId, type])
+  @@map("french_sessions")
+}
+
+model FrenchConversation {
+  id         String          @id @default(cuid())
+  scenario   String
+  profileId  String
+  profile    FrenchProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  messages   FrenchMessage[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([profileId])
+  @@map("french_conversations")
+}
+
+model FrenchMessage {
+  id             String             @id @default(cuid())
+  role           String
+  content        String
+  conversationId String
+  conversation   FrenchConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  evaluation     FrenchEvaluation?
+  createdAt      DateTime           @default(now())
+
+  @@index([conversationId])
+  @@index([conversationId, createdAt])
+  @@map("french_messages")
+}
+
+model FrenchEvaluation {
+  id                String   @id @default(cuid())
+  grammarScore      Int
+  vocabularyScore   Int
+  fluencyScore      Int
+  corrections       Json
+  improvedVersion   String
+  quebecAlternative String?
+  messageId         String   @unique
+  message           FrenchMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@map("french_evaluations")
+}
+
+model FrenchVocabularyWord {
+  id              String   @id @default(cuid())
+  word            String
+  translation     String
+  quebecEquivalent String?
+  context         String?
+  note            String?
+  difficulty      String   @default("medium")
+  timesReviewed   Int      @default(0)
+  timesCorrect    Int      @default(0)
+  nextReviewAt    DateTime @default(now())
+  mastered        Boolean  @default(false)
+  profileId       String
+  profile         FrenchProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([mastered])
+  @@index([nextReviewAt])
+  @@map("french_vocabulary_words")
+}
+
+model FrenchVocabulary {
+  id          String    @id @default(cuid())
+  word        String
+  translation String
+  learned     Boolean   @default(false)
+  difficult   Boolean   @default(false)
+  reviewCount Int       @default(0)
+  lastReviewAt DateTime?
+  addedAt     DateTime  @default(now())
+  profileId   String
+  profile     FrenchProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([profileId, learned])
+  @@index([profileId, difficult])
+  @@map("french_vocabulary")
+}
+
+model FrenchInterview {
+  id             String   @id @default(cuid())
+  scenario       String
+  questionCount  Int      @default(0)
+  status         String   @default("in_progress")
+  questions      Json     @default("[]")
+  answers        Json     @default("[]")
+  evaluations    Json     @default("[]")
+  overallScore   Int?
+  profileId      String
+  profile        FrenchProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([profileId])
+  @@map("french_interviews")
 }
