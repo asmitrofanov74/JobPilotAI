@@ -10,13 +10,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
+import { formatFileSize, formatDate } from '@/lib/utils/format';
 
 export default function ResumesPage() {
   const queryClient = useQueryClient();
@@ -72,10 +69,7 @@ export default function ResumesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Resumes</h1>
-        <p className="text-gray-500 mt-1">Manage your uploaded resumes</p>
-      </div>
+      <PageHeader title="Resumes" description="Manage your uploaded resumes" />
 
       <div
         {...getRootProps()}
@@ -94,7 +88,7 @@ export default function ResumesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><Spinner /></div>
+        <LoadingState padding="md" />
       ) : resumes?.length === 0 ? (
         <EmptyState icon={FileText} title="No resumes uploaded" description="Upload your first resume to get started" />
       ) : (
@@ -122,7 +116,7 @@ export default function ResumesPage() {
                 <span>{resume.fileSize ? formatFileSize(resume.fileSize) : '-'}</span>
               </div>
               {resume.isPrimary && <Badge variant="amber" dot>Primary</Badge>}
-              <p className="mt-3 text-xs text-gray-400">Uploaded {new Date(resume.createdAt).toLocaleDateString()}</p>
+              <p className="mt-3 text-xs text-gray-400">Uploaded {formatDate(resume.createdAt)}</p>
             </Card>
           ))}
         </div>

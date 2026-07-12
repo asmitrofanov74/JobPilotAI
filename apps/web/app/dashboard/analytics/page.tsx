@@ -6,13 +6,9 @@ import { FUNNEL_ANALYTICS_QUERY, MONTHLY_STATS_QUERY, JOBS_QUERY } from '@/lib/g
 import { Briefcase, MessageSquare, Award, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
-
-const funnelLabels: Record<string, string> = {
-  saved: 'Saved', applied: 'Applied', phoneScreen: 'Phone Screen',
-  technical: 'Technical', onsite: 'Onsite', offer: 'Offer',
-  rejected: 'Rejected', accepted: 'Accepted',
-};
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
+import { FUNNEL_LABELS } from '@/lib/constants';
 
 export default function AnalyticsPage() {
   const { data: funnelData, isLoading: funnelLoading } = useQuery({
@@ -48,7 +44,7 @@ export default function AnalyticsPage() {
   const acceptanceRate = totalApplications > 0 ? Math.round((offers / totalApplications) * 100) : 0;
 
   const funnelChart = funnelData
-    ? Object.entries(funnelData).map(([key, value]) => ({ name: funnelLabels[key] || key, value }))
+    ? Object.entries(funnelData).map(([key, value]) => ({ name: FUNNEL_LABELS[key] || key, value }))
     : [];
 
   const STATS = [
@@ -60,10 +56,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-gray-500 mt-1">Track your job search performance</p>
-      </div>
+      <PageHeader title="Analytics" description="Track your job search performance" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {STATS.map(({ label, value, icon: Icon, bg, color }) => (
@@ -81,7 +74,7 @@ export default function AnalyticsPage() {
         <Card padding="lg">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Application Funnel</h2>
           {funnelLoading ? (
-            <div className="flex justify-center py-16"><Spinner /></div>
+            <LoadingState padding="md" />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={funnelChart}>
@@ -98,7 +91,7 @@ export default function AnalyticsPage() {
         <Card padding="lg">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Trends</h2>
           {monthlyLoading ? (
-            <div className="flex justify-center py-16"><Spinner /></div>
+            <LoadingState padding="md" />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyData}>

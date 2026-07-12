@@ -6,7 +6,7 @@ import { JOBS_QUERY, RESUMES_QUERY, COVER_LETTERS_QUERY, INTERVIEW_QUESTIONS_QUE
 import Link from 'next/link';
 import { Briefcase, FileText, FileEdit, MessageSquare, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function DashboardPage() {
   const { data: jobs } = useQuery({
@@ -60,10 +60,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Here&apos;s what&apos;s happening with your job search.</p>
-      </div>
+      <PageHeader title="Dashboard" description="Here&apos;s what&apos;s happening with your job search." />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(({ label, value, icon: Icon, color, bg, href }) => (

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useRegister } from '@/lib/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,7 +16,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [show, setShow] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,12 +81,14 @@ export default function RegisterPage() {
               <Input label="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             </div>
             <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" required />
-            <div className="relative">
-              <Input label="Password" type={show ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" required minLength={8} />
-              <button type="button" onClick={() => setShow(!show)} className="absolute right-3 bottom-[9px] text-gray-400 hover:text-gray-600">
-                {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              required
+              minLength={8}
+            />
             <Input label="Confirm password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat your password" required minLength={8} />
             <Button type="submit" loading={register.isPending} className="w-full">
               Create account

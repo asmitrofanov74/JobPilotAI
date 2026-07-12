@@ -11,7 +11,9 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
+import { EXPERIENCE_LEVELS } from '@/lib/constants';
 
 export default function SettingsPage() {
   const { data: me, isLoading } = useMe();
@@ -44,17 +46,12 @@ export default function SettingsPage() {
   });
 
   if (isLoading || !me) {
-    return (
-      <div className="flex justify-center py-20"><Spinner /></div>
-    );
+    return <LoadingState padding="lg" />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your profile and preferences</p>
-      </div>
+      <PageHeader title="Settings" description="Manage your profile and preferences" />
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -71,13 +68,9 @@ export default function SettingsPage() {
               <Input label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Senior Software Engineer" />
               <Input label="Target Role" value={form.targetRole} onChange={(e) => setForm({ ...form, targetRole: e.target.value })} placeholder="e.g. Staff Engineer" />
               <Select label="Experience Level" value={form.experienceLevel} onChange={(e) => setForm({ ...form, experienceLevel: e.target.value })}>
-                <option value="">Select level</option>
-                <option value="ENTRY">Entry</option>
-                <option value="JUNIOR">Junior</option>
-                <option value="MID">Mid-Level</option>
-                <option value="SENIOR">Senior</option>
-                <option value="LEAD">Lead</option>
-                <option value="EXECUTIVE">Executive</option>
+                {EXPERIENCE_LEVELS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </Select>
               <Input label="Target Locations" value={form.targetLocations} onChange={(e) => setForm({ ...form, targetLocations: e.target.value })} placeholder="e.g. SF, NY, Remote" />
             </div>

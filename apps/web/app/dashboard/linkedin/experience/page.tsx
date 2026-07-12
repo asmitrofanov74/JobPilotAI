@@ -10,6 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { ToneSelector } from '@/components/linkedin-optimizer/tone-selector';
+import { BulletList } from '@/components/linkedin-optimizer/bullet-list';
+import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
+import { PAGE_CONFIGS, TONE_OPTIONS } from '@/lib/linkedin-optimizer/config';
+
+const config = PAGE_CONFIGS.experience_optimizer;
 
 interface ExperienceEntry {
   company: string;
@@ -32,14 +38,11 @@ export default function ExperiencePage() {
       const { optimizeLinkedinExperience } = await client.request(OPTIMIZE_LINKEDIN_EXPERIENCE_MUTATION, {
         input: {
           entries: entries.map((e) => ({
-            company: e.company,
-            role: e.role,
-            description: e.description,
+            company: e.company, role: e.role, description: e.description,
             duration: e.duration || undefined,
-            achievements: e.achievements ? e.achievements.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+            achievements: e.achievements ? parseCommaSeparated(e.achievements) : undefined,
           })),
-          industry: industry || undefined,
-          tone,
+          industry: industry || undefined, tone,
         },
       });
       return optimizeLinkedinExperience;
@@ -47,25 +50,21 @@ export default function ExperiencePage() {
     onSuccess: (data) => setResult(data),
   });
 
-  const addEntry = () => {
-    setEntries([...entries, { company: '', role: '', description: '', duration: '', achievements: '' }]);
-  };
-
-  const removeEntry = (index: number) => {
-    setEntries(entries.filter((_, i) => i !== index));
-  };
-
+  const addEntry = () => setEntries([...entries, { company: '', role: '', description: '', duration: '', achievements: '' }]);
+  const removeEntry = (index: number) => setEntries(entries.filter((_, i) => i !== index));
   const updateEntry = (index: number, field: keyof ExperienceEntry, value: string) => {
     const updated = [...entries];
     updated[index] = { ...updated[index], [field]: value };
     setEntries(updated);
   };
 
+  const output = result?.output;
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Experience Optimizer</h1>
-        <p className="text-gray-500 mt-1">Rewrite work experience with strong action verbs and quantified achievements</p>
+        <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
+        <p className="text-gray-500 mt-1">{config.description}</p>
       </div>
 
       <Card padding="lg">
@@ -76,7 +75,6 @@ export default function ExperiencePage() {
               <Plus className="w-4 h-4" />Add Entry
             </Button>
           </div>
-
           {entries.map((entry, i) => (
             <div key={i} className="p-4 bg-gray-50 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
@@ -96,36 +94,21 @@ export default function ExperiencePage() {
               <Input label="Key Achievements (comma separated, optional)" value={entry.achievements} onChange={(e) => updateEntry(i, 'achievements', e.target.value)} placeholder="e.g. Reduced latency by 40%, Led team of 10" />
             </div>
           ))}
-
           <div className="flex items-center gap-4">
             <Input label="Industry (optional)" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Technology" className="max-w-xs" />
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Tone:</label>
-              {['professional', 'impact-driven', 'concise'].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTone(t)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    tone === t ? 'bg-blue-100 text-blue-700' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {t.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </button>
-              ))}
-            </div>
+            <ToneSelector options={TONE_OPTIONS.experience} value={tone} onChange={setTone} />
           </div>
-
           <Button onClick={() => optimizeMutation.mutate()} loading={optimizeMutation.isPending}>
             <BarChart3 className="w-4 h-4" />Optimize Experience
           </Button>
         </div>
       </Card>
 
-      {result?.output?.optimizedEntries?.length > 0 && (
+      {output?.optimizedEntries?.length > 0 && (
         <Card padding="lg">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Optimized Entries</h2>
           <div className="space-y-6">
-            {result.output.optimizedEntries.map((entry: any, i: number) => (
+            {output.optimizedEntries.map((entry: any, i: number) => (
               <div key={i} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                 <div className="flex items-center gap-2 mb-3">
                   <Badge variant="blue">{entry.role}</Badge>
@@ -151,19 +134,7 @@ export default function ExperiencePage() {
               </div>
             ))}
           </div>
-          {result.output.overallTips?.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Overall Tips</h3>
-              <ul className="space-y-1.5">
-                {result.output.overallTips.map((tip: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <BulletList title="Overall Tips" items={output.overallTips} dotColor="bg-amber-500" />
         </Card>
       )}
     </div>

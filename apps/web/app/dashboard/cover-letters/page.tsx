@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-const tones = ['professional', 'creative', 'enthusiastic'] as const;
+import { TONES } from '@/lib/constants';
+import { capitalize, formatDate } from '@/lib/utils/format';
 
 export default function CoverLettersPage() {
   const queryClient = useQueryClient();
@@ -68,13 +69,9 @@ export default function CoverLettersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cover Letters</h1>
-          <p className="text-gray-500 mt-1">Generate and manage cover letters</p>
-        </div>
+      <PageHeader title="Cover Letters" description="Generate and manage cover letters">
         <Button onClick={() => setShowForm(!showForm)}><Sparkles className="w-4 h-4" />Generate New</Button>
-      </div>
+      </PageHeader>
 
       {showForm && (
         <Card padding="lg">
@@ -86,8 +83,8 @@ export default function CoverLettersPage() {
             </div>
             <Textarea label="Job Description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={4} required />
             <Select label="Tone" value={tone} onChange={(e) => setTone(e.target.value)}>
-              {tones.map((t) => (
-                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              {TONES.map((t) => (
+                <option key={t} value={t}>{capitalize(t)}</option>
               ))}
             </Select>
             <div className="flex gap-3">
@@ -106,7 +103,7 @@ export default function CoverLettersPage() {
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><Spinner /></div>
+        <LoadingState padding="md" />
       ) : coverLetters?.length === 0 ? (
         <EmptyState icon={PenLine} title="No cover letters yet" description="Generate your first cover letter" action={{ label: 'Generate Cover Letter', onClick: () => setShowForm(true) }} />
       ) : (
@@ -130,7 +127,7 @@ export default function CoverLettersPage() {
               <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{cl.content}</p>
               <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
                 <span className="capitalize">{cl.tone}</span>
-                <span>{new Date(cl.createdAt).toLocaleDateString()}</span>
+                <span>{formatDate(cl.createdAt)}</span>
               </div>
             </Card>
           ))}

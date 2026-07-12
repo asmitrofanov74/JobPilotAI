@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export default function SkillsPage() {
@@ -48,10 +49,7 @@ export default function SkillsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Skill Gap Analysis</h1>
-        <p className="text-gray-500 mt-1">Compare your skills against job requirements</p>
-      </div>
+      <PageHeader title="Skill Gap Analysis" description="Compare your skills against job requirements" />
 
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
@@ -138,7 +136,7 @@ export default function SkillsPage() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Previous Reports</h2>
         {isLoading ? (
-          <div className="flex justify-center py-12"><Spinner /></div>
+          <LoadingState padding="sm" />
         ) : reports?.length === 0 ? (
           <EmptyState icon={TrendingUp} title="No reports yet" description="Run your first skill gap analysis" />
         ) : (

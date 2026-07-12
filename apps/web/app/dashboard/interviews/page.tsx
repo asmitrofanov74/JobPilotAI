@@ -10,17 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-const TYPE_BADGE: Record<string, 'purple' | 'orange' | 'amber' | 'blue' | 'red' | 'emerald'> = {
-  PHONE: 'purple',
-  TECHNICAL: 'orange',
-  ONSITE: 'amber',
-  BEHAVIORAL: 'blue',
-  PANEL: 'red',
-  FINAL: 'emerald',
-};
+import { TYPE_BADGE, INTERVIEW_TYPES } from '@/lib/constants';
+import { capitalize, formatDate } from '@/lib/utils/format';
 
 export default function InterviewsPage() {
   const queryClient = useQueryClient();
@@ -75,13 +69,9 @@ export default function InterviewsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Interviews</h1>
-          <p className="text-gray-500 mt-1">Track your interview schedule</p>
-        </div>
+      <PageHeader title="Interviews" description="Track your interview schedule">
         <Button onClick={() => setShowForm(!showForm)}><Plus className="w-4 h-4" />Schedule Interview</Button>
-      </div>
+      </PageHeader>
 
       {showForm && (
         <Card padding="lg">
@@ -94,8 +84,8 @@ export default function InterviewsPage() {
               ))}
             </Select>
             <Select label="Type" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-              {['PHONE', 'TECHNICAL', 'ONSITE', 'BEHAVIORAL', 'PANEL', 'FINAL'].map((t) => (
-                <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
+              {INTERVIEW_TYPES.map((t) => (
+                <option key={t} value={t}>{capitalize(t)}</option>
               ))}
             </Select>
             <Input label="Round" type="number" min={1} value={formData.round} onChange={(e) => setFormData({ ...formData, round: parseInt(e.target.value) || 1 })} />
@@ -113,7 +103,7 @@ export default function InterviewsPage() {
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><Spinner /></div>
+        <LoadingState padding="md" />
       ) : interviews?.length === 0 ? (
         <EmptyState icon={MessageSquare} title="No interviews scheduled" description="Schedule your first interview" action={{ label: 'Schedule Interview', onClick: () => setShowForm(true) }} />
       ) : (
@@ -137,7 +127,7 @@ export default function InterviewsPage() {
                       <Badge variant={TYPE_BADGE[interview.type] || 'gray'}>{interview.type}</Badge>
                     </td>
                     <td className="px-4 py-3.5"><span className="text-sm text-gray-700">Round {interview.round}</span></td>
-                    <td className="px-4 py-3.5"><span className="text-sm text-gray-400">{interview.scheduledAt ? new Date(interview.scheduledAt).toLocaleDateString() : '-'}</span></td>
+                    <td className="px-4 py-3.5"><span className="text-sm text-gray-400">{formatDate(interview.scheduledAt)}</span></td>
                     <td className="px-4 py-3.5"><span className="text-sm text-gray-700">{interview.location || '-'}</span></td>
                     <td className="px-4 py-3.5">
                       {interview.isCompleted ? (

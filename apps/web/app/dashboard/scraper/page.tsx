@@ -8,53 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { Search, Download, MapPin, DollarSign, ExternalLink, Globe, Clock } from 'lucide-react';
-
-const SOURCE_BADGE: Record<string, 'blue' | 'orange' | 'purple' | 'green' | 'red' | 'gray' | 'cyan' | 'violet' | 'amber' | 'emerald'> = {
-  LINKEDIN: 'blue',
-  INDEED: 'orange',
-  GLASSDOOR: 'purple',
-  ZIPRECRUITER: 'green',
-  WORKOPOLIS: 'amber',
-  GREENHOUSE: 'emerald',
-  LEVER: 'violet',
-  WORKDAY: 'cyan',
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  LINKEDIN: 'LinkedIn',
-  INDEED: 'Indeed',
-  GLASSDOOR: 'Glassdoor',
-  ZIPRECRUITER: 'ZipRecruiter',
-  WORKOPOLIS: 'Workopolis',
-  GREENHOUSE: 'Greenhouse',
-  LEVER: 'Lever',
-  WORKDAY: 'Workday',
-};
-
-const ALL_SOURCES = ['GREENHOUSE', 'LEVER', 'WORKDAY', 'INDEED', 'WORKOPOLIS', 'LINKEDIN', 'ZIPRECRUITER'];
-
-const POSTED_OPTIONS = [
-  { label: 'Any Time', value: '' },
-  { label: 'Past 24 hours', value: 'H24' },
-  { label: 'Past 3 days', value: 'D3' },
-  { label: 'Past 7 days', value: 'D7' },
-  { label: 'Past 14 days', value: 'D14' },
-  { label: 'Past 30 days', value: 'D30' },
-];
-
-function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return mins <= 1 ? 'Posted 1 min ago' : `Posted ${mins} mins ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours === 1 ? 'Posted 1 hour ago' : `Posted ${hours} hours ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return days === 1 ? 'Posted 1 day ago' : `Posted ${days} days ago`;
-  return `Posted ${Math.floor(days / 30)} months ago`;
-}
+import { PageHeader } from '@/components/ui/page-header';
+import { Search, Download, MapPin, DollarSign, ExternalLink, Globe } from 'lucide-react';
+import { SOURCE_BADGE, SOURCE_LABELS, ALL_SOURCES, POSTED_OPTIONS } from '@/lib/constants';
+import { relativeTime } from '@/lib/utils/format';
 
 export default function ScraperPage() {
   const [keywords, setKeywords] = useState('software engineer');
@@ -112,10 +71,7 @@ export default function ScraperPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Job Scraper</h1>
-        <p className="text-gray-500 mt-1">Search and import jobs from multiple sources</p>
-      </div>
+      <PageHeader title="Job Scraper" description="Search and import jobs from multiple sources" />
 
       <Card padding="md" className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -131,31 +87,17 @@ export default function ScraperPage() {
             onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g. Toronto, ON"
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-            <select
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="ALL">All Sources</option>
-              {ALL_SOURCES.map((s) => (
-                <option key={s} value={s}>{SOURCE_LABELS[s]}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Posted Date</label>
-            <select
-              value={postedWithin}
-              onChange={(e) => setPostedWithin(e.target.value)}
-              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {POSTED_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
+          <Select label="Source" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+            <option value="ALL">All Sources</option>
+            {ALL_SOURCES.map((s) => (
+              <option key={s} value={s}>{SOURCE_LABELS[s]}</option>
+            ))}
+          </Select>
+          <Select label="Posted Date" value={postedWithin} onChange={(e) => setPostedWithin(e.target.value)}>
+            {POSTED_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Select>
         </div>
         <div className="flex gap-3">
           <Button onClick={() => scrape.mutate()} loading={scrape.isPending}>

@@ -7,7 +7,7 @@ import { useLogin } from '@/lib/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
+import { PasswordInput } from '@/components/ui/password-input';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export default function LoginPage() {
@@ -15,7 +15,6 @@ export default function LoginPage() {
   const login = useLogin();
   const [email, setEmail] = useState('demo@jobpilot.ai');
   const [password, setPassword] = useState('demo1234');
-  const [show, setShow] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -83,34 +82,22 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="relative">
-              <Input
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                required
-              />
-            </div>
+            <Input
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              required
+            />
 
-            <div className="relative">
-              <Input
-                label="Password"
-                type={show ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShow(!show)}
-                className="absolute right-3 bottom-[9px] text-gray-400 hover:text-gray-600"
-              >
-                {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
 
             <Button type="submit" loading={login.isPending} className="w-full">
               Sign in

@@ -8,41 +8,12 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
+import { Select } from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-const STATUS_BADGE: Record<string, 'gray' | 'blue' | 'purple' | 'orange' | 'amber' | 'emerald' | 'red'> = {
-  SAVED: 'gray',
-  APPLIED: 'blue',
-  PHONE_SCREEN: 'purple',
-  TECHNICAL: 'orange',
-  ONSITE: 'amber',
-  OFFER: 'emerald',
-  REJECTED: 'red',
-  WITHDREW: 'gray',
-  ACCEPTED: 'emerald',
-};
-
-const STATUS_OPTIONS = [
-  { label: 'All Statuses', value: '' },
-  { label: 'Saved', value: 'SAVED' },
-  { label: 'Applied', value: 'APPLIED' },
-  { label: 'Phone Screen', value: 'PHONE_SCREEN' },
-  { label: 'Technical', value: 'TECHNICAL' },
-  { label: 'Onsite', value: 'ONSITE' },
-  { label: 'Offer', value: 'OFFER' },
-  { label: 'Rejected', value: 'REJECTED' },
-  { label: 'Accepted', value: 'ACCEPTED' },
-];
-
-const PAGE_SIZES = [5, 10, 20];
-
-const COLUMNS = [
-  { key: 'companyName', label: 'Company', sortable: true },
-  { key: 'jobTitle', label: 'Position', sortable: true },
-  { key: 'status', label: 'Status', sortable: true },
-  { key: 'createdAt', label: 'Date', sortable: true },
-];
+import { STATUS_BADGE, STATUS_OPTIONS, PAGE_SIZES, COLUMNS } from '@/lib/constants';
+import { formatDate, formatStatusLabel } from '@/lib/utils/format';
 
 export default function JobsPage() {
   const [page, setPage] = useState(1);
@@ -135,30 +106,24 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job Applications</h1>
-          <p className="text-gray-500 mt-1">Track and manage your opportunities</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {meta && meta.total > 0 && (
-            <button
-              onClick={() => {
-                if (window.confirm(`Delete all ${meta.total} job applications? This cannot be undone.`)) {
-                  deleteAll.mutate();
-                }
-              }}
-              disabled={deleteAll.isPending}
-              className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Delete All
-            </button>
-          )}
-          <Link href="/dashboard/jobs/new">
-            <Button><Plus className="w-4 h-4" />Add Job</Button>
-          </Link>
-        </div>
-      </div>
+      <PageHeader title="Job Applications" description="Track and manage your opportunities">
+        {meta && meta.total > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm(`Delete all ${meta.total} job applications? This cannot be undone.`)) {
+                deleteAll.mutate();
+              }
+            }}
+            disabled={deleteAll.isPending}
+            className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            Delete All
+          </button>
+        )}
+        <Link href="/dashboard/jobs/new">
+          <Button><Plus className="w-4 h-4" />Add Job</Button>
+        </Link>
+      </PageHeader>
 
       <div className="flex flex-wrap items-center gap-3">
         {selectedIds.size > 0 && (
@@ -184,28 +149,20 @@ export default function JobsPage() {
             className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        <Select label="" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
           {STATUS_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
-        </select>
-        <select
-          value={limit}
-          onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
-          className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        </Select>
+        <Select label="" value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}>
           {PAGE_SIZES.map((s) => (
             <option key={s} value={s}>{s} per page</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-20"><Spinner /></div>
+        <LoadingState padding="lg" />
       ) : data?.edges?.length === 0 ? (
         <EmptyState icon={Briefcase} title="No jobs yet" description="Start tracking your job applications" action={{ label: 'Add Your First Job', onClick: () => window.location.href = '/dashboard/jobs/new' }} />
       ) : (
@@ -249,12 +206,12 @@ export default function JobsPage() {
                     <td className="px-4 py-3.5"><span className="text-sm text-gray-700">{job.jobTitle}</span></td>
                     <td className="px-4 py-3.5">
                       <Badge variant={STATUS_BADGE[job.status] || 'gray'}>
-                        {job.status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                        {formatStatusLabel(job.status)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="text-sm text-gray-400">
-                        {job.createdAt ? new Date(job.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                        {formatDate(job.createdAt)}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
