@@ -6,18 +6,19 @@ import { CreateResumeInput, UpdateResumeInput } from './dto/resumes.input';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => ResumeType)
 export class ResumesResolver {
   constructor(private readonly resumesService: ResumesService) {}
 
   @Query(() => [ResumeType])
-  @UseGuards(JwtAuthGuard)
+
   async resumes(@CurrentUser() user: { id: string }) {
     return this.resumesService.findAll(user.id);
   }
 
   @Query(() => ResumeType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async resume(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -26,7 +27,7 @@ export class ResumesResolver {
   }
 
   @Mutation(() => ResumeType)
-  @UseGuards(JwtAuthGuard)
+
   async createResume(
     @CurrentUser() user: { id: string },
     @Args('input') input: CreateResumeInput,
@@ -35,7 +36,7 @@ export class ResumesResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async updateResume(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -46,7 +47,7 @@ export class ResumesResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteResume(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -55,7 +56,7 @@ export class ResumesResolver {
   }
 
   @Mutation(() => ResumeType)
-  @UseGuards(JwtAuthGuard)
+
   async setPrimaryResume(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,

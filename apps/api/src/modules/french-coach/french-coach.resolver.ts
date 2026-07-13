@@ -45,6 +45,7 @@ import { CareerFrenchCoachService } from './career-french-coach.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver()
 export class FrenchCoachResolver {
   constructor(
@@ -59,13 +60,13 @@ export class FrenchCoachResolver {
   ) {}
 
   @Query(() => FrenchProfileType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchProfile(@CurrentUser() user: { id: string }) {
     return this.frenchCoachService.getProfile(user.id);
   }
 
   @Mutation(() => FrenchProfileType)
-  @UseGuards(JwtAuthGuard)
+
   async updateFrenchProfile(
     @CurrentUser() user: { id: string },
     @Args('input') input: UpdateFrenchProfileInput,
@@ -80,13 +81,13 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => FrenchProgressType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchProgress(@CurrentUser() user: { id: string }) {
     return this.frenchCoachService.getProgress(user.id);
   }
 
   @Query(() => [FrenchSessionType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchSessions(
     @CurrentUser() user: { id: string },
     @Args('type', { nullable: true }) type?: string,
@@ -95,7 +96,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => FrenchConversationType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchConversation(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -104,7 +105,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => [FrenchConversationType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchConversations(@CurrentUser() user: { id: string }) {
     return this.conversationService.getConversations(user.id);
   }
@@ -112,7 +113,7 @@ export class FrenchCoachResolver {
   // --- Vocabulary Queries ---
 
   @Query(() => [FrenchVocabularyWordType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchVocabulary(
     @CurrentUser() user: { id: string },
     @Args('filter', { nullable: true }) filter?: VocabularyFilterInput,
@@ -121,7 +122,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => FrenchVocabularyStatsType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchVocabularyStats(@CurrentUser() user: { id: string }) {
     return this.vocabularyService.getVocabularyStats(user.id);
   }
@@ -129,7 +130,7 @@ export class FrenchCoachResolver {
   // --- Vocabulary Mutations ---
 
   @Mutation(() => FrenchVocabularyWordType)
-  @UseGuards(JwtAuthGuard)
+
   async addFrenchVocabularyWord(
     @CurrentUser() user: { id: string },
     @Args('input') input: AddVocabularyWordInput,
@@ -138,7 +139,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => FrenchVocabularyWordType)
-  @UseGuards(JwtAuthGuard)
+
   async reviewFrenchVocabularyWord(
     @CurrentUser() user: { id: string },
     @Args('input') input: ReviewVocabularyWordInput,
@@ -147,7 +148,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteFrenchVocabularyWord(
     @CurrentUser() user: { id: string },
     @Args('wordId') wordId: string,
@@ -157,7 +158,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => [FrenchVocabularyWordType])
-  @UseGuards(JwtAuthGuard)
+
   async extractFrenchVocabulary(
     @CurrentUser() user: { id: string },
     @Args('conversationId') conversationId: string,
@@ -166,7 +167,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => FrenchVocabularyWordType)
-  @UseGuards(JwtAuthGuard)
+
   async generateQuebecEquivalent(
     @CurrentUser() user: { id: string },
     @Args('wordId') wordId: string,
@@ -175,7 +176,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => FrenchVariantComparisonType)
-  @UseGuards(JwtAuthGuard)
+
   async compareFrenchVariants(
     @CurrentUser() user: { id: string },
     @Args('phrase') phrase: string,
@@ -186,7 +187,7 @@ export class FrenchCoachResolver {
   // --- Pronunciation ---
 
   @Mutation(() => PronunciationResultType)
-  @UseGuards(JwtAuthGuard)
+
   async evaluateFrenchPronunciation(
     @CurrentUser() user: { id: string },
     @Args('input') input: EvaluatePronunciationInput,
@@ -197,7 +198,7 @@ export class FrenchCoachResolver {
   // --- Career Integration ---
 
   @Mutation(() => GenerateQuestionsResultType)
-  @UseGuards(JwtAuthGuard)
+
   async generateCareerInterviewQuestions(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateCareerInterviewInput,
@@ -212,7 +213,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => SendFrenchMessageResult)
-  @UseGuards(JwtAuthGuard)
+
   async generateCareerConversation(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateCareerConversationInput,
@@ -225,7 +226,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => [CareerSuggestionType])
-  @UseGuards(JwtAuthGuard)
+
   async careerFrenchSuggestions(@CurrentUser() user: { id: string }) {
     return this.careerFrenchCoachService.getCareerSuggestions(user.id);
   }
@@ -233,7 +234,7 @@ export class FrenchCoachResolver {
   // --- Cultural Tips ---
 
   @Query(() => FrenchCulturalTipType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async frenchCulturalTip(
     @CurrentUser() user: { id: string },
     @Args('topic', { nullable: true }) topic?: string,
@@ -242,7 +243,7 @@ export class FrenchCoachResolver {
   }
 
   @Query(() => [FrenchCulturalTipType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchCulturalTipHistory(@CurrentUser() user: { id: string }) {
     return this.culturalTipsService.getTipHistory(user.id);
   }
@@ -250,25 +251,25 @@ export class FrenchCoachResolver {
   // --- Vocabulary Tracker ---
 
   @Query(() => [FrenchVocabularyType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchTrackedVocabulary(@CurrentUser() user: { id: string }) {
     return this.vocabularyTrackerService.getAll(user.id);
   }
 
   @Query(() => TodayVocabularyType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchTodayVocabulary(@CurrentUser() user: { id: string }) {
     return this.vocabularyTrackerService.getTodayVocabulary(user.id);
   }
 
   @Query(() => FrenchVocabularyTrackerStatsType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchVocabularyTrackerStats(@CurrentUser() user: { id: string }) {
     return this.vocabularyTrackerService.getStats(user.id);
   }
 
   @Mutation(() => FrenchVocabularyType)
-  @UseGuards(JwtAuthGuard)
+
   async addTrackedVocabulary(
     @CurrentUser() user: { id: string },
     @Args('input') input: AddTrackedVocabularyInput,
@@ -277,7 +278,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => FrenchVocabularyType)
-  @UseGuards(JwtAuthGuard)
+
   async markVocabularyLearned(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -286,7 +287,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => FrenchVocabularyType)
-  @UseGuards(JwtAuthGuard)
+
   async markVocabularyDifficult(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -296,7 +297,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteTrackedVocabulary(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -308,13 +309,13 @@ export class FrenchCoachResolver {
   // --- Interview Coach ---
 
   @Query(() => [FrenchInterviewType])
-  @UseGuards(JwtAuthGuard)
+
   async frenchInterviews(@CurrentUser() user: { id: string }) {
     return this.interviewCoachService.getInterviews(user.id);
   }
 
   @Query(() => FrenchInterviewType)
-  @UseGuards(JwtAuthGuard)
+
   async frenchInterview(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -323,7 +324,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => GenerateQuestionsResultType)
-  @UseGuards(JwtAuthGuard)
+
   async generateFrenchInterviewQuestions(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateInterviewQuestionsInput,
@@ -332,7 +333,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => EvaluateAnswerResultType)
-  @UseGuards(JwtAuthGuard)
+
   async evaluateFrenchInterviewAnswer(
     @CurrentUser() user: { id: string },
     @Args('input') input: EvaluateInterviewAnswerInput,
@@ -343,7 +344,7 @@ export class FrenchCoachResolver {
   // --- Session Mutations ---
 
   @Mutation(() => FrenchSessionType)
-  @UseGuards(JwtAuthGuard)
+
   async startFrenchSession(
     @CurrentUser() user: { id: string },
     @Args('input') input: StartFrenchSessionInput,
@@ -352,7 +353,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => FrenchSessionType)
-  @UseGuards(JwtAuthGuard)
+
   async finishFrenchSession(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -362,7 +363,7 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => SendFrenchMessageResult)
-  @UseGuards(JwtAuthGuard)
+
   async sendFrenchMessage(
     @CurrentUser() user: { id: string },
     @Args('input') input: SendFrenchMessageInput,

@@ -6,6 +6,7 @@ import { FUNNEL_ANALYTICS_QUERY, MONTHLY_STATS_QUERY, JOBS_QUERY } from '@/lib/g
 import { Briefcase, MessageSquare, Award, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { FUNNEL_LABELS } from '@/lib/constants';
@@ -59,14 +60,8 @@ export default function AnalyticsPage() {
       <PageHeader title="Analytics" description="Track your job search performance" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map(({ label, value, icon: Icon, bg, color }) => (
-          <Card key={label}>
-            <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center mb-3`}>
-              <Icon className={`w-5 h-5 ${color}`} strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-          </Card>
+        {STATS.map(({ label, value, icon, bg, color }) => (
+          <StatCard key={label} label={label} value={value} icon={icon} bg={bg} color={color} />
         ))}
       </div>
 

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScoreDisplay } from '@/components/linkedin-optimizer/score-display';
-import { ProgressBar } from '@/components/linkedin-optimizer/progress-bar';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { BulletList } from '@/components/linkedin-optimizer/bullet-list';
 import { PriorityActionList } from '@/components/linkedin-optimizer/priority-action-list';
 import { PreviousResults } from '@/components/linkedin-optimizer/previous-results';

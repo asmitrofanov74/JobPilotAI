@@ -7,12 +7,13 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JobStatus } from './dto/jobs.types';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => JobType)
 export class JobsResolver {
   constructor(private readonly jobsService: JobsService) {}
 
   @Query(() => PaginatedJobs)
-  @UseGuards(JwtAuthGuard)
+
   async jobs(
     @CurrentUser() user: { id: string },
     @Args('pagination', { type: () => PaginationInput, nullable: true }) pagination: PaginationInput = {},
@@ -23,7 +24,7 @@ export class JobsResolver {
   }
 
   @Query(() => JobType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async job(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -32,7 +33,7 @@ export class JobsResolver {
   }
 
   @Mutation(() => JobType)
-  @UseGuards(JwtAuthGuard)
+
   async createJob(
     @CurrentUser() user: { id: string },
     @Args('input') input: CreateJobInput,
@@ -41,7 +42,7 @@ export class JobsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async updateJob(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -52,7 +53,7 @@ export class JobsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteJob(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -61,7 +62,7 @@ export class JobsResolver {
   }
 
   @Mutation(() => Int)
-  @UseGuards(JwtAuthGuard)
+
   async deleteAllJobs(
     @CurrentUser() user: { id: string },
   ) {
@@ -69,7 +70,7 @@ export class JobsResolver {
   }
 
   @Mutation(() => BulkImportResult)
-  @UseGuards(JwtAuthGuard)
+
   async importJobs(
     @CurrentUser() user: { id: string },
     @Args('jobs', { type: () => [CreateJobInput] }) jobs: CreateJobInput[],
@@ -78,13 +79,13 @@ export class JobsResolver {
   }
 
   @Query(() => FunnelAnalytics)
-  @UseGuards(JwtAuthGuard)
+
   async funnelAnalytics(@CurrentUser() user: { id: string }) {
     return this.jobsService.getFunnelAnalytics(user.id);
   }
 
   @Query(() => [MonthlyStat])
-  @UseGuards(JwtAuthGuard)
+
   async monthlyStats(
     @CurrentUser() user: { id: string },
     @Args('from', { type: () => Date }) from: Date,

@@ -6,18 +6,19 @@ import { CreateSkillGapReportInput } from './dto/skill-gap-reports.input';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => SkillGapReportType)
 export class SkillGapReportsResolver {
   constructor(private readonly skillGapReportsService: SkillGapReportsService) {}
 
   @Query(() => [SkillGapReportType])
-  @UseGuards(JwtAuthGuard)
+
   async skillGapReports(@CurrentUser() user: { id: string }) {
     return this.skillGapReportsService.findAll(user.id);
   }
 
   @Query(() => SkillGapReportType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async skillGapReport(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -26,7 +27,7 @@ export class SkillGapReportsResolver {
   }
 
   @Mutation(() => SkillGapReportType)
-  @UseGuards(JwtAuthGuard)
+
   async createSkillGapReport(
     @CurrentUser() user: { id: string },
     @Args('input') input: CreateSkillGapReportInput,
@@ -35,7 +36,7 @@ export class SkillGapReportsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteSkillGapReport(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,

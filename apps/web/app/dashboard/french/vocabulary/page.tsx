@@ -18,6 +18,7 @@ import {
   CheckCircle2, XCircle, AlertCircle,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -219,36 +220,18 @@ export default function FrenchVocabularyPage() {
 
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
-              <BookOpen className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Words</p>
-          </Card>
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.mastered}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Mastered</p>
-          </Card>
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center mb-3">
-              <AlertCircle className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.dueForReview}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Due for Review</p>
-          </Card>
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mb-3">
-              <Brain className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-lg font-bold text-gray-900 truncate" title={JSON.stringify(stats.difficultyBreakdown)}>
-              E{stats.difficultyBreakdown?.easy ?? 0} · M{stats.difficultyBreakdown?.medium ?? 0} · H{stats.difficultyBreakdown?.hard ?? 0}
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">By Difficulty</p>
-          </Card>
+          <StatCard label="Total Words" value={stats.total} icon={BookOpen} color="text-blue-600" bg="bg-blue-50" />
+          <StatCard label="Mastered" value={stats.mastered} icon={CheckCircle2} color="text-emerald-600" bg="bg-emerald-50" />
+          <StatCard label="Due for Review" value={stats.dueForReview} icon={AlertCircle} color="text-amber-600" bg="bg-amber-50" />
+          <StatCard
+            label="By Difficulty"
+            value={`E${stats.difficultyBreakdown?.easy ?? 0} · M${stats.difficultyBreakdown?.medium ?? 0} · H${stats.difficultyBreakdown?.hard ?? 0}`}
+            icon={Brain}
+            color="text-purple-600"
+            bg="bg-purple-50"
+            valueSize="lg"
+            valueClassName="truncate"
+          />
         </div>
       )}
 

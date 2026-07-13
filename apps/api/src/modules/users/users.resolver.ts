@@ -6,12 +6,13 @@ import { UsersService } from './users.service';
 import { UserType } from '../auth/dto/auth.types';
 import { UpdateProfileInput } from './dto/user.inputs';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => UserType)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Mutation(() => UserType)
-  @UseGuards(JwtAuthGuard)
+
   async updateProfile(
     @CurrentUser() user: any,
     @Args('input') input: UpdateProfileInput,

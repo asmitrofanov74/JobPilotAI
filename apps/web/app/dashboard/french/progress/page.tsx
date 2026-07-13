@@ -14,18 +14,14 @@ import {
   AlertTriangle, Zap,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-const SCENARIO_LABELS: Record<string, { label: string; icon: any; color: string }> = {
-  job_interview: { label: 'Job Interview', icon: Mic, color: 'text-blue-600' },
-  recruiter_call: { label: 'Recruiter Call', icon: Users, color: 'text-emerald-600' },
-  team_meeting: { label: 'Team Meeting', icon: BookOpen, color: 'text-violet-600' },
-  daily_standup: { label: 'Daily Standup', icon: MessageSquare, color: 'text-amber-600' },
-  office_conversation: { label: 'Office Chat', icon: Coffee, color: 'text-rose-600' },
-};
+import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
+import { ProgressBar } from '@/components/ui/progress-bar';
+import { ScoreBar } from '@/components/ui/score-bar';
 
 const SESSION_TYPE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
   cv_review: { label: 'CV Review', icon: ScrollText, color: 'text-blue-600' },
@@ -35,19 +31,6 @@ const SESSION_TYPE_LABELS: Record<string, { label: string; icon: any; color: str
   vocabulary: { label: 'Vocabulary', icon: BookOpen, color: 'text-rose-600' },
   cultural: { label: 'Cultural', icon: Users, color: 'text-cyan-600' },
 };
-
-function ScoreBar({ label, score, maxScore = 100, color }: { label: string; score: number | null; maxScore?: number; color: string }) {
-  const pct = score ? Math.round((score / maxScore) * 100) : 0;
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-gray-600 w-24 shrink-0">{label}</span>
-      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-sm font-semibold text-gray-900 w-10 text-right">{score ?? '—'}</span>
-    </div>
-  );
-}
 
 export default function FrenchProgressPage() {
   const { data: progress, isLoading: pLoading } = useQuery({
@@ -96,17 +79,11 @@ export default function FrenchProgressPage() {
         description="Track your French learning progress with detailed analytics"
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label} padding="md" className="border-gray-100">
-            <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center mb-3`}>
-              <Icon className={`w-5 h-5 ${color}`} strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-          </Card>
-        ))}
-      </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map(({ label, value, icon, color, bg }) => (
+            <StatCard key={label} label={label} value={value} icon={icon} color={color} bg={bg} />
+          ))}
+        </div>
 
       {progress?.weaknesses && progress.weaknesses.length > 0 && (
         <Card padding="md" className="border-amber-200 bg-amber-50">
@@ -159,9 +136,7 @@ export default function FrenchProgressPage() {
                         <span className="text-sm font-medium text-gray-900">{meta.label}</span>
                         <span className="text-xs text-gray-500">{completed}/{total}</span>
                       </div>
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                      </div>
+                      <ProgressBar value={pct} color="bg-blue-500" height="sm" className="mt-1" />
                     </div>
                   </div>
                 );
@@ -217,7 +192,7 @@ export default function FrenchProgressPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {Object.entries(SCENARIO_LABELS).map(([key, meta]) => {
+              {Object.entries(FRENCH_SCENARIO_RECORD).map(([key, meta]) => {
                 const Icon = meta.icon;
                 const convCount = conversations?.filter((c: any) => c.scenario === key).length ?? 0;
                 const msgCount = conversations

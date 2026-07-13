@@ -194,6 +194,7 @@ export class ProviderHealthType {
   lastError?: string;
 }
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => ScrapedJobType)
 export class ScraperResolver {
   constructor(
@@ -204,7 +205,7 @@ export class ScraperResolver {
   ) {}
 
   @Mutation(() => ScrapeResult)
-  @UseGuards(JwtAuthGuard)
+
   async scrapeJobs(
     @CurrentUser() user: { id: string },
     @Args('input') input: ScrapeJobsInput,
@@ -266,7 +267,7 @@ export class ScraperResolver {
   }
 
   @Mutation(() => [ScrapedJobType])
-  @UseGuards(JwtAuthGuard)
+
   async scrapeCompany(
     @Args('input') input: ScrapeCompanyInput,
   ) {
@@ -283,7 +284,7 @@ export class ScraperResolver {
   }
 
   @Query(() => [ProviderHealthType])
-  @UseGuards(JwtAuthGuard)
+
   async scraperStatus() {
     return this.healthService.getAll();
   }

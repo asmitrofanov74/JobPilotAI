@@ -31,7 +31,7 @@ export function AuthLayout({ children, leftContent, showThemeToggle, ThemeToggle
           {leftContent}
         </div>
       </div>
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white dark:bg-gray-950">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">

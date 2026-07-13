@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScoreDisplay } from '@/components/linkedin-optimizer/score-display';
-import { ProgressBar } from '@/components/linkedin-optimizer/progress-bar';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { BulletList } from '@/components/linkedin-optimizer/bullet-list';
 import { PriorityActionList } from '@/components/linkedin-optimizer/priority-action-list';
 import { PreviousResults } from '@/components/linkedin-optimizer/previous-results';
@@ -108,9 +108,7 @@ export default function VisibilityPage() {
               <div className="flex items-center gap-3 mb-3">
                 <div className="text-2xl font-bold text-purple-600">{output.recruiterAppeal.score}%</div>
                 <div className="flex-1 max-w-xs">
-                  <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: `${output.recruiterAppeal.score}%` }} />
-                  </div>
+                  <ProgressBar value={output.recruiterAppeal.score} color="bg-purple-600" height="md" />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

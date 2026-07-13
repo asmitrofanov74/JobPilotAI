@@ -21,19 +21,13 @@ import {
   Brain, Settings,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-
-const SCENARIOS = [
-  { value: 'job_interview', label: 'Job Interview', icon: Mic, desc: 'Practice French interview questions', color: 'text-blue-600', bg: 'bg-blue-50' },
-  { value: 'recruiter_call', label: 'Recruiter Call', icon: Users, desc: 'Simulate calls with French recruiters', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { value: 'team_meeting', label: 'Team Meeting', icon: BookOpen, desc: 'Participate in French team discussions', color: 'text-violet-600', bg: 'bg-violet-50' },
-  { value: 'daily_standup', label: 'Daily Standup', icon: MessageSquare, desc: 'Share updates in a French standup', color: 'text-amber-600', bg: 'bg-amber-50' },
-  { value: 'office_conversation', label: 'Office Chat', icon: Coffee, desc: 'Casual French office conversations', color: 'text-rose-600', bg: 'bg-rose-50' },
-];
+import { FRENCH_SCENARIOS } from '@/lib/constants/french-scenarios';
 
 export default function FrenchCoachPage() {
   const router = useRouter();
@@ -112,11 +106,11 @@ export default function FrenchCoachPage() {
   const recentConversations = conversations?.slice(0, 5) ?? [];
 
   function getScenarioLabel(value: string) {
-    return SCENARIOS.find((s) => s.value === value)?.label ?? value;
+    return FRENCH_SCENARIOS.find((s) => s.value === value)?.label ?? value;
   }
 
   function getScenarioIcon(value: string) {
-    const scenario = SCENARIOS.find((s) => s.value === value);
+    const scenario = FRENCH_SCENARIOS.find((s) => s.value === value);
     return scenario ? <scenario.icon className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />;
   }
 
@@ -145,55 +139,17 @@ export default function FrenchCoachPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label} padding="md" className="border-gray-100">
-            <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center mb-3`}>
-              <Icon className={`w-5 h-5 ${color}`} strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-          </Card>
+        {stats.map(({ label, value, icon, color, bg }) => (
+          <StatCard key={label} label={label} value={value} icon={icon} color={color} bg={bg} />
         ))}
       </div>
 
-      {/* Vocabulary Tracker Dashboard Widgets */}
       {trackerStats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center mb-3">
-              <BookmarkCheck className="w-5 h-5 text-rose-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{trackerStats.total}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Words Tracked</p>
-          </Card>
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{trackerStats.learned}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Learned</p>
-          </Card>
-          <Card padding="md" className="border-gray-100">
-            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center mb-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{trackerStats.difficult}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Difficult</p>
-          </Card>
-          <Link href="/dashboard/french/vocabulary" className="block">
-            <Card padding="md" className="border-gray-100 hover:shadow-md transition-shadow h-full">
-              <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center mb-3">
-                <BookmarkPlus className="w-5 h-5 text-violet-600" strokeWidth={1.5} />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {todayVocab?.words?.length ?? 0}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <p className="text-sm text-gray-500 mt-0.5">Today's Words</p>
-                <ArrowRight className="w-3 h-3 text-gray-400" strokeWidth={1.5} />
-              </div>
-            </Card>
-          </Link>
+          <StatCard label="Words Tracked" value={trackerStats.total} icon={BookmarkCheck} color="text-rose-600" bg="bg-rose-50" />
+          <StatCard label="Learned" value={trackerStats.learned} icon={CheckCircle2} color="text-emerald-600" bg="bg-emerald-50" />
+          <StatCard label="Difficult" value={trackerStats.difficult} icon={AlertTriangle} color="text-amber-600" bg="bg-amber-50" />
+          <StatCard label="Today's Words" value={todayVocab?.words?.length ?? 0} icon={BookmarkPlus} color="text-violet-600" bg="bg-violet-50" href="/dashboard/french/vocabulary" showArrow />
         </div>
       )}
 
@@ -266,7 +222,7 @@ export default function FrenchCoachPage() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Practice Scenarios</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {SCENARIOS.map(({ value, label, icon: Icon, desc, color, bg }) => (
+          {FRENCH_SCENARIOS.map(({ value, label, icon: Icon, desc, color, bg }) => (
             <Link
               key={value}
               href={`/dashboard/french/conversations?scenario=${value}`}

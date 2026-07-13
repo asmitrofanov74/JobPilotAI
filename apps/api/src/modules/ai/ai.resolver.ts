@@ -6,12 +6,13 @@ import { GenerateCoverLetterInput, SkillGapInput, InterviewQuestionsInput } from
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver()
 export class AiResolver {
   constructor(private readonly aiService: AiService) {}
 
   @Mutation(() => GeneratedCoverLetter)
-  @UseGuards(JwtAuthGuard)
+
   async generateCoverLetter(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateCoverLetterInput,
@@ -20,7 +21,7 @@ export class AiResolver {
   }
 
   @Mutation(() => SkillGapResult)
-  @UseGuards(JwtAuthGuard)
+
   async analyzeSkillGap(
     @CurrentUser() user: { id: string },
     @Args('input') input: SkillGapInput,
@@ -29,7 +30,7 @@ export class AiResolver {
   }
 
   @Mutation(() => GeneratedQuestions)
-  @UseGuards(JwtAuthGuard)
+
   async generateInterviewQuestions(
     @CurrentUser() user: { id: string },
     @Args('input') input: InterviewQuestionsInput,

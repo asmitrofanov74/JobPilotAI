@@ -13,12 +13,13 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => LinkedinOptimizationType)
 export class LinkedinOptimizerResolver {
   constructor(private readonly linkedinOptimizerService: LinkedinOptimizerService) {}
 
   @Query(() => [LinkedinOptimizationType])
-  @UseGuards(JwtAuthGuard)
+
   async linkedinOptimizations(
     @CurrentUser() user: { id: string },
     @Args('type', { nullable: true }) type?: string,
@@ -27,7 +28,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Query(() => LinkedinOptimizationType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async linkedinOptimization(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -36,7 +37,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async analyzeLinkedinProfile(
     @CurrentUser() user: { id: string },
     @Args('input') input: AnalyzeProfileInput,
@@ -45,7 +46,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async generateLinkedinHeadlines(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateHeadlineInput,
@@ -54,7 +55,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async generateLinkedinAbout(
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateAboutInput,
@@ -63,7 +64,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async optimizeLinkedinExperience(
     @CurrentUser() user: { id: string },
     @Args('input') input: OptimizeExperienceInput,
@@ -72,7 +73,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async compareResumeWithLinkedin(
     @CurrentUser() user: { id: string },
     @Args('input') input: CompareResumeInput,
@@ -81,7 +82,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => LinkedinOptimizationResult)
-  @UseGuards(JwtAuthGuard)
+
   async analyzeLinkedinVisibility(
     @CurrentUser() user: { id: string },
     @Args('input') input: AnalyzeVisibilityInput,
@@ -90,7 +91,7 @@ export class LinkedinOptimizerResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteLinkedinOptimization(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,

@@ -22,14 +22,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Textarea } from '@/components/ui/textarea';
 import { VoiceInput } from '@/components/voice/voice-input';
-
-const SCENARIO_META: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-  job_interview: { label: 'Job Interview', icon: Mic, color: 'text-blue-600', bg: 'bg-blue-50' },
-  recruiter_call: { label: 'Recruiter Call', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  team_meeting: { label: 'Team Meeting', icon: BookOpen, color: 'text-violet-600', bg: 'bg-violet-50' },
-  daily_standup: { label: 'Daily Standup', icon: MessageSquare, color: 'text-amber-600', bg: 'bg-amber-50' },
-  office_conversation: { label: 'Office Chat', icon: Coffee, color: 'text-rose-600', bg: 'bg-rose-50' },
-};
+import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
 
 function FrenchConversationsContent() {
   const router = useRouter();
@@ -130,7 +123,7 @@ function FrenchConversationsContent() {
   const messages = conversationData?.messages ?? [];
   const selectedConv = conversations?.find((c: any) => c.id === selectedId);
   const activeScenario = selectedConv?.scenario || newScenario;
-  const scenarioMeta = SCENARIO_META[activeScenario] || SCENARIO_META.job_interview;
+  const scenarioMeta = FRENCH_SCENARIO_RECORD[activeScenario] || FRENCH_SCENARIO_RECORD.job_interview;
   const ScenarioIcon = scenarioMeta.icon;
 
   const conversationList = conversations ?? [];
@@ -149,7 +142,7 @@ function FrenchConversationsContent() {
       <div className="flex gap-6 h-[calc(100vh-14rem)]">
         <div className="w-72 shrink-0 hidden lg:flex flex-col gap-3">
           <div className="flex flex-wrap gap-1.5 mb-1">
-            {Object.entries(SCENARIO_META).map(([key, meta]) => (
+            {Object.entries(FRENCH_SCENARIO_RECORD).map(([key, meta]) => (
               <button
                 key={key}
                 onClick={() => startNew(key)}
@@ -177,7 +170,7 @@ function FrenchConversationsContent() {
               </div>
             ) : (
               conversationList.map((conv: any) => {
-                const meta = SCENARIO_META[conv.scenario] || SCENARIO_META.job_interview;
+                const meta = FRENCH_SCENARIO_RECORD[conv.scenario] || FRENCH_SCENARIO_RECORD.job_interview;
                 const Icon = meta.icon;
                 return (
                   <button
@@ -215,7 +208,7 @@ function FrenchConversationsContent() {
                   Choose a scenario above or select an existing conversation to practice your French.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  {Object.entries(SCENARIO_META).map(([key, meta]) => {
+                  {Object.entries(FRENCH_SCENARIO_RECORD).map(([key, meta]) => {
                     const Icon = meta.icon;
                     return (
                       <Button key={key} variant="secondary" size="sm" onClick={() => startNew(key)}>

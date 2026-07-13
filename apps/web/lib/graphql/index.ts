@@ -13,74 +13,11 @@ export const LOGIN_MUTATION = `
         subscription {
           tier
           currentPeriodEnd
+        }
       }
     }
   }
 `;
-
-export const EVALUATE_FRENCH_PRONUNCIATION_MUTATION = `
-  mutation EvaluateFrenchPronunciation($input: EvaluatePronunciationInput!) {
-    evaluateFrenchPronunciation(input: $input) {
-      overallScore
-      clarityScore
-      accuracyScore
-      fluencyScore
-      feedback
-      improvements {
-        text
-        suggestion
-      }
-    }
-  }
-`;
-
-export const GENERATE_CAREER_INTERVIEW_QUESTIONS_MUTATION = `
-  mutation GenerateCareerInterviewQuestions($input: GenerateCareerInterviewInput!) {
-    generateCareerInterviewQuestions(input: $input) {
-      questions {
-        id
-        question
-        category
-      }
-      interview {
-        id
-        scenario
-        questionCount
-        status
-        overallScore
-        createdAt
-        updatedAt
-      }
-    }
-  }
-`;
-
-export const GENERATE_CAREER_CONVERSATION_MUTATION = `
-  mutation GenerateCareerConversation($input: GenerateCareerConversationInput!) {
-    generateCareerConversation(input: $input) {
-      conversationId
-      response {
-        id
-        role
-        content
-        createdAt
-      }
-    }
-  }
-`;
-
-export const CAREER_FRENCH_SUGGESTIONS_QUERY = `
-  query CareerFrenchSuggestions {
-    careerFrenchSuggestions {
-      jobApplicationId
-      companyName
-      jobTitle
-      hasDescription
-      status
-    }
-  }
-`;
-
 
 export const REGISTER_MUTATION = `
   mutation Register($input: RegisterInput!) {
@@ -97,14 +34,7 @@ export const REGISTER_MUTATION = `
   }
 `;
 
-export const REFRESH_MUTATION = `
-  mutation RefreshToken($refreshToken: String!) {
-    refreshToken(refreshToken: $refreshToken) {
-      accessToken
-      refreshToken
-    }
-  }
-`;
+
 
 export const ME_QUERY = `
   query Me {
@@ -160,29 +90,7 @@ export const JOBS_QUERY = `
   }
 `;
 
-export const CREATE_JOB_MUTATION = `
-  mutation CreateJob($input: CreateJobInput!) {
-    createJob(input: $input) {
-      id
-      companyName
-      jobTitle
-      status
-      createdAt
-    }
-  }
-`;
 
-export const UPDATE_JOB_MUTATION = `
-  mutation UpdateJob($id: String!, $input: UpdateJobInput!) {
-    updateJob(id: $id, input: $input) {
-      id
-      companyName
-      jobTitle
-      status
-      updatedAt
-    }
-  }
-`;
 
 export const DELETE_JOB_MUTATION = `
   mutation DeleteJob($id: String!) {
@@ -268,17 +176,7 @@ export const COVER_LETTERS_QUERY = `
   }
 `;
 
-export const CREATE_COVER_LETTER_MUTATION = `
-  mutation CreateCoverLetter($input: CreateCoverLetterInput!) {
-    createCoverLetter(input: $input) {
-      id
-      jobTitle
-      companyName
-      content
-      createdAt
-    }
-  }
-`;
+
 
 export const DELETE_COVER_LETTER_MUTATION = `
   mutation DeleteCoverLetter($id: String!) {
@@ -347,14 +245,7 @@ export const INTERVIEW_QUESTIONS_QUERY = `
   }
 `;
 
-export const TOGGLE_FAVORITE_QUESTION_MUTATION = `
-  mutation ToggleFavoriteQuestion($id: String!) {
-    toggleFavoriteQuestion(id: $id) {
-      id
-      isFavorite
-    }
-  }
-`;
+
 
 export const SKILL_GAP_REPORTS_QUERY = `
   query SkillGapReports {
@@ -411,20 +302,7 @@ export const ANALYZE_SKILL_GAP_MUTATION = `
   }
 `;
 
-export const GENERATE_INTERVIEW_QUESTIONS_MUTATION = `
-  mutation GenerateInterviewQuestions($input: InterviewQuestionsInput!) {
-    generateInterviewQuestions(input: $input) {
-      questions {
-        id
-        question
-        answer
-        type
-        category
-        difficulty
-      }
-    }
-  }
-`;
+
 
 export const FUNNEL_ANALYTICS_QUERY = `
   query FunnelAnalytics {
@@ -659,30 +537,7 @@ export const FRENCH_SESSIONS_QUERY = `
   }
 `;
 
-export const START_FRENCH_SESSION_MUTATION = `
-  mutation StartFrenchSession($input: StartFrenchSessionInput!) {
-    startFrenchSession(input: $input) {
-      id
-      type
-      status
-      inputData
-      createdAt
-    }
-  }
-`;
 
-export const FINISH_FRENCH_SESSION_MUTATION = `
-  mutation FinishFrenchSession($id: String!, $input: FinishFrenchSessionInput!) {
-    finishFrenchSession(id: $id, input: $input) {
-      id
-      type
-      status
-      outputData
-      createdAt
-      updatedAt
-    }
-  }
-`;
 
 export const FRENCH_CONVERSATIONS_QUERY = `
   query FrenchConversations {
@@ -864,20 +719,7 @@ export const FRENCH_CULTURAL_TIP_HISTORY_QUERY = `
 `;
 
 // Vocabulary Tracker
-export const FRENCH_TRACKED_VOCABULARY_QUERY = `
-  query FrenchTrackedVocabulary {
-    frenchTrackedVocabulary {
-      id
-      word
-      translation
-      learned
-      difficult
-      reviewCount
-      lastReviewAt
-      addedAt
-    }
-  }
-`;
+
 
 export const FRENCH_TODAY_VOCABULARY_QUERY = `
   query FrenchTodayVocabulary {
@@ -909,18 +751,7 @@ export const FRENCH_VOCABULARY_TRACKER_STATS_QUERY = `
   }
 `;
 
-export const ADD_TRACKED_VOCABULARY_MUTATION = `
-  mutation AddTrackedVocabulary($input: AddTrackedVocabularyInput!) {
-    addTrackedVocabulary(input: $input) {
-      id
-      word
-      translation
-      learned
-      difficult
-      reviewCount
-    }
-  }
-`;
+
 
 export const MARK_VOCABULARY_LEARNED_MUTATION = `
   mutation MarkVocabularyLearned($id: String!) {
@@ -946,11 +777,7 @@ export const MARK_VOCABULARY_DIFFICULT_MUTATION = `
   }
 `;
 
-export const DELETE_TRACKED_VOCABULARY_MUTATION = `
-  mutation DeleteTrackedVocabulary($id: String!) {
-    deleteTrackedVocabulary(id: $id)
-  }
-`;
+
 
 // Interview Coach
 export const FRENCH_INTERVIEWS_QUERY = `
@@ -1029,3 +856,21 @@ export const EVALUATE_FRENCH_INTERVIEW_ANSWER_MUTATION = `
     }
   }
 `;
+
+export const EVALUATE_FRENCH_PRONUNCIATION_MUTATION = `
+  mutation EvaluateFrenchPronunciation($input: EvaluatePronunciationInput!) {
+    evaluateFrenchPronunciation(input: $input) {
+      overallScore
+      clarityScore
+      accuracyScore
+      fluencyScore
+      feedback
+      improvements {
+        text
+        suggestion
+      }
+    }
+  }
+`;
+
+

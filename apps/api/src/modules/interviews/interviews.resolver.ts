@@ -6,18 +6,19 @@ import { CreateInterviewInput, UpdateInterviewInput } from './dto/interviews.inp
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => InterviewType)
 export class InterviewsResolver {
   constructor(private readonly interviewsService: InterviewsService) {}
 
   @Query(() => [InterviewType])
-  @UseGuards(JwtAuthGuard)
+
   async interviews(@CurrentUser() user: { id: string }) {
     return this.interviewsService.findAll(user.id);
   }
 
   @Query(() => InterviewType, { nullable: true })
-  @UseGuards(JwtAuthGuard)
+
   async interview(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -26,7 +27,7 @@ export class InterviewsResolver {
   }
 
   @Mutation(() => InterviewType)
-  @UseGuards(JwtAuthGuard)
+
   async createInterview(
     @CurrentUser() user: { id: string },
     @Args('input') input: CreateInterviewInput,
@@ -35,7 +36,7 @@ export class InterviewsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async updateInterview(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,
@@ -46,7 +47,7 @@ export class InterviewsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+
   async deleteInterview(
     @CurrentUser() user: { id: string },
     @Args('id') id: string,

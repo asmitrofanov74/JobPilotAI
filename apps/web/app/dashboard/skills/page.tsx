@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ProgressBar } from '@/components/ui/progress-bar';
 
 export default function SkillsPage() {
   const queryClient = useQueryClient();
@@ -83,9 +84,7 @@ export default function SkillsPage() {
               <div className="text-sm text-gray-500">Match Score</div>
             </div>
             <div className="flex-1 max-w-md">
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${result.matchScore}%` }} />
-              </div>
+              <ProgressBar value={result.matchScore} color="bg-blue-600" height="lg" />
             </div>
           </div>
 
@@ -153,8 +152,8 @@ export default function SkillsPage() {
                     <p className="text-xs text-gray-400">{new Date(report.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div className="mt-3 w-full bg-gray-100 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full transition-all" style={{ width: `${report.matchScore}%` }} />
+                <div className="mt-3">
+                  <ProgressBar value={report.matchScore} color="bg-blue-600" height="sm" />
                 </div>
                 {report.missingSkills?.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">

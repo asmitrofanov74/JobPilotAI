@@ -6,6 +6,7 @@ import { JOBS_QUERY, RESUMES_QUERY, COVER_LETTERS_QUERY, INTERVIEW_QUESTIONS_QUE
 import Link from 'next/link';
 import { Briefcase, FileText, FileEdit, MessageSquare, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { PageHeader } from '@/components/ui/page-header';
 
 export default function DashboardPage() {
@@ -62,17 +63,11 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <PageHeader title="Dashboard" description="Here&apos;s what&apos;s happening with your job search." />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, color, bg, href }) => (
-          <Link key={label} href={href} className="block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all">
-            <div className={`w-10 h-10 ${bg} rounded-lg flex items-center justify-center mb-3`}>
-              <Icon className={`w-5 h-5 ${color}`} strokeWidth={1.5} />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-          </Link>
-        ))}
-      </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map(({ label, value, icon, color, bg, href }) => (
+              <StatCard key={label} label={label} value={value} icon={icon} color={color} bg={bg} href={href} />
+            ))}
+          </div>
 
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
