@@ -1,6 +1,6 @@
 # System Design Document — JobPilot AI
 
-> Version 1.0 | July 2026
+> Version 1.1 | July 2026
 
 ---
 
@@ -34,7 +34,7 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
 │  ┌─────────────────────┐  ┌─────────────────────────────────────┐  │
 │  │   Next.js Frontend  │  │       NestJS Backend API            │  │
 │  │  (apps/web)         │──│  (apps/api)                         │  │
-│  │  SSR + RSC + API    │  │  GraphQL + REST + WebSocket         │  │
+│  │  SSR + RSC           │  │  GraphQL + REST                     │  │
 │  └─────────────────────┘  └──────────┬──────────────────────────┘  │
 │                                       │                             │
 └───────────────────────────────────────┼─────────────────────────────┘
@@ -42,45 +42,47 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
                     ┌───────────────────┼───────────────────┐
                     │                   │                   │
                ┌────▼────┐       ┌──────▼──────┐     ┌─────▼─────┐
-               │PostgreSQL│       │   ElastiCache│    │   S3      │
-               │  RDS     │       │   (Redis)    │    │ (Resumes  │
-               │ Aurora   │       │   Sessions   │    │  Docs)    │
-               └──────────┘       │   Cache/Queue│    └───────────┘
-                                  └──────────────┘
-                                        │
-                                   ┌────▼────┐
-                                   │ OpenAI  │
-                                   │   API   │
-                                   └─────────┘
+                │PostgreSQL│       │   Redis       │    │   S3      │
+                │ (Docker) │       │   (Docker)    │    │ (Resumes  │
+                │  16      │       │   7           │    │  Docs)    │
+                └──────────┘       │ Sessions, Cache│    └───────────┘
+                                   └───────┬────────┘
+                                           │
+                                      ┌────▼────┐
+                                      │OpenRouter│
+                                      │  AI Hub  │
+                                      │GPT-4o/Gemini│
+                                      │ Claude/DeepSeek│
+                                      └─────────┘
 ```
 
 ### 1.2 Technology Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Frontend** | Next.js 15, React 19, TypeScript | SSR, RSC, SEO |
+| **Frontend** | Next.js 15.5, React 19, TypeScript | SSR, RSC, SEO |
 | **UI** | TailwindCSS, Shadcn UI, Radix UI | Styling, accessible components |
 | **State/Data** | TanStack Query, Zustand, GraphQL | Server state, client state, API |
 | **Charts** | Recharts | Analytics dashboards |
 | **Backend** | NestJS 11, TypeScript | GraphQL + REST API |
 | **API** | Apollo Server (GraphQL) | Flexible client queries |
-| **ORM** | Prisma 6 | Type-safe database access |
-| **DB** | PostgreSQL 16 (Aurora) | Primary data store |
-| **Cache** | Redis 7 (ElastiCache) | Sessions, rate limiting, cache |
-| **AI** | OpenAI SDK (GPT-4o) | Cover letters, interviews, skills |
-| **Storage** | AWS S3 | Resume uploads, documents |
+| **ORM** | Prisma 6 (engine=none) | Type-safe database access (no binary deps) |
+| **DB** | PostgreSQL 16 (Docker Compose) | Primary data store |
+| **Cache** | Redis 7 (Docker Compose) | Sessions, rate limiting, cache |
+| **AI** | OpenRouter Hub (GPT-4o, Claude, Gemini, DeepSeek) | Cover letters, interviews, skills, French coach |
+| **Voice** | Web Speech API + MediaRecorder (browser) | Speech-to-text, audio recording, pronunciation scoring |
+| **Storage** | Local filesystem / S3 (future) | Resume uploads, documents |
 | **Auth** | JWT + Passport.js | Stateless authentication |
-| **Infra** | AWS ECS Fargate + Terraform | Container orchestration |
+| **Infra** | Docker Compose (local), AWS ECS Fargate (planned) | Container orchestration |
 | **CI/CD** | GitHub Actions | Build, test, deploy |
-| **Monitoring** | CloudWatch, Sentry | Logs, errors, metrics |
+| **Monitoring** | Sentry, console | Errors, logs |
 
 ### 1.3 Communication Patterns
 
 | Pattern | Protocol | Use Case |
 |---------|----------|----------|
 | **GraphQL** | HTTP/2 | Frontend ↔ Backend data queries |
-| **REST** | HTTP/2 | File uploads, webhooks |
-| **SSE/WS** | WebSocket | Real-time interview prep, AI streaming |
+| **REST** | HTTP/2 | File uploads, health checks |
 | **Internal** | In-process | Modular monolith module communication |
 
 ---
@@ -98,16 +100,15 @@ C4Context
 
     System(jobpilot, "JobPilot AI", "AI-powered job search platform")
 
-    System_Ext(openai, "OpenAI API", "GPT-4o for AI features")
+    System_Ext(openrouter, "OpenRouter AI Hub", "GPT-4o, Claude, Gemini, DeepSeek")
     System_Ext(email, "SendGrid", "Email notifications")
-    System_Ext(s3, "AWS S3", "File storage")
+    System_Ext(s3, "AWS S3", "File storage (future)")
     System_Ext(linkedin, "LinkedIn", "Job import (future)")
 
     Rel(user, jobpilot, "Uses", "HTTPS")
-    Rel(jobpilot, openai, "AI calls", "HTTPS/REST")
+    Rel(jobpilot, openrouter, "AI calls", "HTTPS/REST")
     Rel(jobpilot, email, "Email", "SMTP/API")
-    Rel(jobpilot, s3, "Store/Retrieve", "S3 API")
-    Rel(jobpilot, linkedin, "Import", "OAuth")
+    Rel(jobpilot, s3, "Store/Retrieve", "S3 API (future)")
 ```
 
 ### 2.2 Container Diagram (C2)
@@ -119,23 +120,19 @@ C4Container
     Person(user, "Software Engineer", "Job seeker")
 
     Container_Boundary(jobpilot, "JobPilot AI Platform") {
-        Container(web, "Next.js App", "React, TypeScript", "SSR frontend with dashboard, job tracking, AI features")
-        Container(api, "NestJS API", "TypeScript, GraphQL", "Business logic, auth, AI orchestration")
-        ContainerDb(db, "PostgreSQL", "Aurora RDS", "User data, jobs, interviews, resumes")
-        ContainerDb(cache, "Redis", "ElastiCache", "Sessions, rate limits, AI response cache")
-        Container(storage, "S3 Bucket", "AWS S3", "Resume files, documents")
+        Container(web, "Next.js App", "React, TypeScript", "SSR frontend with dashboard, job tracking, AI features, French Coach UI")
+        Container(api, "NestJS API", "TypeScript, GraphQL", "Business logic, auth, AI orchestration, 17 modules")
+        ContainerDb(db, "PostgreSQL 16", "Docker Compose", "User data, jobs, interviews, resumes, French vocab")
+        ContainerDb(cache, "Redis 7", "Docker Compose", "Sessions, rate limits, AI response cache")
     }
 
-    System_Ext(openai, "OpenAI API", "GPT-4o")
-    System_Ext(email, "SendGrid", "Email")
+    System_Ext(openrouter, "OpenRouter AI Hub", "GPT-4o, Claude, Gemini, DeepSeek")
 
     Rel(user, web, "HTTPS", "Browser")
     Rel(web, api, "GraphQL", "Apollo Client")
     Rel(api, db, "Prisma ORM", "SQL")
     Rel(api, cache, "ioredis", "Redis protocol")
-    Rel(api, storage, "S3 SDK", "AWS API")
-    Rel(api, openai, "OpenAI SDK", "REST")
-    Rel(api, email, "SendGrid SDK", "REST")
+    Rel(api, openrouter, "OpenRouter SDK", "REST")
 ```
 
 ### 2.3 Component Diagram (C3)
@@ -144,32 +141,67 @@ C4Container
 C4Component
     title Component Diagram - NestJS Backend
 
-    Container_Boundary(api, "NestJS API") {
+    Container_Boundary(api, "NestJS API (17 modules)") {
         Component(auth, "Auth Module", "JWT, Passport", "Register, login, refresh tokens")
         Component(users, "Users Module", "CRUD", "Profile management")
         Component(jobs, "Jobs Module", "CRUD + Analytics", "Job application tracking")
         Component(interviews, "Interviews Module", "CRUD", "Interview scheduling & prep")
+        Component(interviewQ, "Interview Questions Module", "CRUD", "Question bank, AI generation")
         Component(resumes, "Resumes Module", "Upload + Parse", "Resume management")
-        Component(ai, "AI Module", "OpenAI", "Cover letters, skill gap, questions")
-        Component(analytics, "Analytics Module", "Aggregations", "Dashboard metrics")
-        Component(subscription, "Subscription Module", "Tier management", "Free/Pro tiers")
+        Component(coverLetters, "Cover Letters Module", "AI generation", "Cover letter creation")
+        Component(skillGap, "Skill Gap Reports Module", "AI analysis", "Skill gap analysis")
+        Component(ai, "AI Module", "OpenRouter", "AI orchestration, prompts")
+        Component(scraper, "Scraper Module", "ATS Providers", "Job scraping via Greenhouse/Lever/Workday APIs")
+        Component(linkedin, "LinkedIn Optimizer", "AI analysis", "Profile optimization, skills gap, visibility")
+        Component(french, "French Coach Module", "AI + Voice", "Pronunciation scoring, conversations, interview coach, vocabulary")
         Component(prisma, "Prisma Service", "ORM", "Database access layer")
 
         Rel(auth, users, "Creates/reads")
         Rel(jobs, prisma, "CRUD")
         Rel(interviews, prisma, "CRUD")
         Rel(resumes, prisma, "CRUD")
-        Rel(ai, openai, "API calls")
-        Rel(analytics, jobs, "Reads data")
+        Rel(ai, openrouter, "API calls")
+        Rel(scraper, prisma, "Stores jobs")
+        Rel(linkedin, prisma, "Reads user data")
+        Rel(french, prisma, "CRUD conversations/vocab")
     }
 
-    System_Ext(openai, "OpenAI API")
+    System_Ext(openrouter, "OpenRouter AI Hub")
     ContainerDb(db, "PostgreSQL")
 
     Rel(prisma, db, "SQL")
 ```
 
-### 2.4 Sequence Diagram — Job Application Flow
+### 2.4 Sequence Diagram — French Coach Pronunciation Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as Next.js Frontend
+    participant API as NestJS API
+    participant AI as OpenRouter AI Hub
+
+    User->>Web: Click "Start Recording"
+    Web->>Web: SpeechRecognition (Web Speech API) captures transcript
+    Web-->>User: Display live transcript
+    User->>Web: Click "Send & Score"
+    Web->>Web: MediaRecorder captures audio blob
+    Web->>API: GraphQL Mutation (evaluateFrenchPronunciation)
+    API->>AI: Prompt with transcript + variant (france/quebec)
+    AI-->>API: Scores (clarity, accuracy, fluency) + feedback
+    API-->>Web: PronunciationResult response
+    Web-->>User: Display scores with ScoreBar + improvement tips
+
+    User->>Web: Request career-specific interview practice
+    Web->>API: GraphQL Mutation (generateCareerInterviewQuestions)
+    API->>DB: Fetch resume (skills, experience) + saved jobs
+    API->>AI: Prompt with career context
+    AI-->>API: Personalized questions
+    API-->>Web: Career questions generated
+    Web-->>User: Practice with role-specific French questions
+```
+
+### 2.5 Sequence Diagram — Job Application Flow
 
 ```mermaid
 sequenceDiagram
@@ -177,7 +209,7 @@ sequenceDiagram
     participant Web as Next.js Frontend
     participant API as NestJS API
     participant DB as PostgreSQL
-    participant AI as OpenAI
+    participant AI as OpenRouter AI Hub
 
     User->>Web: Submit job application
     Web->>API: GraphQL Mutation (createJob)
@@ -189,7 +221,7 @@ sequenceDiagram
     User->>Web: Request cover letter
     Web->>API: GraphQL Mutation (generateCoverLetter)
     API->>DB: Fetch job details
-    API->>AI: GPT-4o prompt
+    API->>AI: GPT-4o via OpenRouter
     AI-->>API: Generated content
     API->>DB: INSERT cover_letter
     API-->>Web: CoverLetter response
@@ -216,12 +248,14 @@ erDiagram
     User ||--o{ CoverLetter : has
     User ||--o{ InterviewQuestion : has
     User ||--o{ SkillGapReport : has
-    User ||--|| Subscription : has
+    User ||--o{ FrenchConversation : has
+    User ||--o{ FrenchInterview : has
+    User ||--o{ VocabularyEntry : has
+    User ||--o{ LinkedInOptimization : has
 
     JobApplication ||--o{ Interview : has
     JobApplication ||--o{ ApplicationEvent : has
 
-    %% User entity has a subscription
     %% Each user can have many job applications, resumes, cover letters, etc.
 
     User {
@@ -391,6 +425,51 @@ erDiagram
         string month
         datetime createdAt
     }
+
+    FrenchConversation {
+        string id PK
+        string scenario "nullable"
+        string userMessage
+        string aiResponse
+        string correction "nullable"
+        string vocabulary "nullable"
+        enum variant "FRANCE | QUEBEC"
+        string userId FK
+        datetime createdAt
+    }
+
+    FrenchInterview {
+        string id PK
+        string question
+        string userAnswer "nullable"
+        string feedback "nullable"
+        string score "nullable"
+        enum variant "FRANCE | QUEBEC"
+        string userId FK
+        datetime createdAt
+    }
+
+    VocabularyEntry {
+        string id PK
+        string french
+        string english
+        string context "nullable"
+        string example "nullable"
+        int reviewCount "default 0"
+        datetime nextReview "nullable"
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    LinkedInOptimization {
+        string id PK
+        enum type "PROFILE | SKILLS | VISIBILITY"
+        json input
+        json result
+        string userId FK
+        datetime createdAt
+    }
 ```
 
 ### 3.2 Indexing Strategy
@@ -438,12 +517,22 @@ Currently single-tenant per user (userId foreign key on all entities). Designed 
 ```
 src/schema.gql  (auto-generated by NestJS code-first approach)
      │
-     ├── Query
+     ├── Query (56 operations)
      │   ├── me: UserType
      │   ├── jobs(pagination, status, search): PaginatedJobs!
      │   ├── job(id): JobType
+     │   ├── resumes: [ResumeType!]!
+     │   ├── coverLetters: [CoverLetterType!]!
+     │   ├── interviews(jobApplicationId): [InterviewType!]!
+     │   ├── interviewQuestions(type, category): [InterviewQuestionType!]!
+     │   ├── skillGapReports: [SkillGapReportType!]!
      │   ├── funnelAnalytics: FunnelAnalytics!
      │   ├── monthlyStats(from, to): [MonthlyStat!]!
+     │   ├── frenchConversations(scenario): [FrenchConversationType!]!
+     │   ├── frenchInterviewQuestions(variant): [FrenchInterviewType!]!
+     │   ├── vocabulary(due): [VocabularyEntryType!]!
+     │   ├── careerFrenchSuggestions(role): [CareerSuggestionType!]!
+     │   ├── linkedinOptimizations(type): [LinkedinOptimizationType!]!
      │   └── ...
      │
      ├── Mutation
@@ -453,12 +542,18 @@ src/schema.gql  (auto-generated by NestJS code-first approach)
      │   ├── createJob(input): JobType!
      │   ├── updateJob(id, input): Boolean!
      │   ├── deleteJob(id): Boolean!
+     │   ├── createResume(input): ResumeType!
+     │   ├── deleteResume(id): Boolean!
+     │   ├── setPrimaryResume(id): Boolean!
      │   ├── generateCoverLetter(input): CoverLetterType!
+     │   ├── startFrenchConversation(scenario): FrenchConversationType!
+     │   ├── sendFrenchMessage(input): FrenchConversationType!
+     │   ├── evaluateFrenchPronunciation(input): PronunciationResult!
+     │   ├── generateCareerInterviewQuestions(input): [FrenchInterviewType!]!
+     │   ├── generateCareerConversation(input): FrenchConversationType!
+     │   ├── analyzeProfile(input): LinkedinOptimizationType!
+     │   ├── analyzeSkillsGap(input): LinkedinOptimizationType!
      │   └── ...
-     │
-     └── Subscription (future)
-         ├── interviewPrepProgress: StreamingProgress
-         └── jobStatusChanged: JobType
 ```
 
 ### 4.2 N+1 Prevention
@@ -517,7 +612,7 @@ sequenceDiagram
     Web-->>User: Status updated
 ```
 
-### 5.2 AI Cover Letter Generation Flow
+### 5.2 AI Cover Letter / French Coach Generation Flow
 
 ```mermaid
 sequenceDiagram
@@ -525,23 +620,23 @@ sequenceDiagram
     participant Web as Frontend
     participant API as NestJS API
     participant DB as PostgreSQL
-    participant AI as OpenAI
+    participant AI as OpenRouter AI Hub
     participant Cache as Redis
 
-    User->>Web: Request cover letter
+    User->>Web: Request AI generation
     Web->>API: GraphQL Mutation
-    API->>DB: Fetch job + user profile
+    API->>DB: Fetch context (job, profile, resume)
     API->>Cache: Check for cached result
     alt Cache hit
         Cache-->>API: Cached content
     else Cache miss
-        API->>AI: GPT-4o prompt with context
+        API->>AI: Prompt with context (GPT-4o/Claude/Gemini)
         AI-->>API: Generated content
         API->>Cache: Store result (TTL: 24h)
     end
-    API->>DB: Save cover letter
-    API-->>Web: CoverLetter response
-    Web-->>User: Display editable letter
+    API->>DB: Save result
+    API-->>Web: Response
+    Web-->>User: Display editable content
 ```
 
 ### 5.3 Analytics Aggregation Flow
@@ -653,6 +748,8 @@ interface RefreshTokenPayload {
 ---
 
 ## 7. AWS Infrastructure
+
+> **Note:** AWS deployment is planned for production. Currently the application runs locally via Docker Compose (postgres:16, redis:7).
 
 ### 7.1 Architecture Diagram
 
@@ -798,7 +895,7 @@ graph TB
 
 ### 8.4 AI Feature Scaling
 
-The OpenAI API is the primary external dependency. To handle latency and cost:
+The OpenRouter AI Hub is the primary external dependency. To handle latency and cost:
 
 1. **Caching**: Generated content cached in Redis by input hash (TTL: 24h)
 2. **Queuing**: Background job processing for batch AI operations
@@ -823,7 +920,7 @@ The OpenAI API is the primary external dependency. To handle latency and cost:
 | **SSTI** | RCE | No server-side templates |
 | **Dependency** | Supply chain | Dependabot, `npm audit`, SCA |
 | **DoS** | Service disruption | Rate limiting, WAF, auto-scaling |
-| **OpenAI prompt injection** | AI misuse | Input sanitization, output filtering |
+| **AI prompt injection** | AI misuse | Input sanitization, output filtering |
 
 ### 9.2 Security Headers
 
@@ -834,7 +931,7 @@ The OpenAI API is the primary external dependency. To handle latency and cost:
 | `X-Content-Type-Options` | `nosniff` | MIME sniffing |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | HTTPS enforcement |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Referrer leakage |
-| `Permissions-Policy` | `camera=(), microphone=()` | Feature restriction |
+| `Permissions-Policy` | `camera=(), microphone=(self)` | Feature restriction (mic allowed for voice) |
 
 ### 9.3 Data Privacy
 
@@ -867,11 +964,24 @@ The OpenAI API is the primary external dependency. To handle latency and cost:
 | Frontend framework | Next.js | Remix, SPA | SSR, RSC, SEO, file-based routing |
 | CSS approach | Tailwind | CSS modules, styled-components | Utility-first, design system, bundle size |
 | Auth | JWT | Sessions, OAuth | Stateless, API-friendly, simple deployment |
-| Deployment | ECS Fargate | Lambda, EKS, Render | Predictable perf, no cluster management |
+| AI provider | OpenRouter Hub | Direct OpenAI, Anthropic, Google | Single API key, model fallback, cost tracking |
+| Voice input | Web Speech API + MediaRecorder | Azure Speech, Deepgram | No third-party dependency, free, offline-capable |
+| Prisma engine | engine=none (no binary) | Full engine | Windows EPERM workaround, lighter Docker images |
+| Deployment | Docker Compose (local), ECS Fargate (planned) | Lambda, EKS, Render | Predictable perf, no cluster management |
 | Infra-as-Code | Terraform | Pulumi, CDK | Cloud-agnostic, mature ecosystem |
 | Monorepo | Turborepo | Nx, Lerna | Simple, fast, Vercel integration |
 
-## Appendix B: Monitoring & Observability
+## Appendix B: Local Development Notes
+
+| Issue | Workaround |
+|-------|-----------|
+| **Port 3000 conflict** | Docker Desktop holds port 3000; frontend uses `next dev -p 3001` |
+| **Prisma engine** | Generated with `--no-engine` due to Windows EPERM rename issues |
+| **External HTTPS** | Windows `node:fetch` unreliable; all external calls go through OpenRouter HTTP |
+| **Scraper blockers** | Indeed/LinkedIn/ZipRecruiter block headless requests; ATS API providers (Greenhouse, Lever, Workday) preferred |
+| **Background process** | Use `Start-Process -WindowStyle Hidden` (not `Start-Job`) for persistent Windows servers |
+
+## Appendix C: Monitoring & Observability
 
 | Metric | Tool | Alert Threshold |
 |--------|------|----------------|
