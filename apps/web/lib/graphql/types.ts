@@ -334,6 +334,12 @@ export interface GqlEvaluateInterviewResult {
   interview: GqlFrenchInterview;
 }
 
+export interface GqlInterviewHint {
+  hint: string;
+  keyPoints: string;
+  exampleAnswer: string;
+}
+
 export interface GqlPronunciationFeedback {
   overallScore: number;
   clarityScore: number;

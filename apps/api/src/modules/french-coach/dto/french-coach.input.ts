@@ -127,6 +127,17 @@ export class EvaluateInterviewAnswerInput {
 }
 
 @InputType()
+export class GenerateInterviewHintInput {
+  @Field()
+  @MinLength(1)
+  interviewId: string;
+
+  @Field()
+  @MinLength(1)
+  questionId: string;
+}
+
+@InputType()
 export class GenerateCareerInterviewInput {
   @Field({ nullable: true })
   @IsOptional()

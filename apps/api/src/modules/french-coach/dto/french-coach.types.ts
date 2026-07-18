@@ -449,6 +449,18 @@ export class EvaluateAnswerResultType {
 }
 
 @ObjectType()
+export class InterviewHintType {
+  @Field()
+  hint: string;
+
+  @Field()
+  keyPoints: string;
+
+  @Field()
+  exampleAnswer: string;
+}
+
+@ObjectType()
 export class CareerSuggestionType {
   @Field()
   jobApplicationId: string;

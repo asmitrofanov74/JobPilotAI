@@ -865,6 +865,16 @@ export const EVALUATE_FRENCH_INTERVIEW_ANSWER_MUTATION = `
   }
 `;
 
+export const GENERATE_FRENCH_INTERVIEW_HINT_MUTATION = `
+  mutation GenerateFrenchInterviewHint($input: GenerateInterviewHintInput!) {
+    generateFrenchInterviewHint(input: $input) {
+      hint
+      keyPoints
+      exampleAnswer
+    }
+  }
+`;
+
 export const EVALUATE_FRENCH_PRONUNCIATION_MUTATION = `
   mutation EvaluateFrenchPronunciation($input: EvaluatePronunciationInput!) {
     evaluateFrenchPronunciation(input: $input) {

@@ -8,6 +8,7 @@ import {
   FRENCH_INTERVIEW_QUERY,
   GENERATE_FRENCH_INTERVIEW_QUESTIONS_MUTATION,
   EVALUATE_FRENCH_INTERVIEW_ANSWER_MUTATION,
+  GENERATE_FRENCH_INTERVIEW_HINT_MUTATION,
 } from '@/lib/graphql';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,10 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Brain, ArrowLeft, BarChart3, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Brain, ArrowLeft, BarChart3, CheckCircle2, ChevronRight, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { GqlFrenchInterview, GqlInterviewQuestion, GqlInterviewAnswer, GqlInterviewEvaluation, GqlFrenchCorrection } from '@/lib/graphql/types';
+import type { GqlFrenchInterview, GqlInterviewQuestion, GqlInterviewAnswer, GqlInterviewEvaluation, GqlFrenchCorrection, GqlInterviewHint } from '@/lib/graphql/types';
 
 const SCENARIOS = [
   { value: 'FRONTEND_DEVELOPER', label: 'Frontend Developer', icon: '🖥️', desc: 'React, CSS, performance web' },
@@ -42,6 +43,8 @@ function FrenchInterviewContent() {
   const [answerText, setAnswerText] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [jobDescription, setJobDescription] = useState('');
+  const [hintData, setHintData] = useState<GqlInterviewHint | null>(null);
+  const [showHint, setShowHint] = useState(false);
 
   const { data: interviews, isLoading, refetch } = useQuery({
     queryKey: ['frenchInterviews'],
@@ -95,6 +98,20 @@ function FrenchInterviewContent() {
     },
   });
 
+  const hintMutation = useMutation({
+    mutationFn: async (qId: string) => {
+      const { generateFrenchInterviewHint } = await client.request(
+        GENERATE_FRENCH_INTERVIEW_HINT_MUTATION,
+        { input: { interviewId: interviewId!, questionId: qId } },
+      );
+      return generateFrenchInterviewHint;
+    },
+    onSuccess: (data: GqlInterviewHint) => {
+      setHintData(data);
+      setShowHint(true);
+    },
+  });
+
   const handleGenerate = () => {
     if (!scenario) return;
     generateMutation.mutate();
@@ -144,7 +161,7 @@ function FrenchInterviewContent() {
           {currentQuestions.map((q: GqlInterviewQuestion, i: number) => (
             <button
               key={q.id}
-              onClick={() => { setActiveQId(q.id); setShowResult(false); setAnswerText(''); }}
+              onClick={() => { setActiveQId(q.id); setShowResult(false); setAnswerText(''); setShowHint(false); setHintData(null); }}
               className={`flex-1 h-2 rounded-full transition-all ${
                 answeredQIds.includes(q.id)
                   ? 'bg-emerald-400'
@@ -169,6 +186,43 @@ function FrenchInterviewContent() {
 
               {!answeredQIds.includes(activeQuestion.id) ? (
                 <div className="space-y-3">
+                  {showHint && hintData ? (
+                    <div className="bg-amber-50 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-amber-600" />
+                        <p className="text-sm font-medium text-amber-800">Hint</p>
+                      </div>
+                      <p className="text-sm text-amber-700">{hintData.hint}</p>
+                      {hintData.keyPoints && (
+                        <div>
+                          <p className="text-xs font-medium text-amber-800 mb-1">Key Points:</p>
+                          <p className="text-sm text-amber-700 whitespace-pre-line">{hintData.keyPoints}</p>
+                        </div>
+                      )}
+                      {hintData.exampleAnswer && (
+                        <div>
+                          <p className="text-xs font-medium text-amber-800 mb-1">Example Answer:</p>
+                          <p className="text-sm text-amber-700 italic">{hintData.exampleAnswer}</p>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => { setShowHint(false); setHintData(null); }}
+                        className="text-xs text-amber-600 hover:text-amber-800 underline"
+                      >
+                        Hide hint
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => hintMutation.mutate(activeQuestion.id)}
+                      disabled={hintMutation.isPending}
+                      className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl px-4 py-2 transition-colors w-full justify-center"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      {hintMutation.isPending ? 'Getting hint...' : 'Get Hint — I don\'t know what to answer'}
+                    </button>
+                  )}
+
                   <textarea
                     value={answerText}
                     onChange={(e) => setAnswerText(e.target.value)}
@@ -265,6 +319,8 @@ function FrenchInterviewContent() {
                       setActiveQId(currentQuestions[idx - 1].id);
                       setShowResult(false);
                       setAnswerText('');
+                      setShowHint(false);
+                      setHintData(null);
                     }
                   }}
                 >
@@ -280,6 +336,8 @@ function FrenchInterviewContent() {
                       setActiveQId(currentQuestions[idx + 1].id);
                       setShowResult(false);
                       setAnswerText('');
+                      setShowHint(false);
+                      setHintData(null);
                     }
                   }}
                 >

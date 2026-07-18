@@ -91,6 +91,20 @@ Exemple:
   ]
 }`;
 
+const HINT_PROMPT = `Tu es un coach d'entretien bienveillant. L'utilisateur est en train de passer un entretien en français et ne sait pas quoi répondre à une question. Tu dois lui donner un indice pour l'aider à formuler sa réponse.
+
+Retourne UNIQUEMENT un objet JSON valide avec:
+- hint (string): un indice court et encourageant en français pour orienter la réponse
+- keyPoints (string): les points clés à mentionner dans la réponse, séparés par des puces
+- exampleAnswer (string): un exemple de réponse en français que le candidat pourrait adapter
+
+Exemple:
+{
+  "hint": "Pense à tes expériences concrètes avec les tests...",
+  "keyPoints": "• Utilisation de Jest ou Cypress\\n• Taux de couverture visé\\n• Tests unitaires vs tests d'intégration",
+  "exampleAnswer": "Dans mon précédent poste, j'ai mis en place une stratégie de tests avec Jest pour les composants React..."
+}`;
+
 export interface InterviewResult {
   id: string;
   scenario: string;
@@ -133,6 +147,12 @@ export interface EvaluationResult {
   feedback: string;
   improvedAnswer: string;
   corrections: Array<{ original: string; corrected: string; explanation: string }>;
+}
+
+export interface HintResult {
+  hint: string;
+  keyPoints: string;
+  exampleAnswer: string;
 }
 
 @Injectable()
@@ -282,6 +302,41 @@ export class InterviewCoachService {
     });
     if (!interview) throw new NotFoundException('Interview not found');
     return this.mapInterview(interview);
+  }
+
+  async generateHint(userId: string, interviewId: string, questionId: string): Promise<HintResult> {
+    const profile = await this.frenchCoachService.getProfile(userId);
+    const interview = await this.prisma.frenchInterview.findFirst({
+      where: { id: interviewId, profileId: profile.id },
+    });
+    if (!interview) throw new NotFoundException('Interview not found');
+
+    const questions = interview.questions as unknown as GeneratedQuestion[];
+    const question = questions.find((q) => q.id === questionId);
+    if (!question) throw new NotFoundException('Question not found in this interview');
+
+    const variantInstruction = profile.frenchVariant === 'quebec'
+      ? `\n\nIMPORTANT : Donne l'indice en français québécois. Les expressions québécoises sont encouragées.`
+      : '';
+    const prompt = HINT_PROMPT + variantInstruction;
+
+    const { content } = await this.provider.chat({
+      model: 'openrouter/free',
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: `Question d'entretien: "${question.question}"\n\nCatégorie: ${question.category}\n\nL'utilisateur ne sait pas quoi répondre. Donne-lui un indice.` },
+      ],
+      temperature: 0.5,
+      max_tokens: 800,
+      response_format: { type: 'json_object' },
+    });
+
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    return {
+      hint: typeof parsed.hint === 'string' ? parsed.hint : '',
+      keyPoints: typeof parsed.keyPoints === 'string' ? parsed.keyPoints : '',
+      exampleAnswer: typeof parsed.exampleAnswer === 'string' ? parsed.exampleAnswer : '',
+    };
   }
 
   private mapInterview(i: {
