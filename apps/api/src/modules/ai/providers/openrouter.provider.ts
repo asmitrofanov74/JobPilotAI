@@ -9,36 +9,43 @@ function sleep(ms: number): Promise<void> {
 
 @Injectable()
 export class OpenRouterProvider implements AIProvider {
-  readonly name = 'OpenRouter';
+  readonly name = 'AI';
   private readonly logger = new Logger(OpenRouterProvider.name);
   private client: OpenAI | null = null;
   private model: string;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENROUTER_API_KEY', '');
-    const baseURL = this.configService.get<string>('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1');
-    this.model = this.configService.get<string>('OPENROUTER_MODEL', 'openrouter/free');
+    const provider = this.configService.get<string>('AI_PROVIDER', 'openrouter');
 
-    if (apiKey) {
-      this.client = new OpenAI({
-        apiKey,
-        baseURL,
-        defaultHeaders: {
-          'HTTP-Referer': 'https://jobpilot.ai',
-          'X-Title': 'JobPilot AI',
-        },
-      });
-      this.logger.log(`Initialized with model: ${this.model}, baseURL: ${baseURL}`);
+    if (provider === 'ollama') {
+      const baseURL = this.configService.get<string>('OLLAMA_BASE_URL', 'http://127.0.0.1:11434/v1');
+      this.model = this.configService.get<string>('OLLAMA_MODEL', 'phi3:mini');
+      this.client = new OpenAI({ apiKey: 'ollama', baseURL });
+      this.logger.log(`Initialized Ollama -- model: ${this.model}, baseURL: ${baseURL}`);
     } else {
-      this.logger.warn('OPENROUTER_API_KEY not set — provider disabled');
+      const apiKey = this.configService.get<string>('OPENROUTER_API_KEY', '');
+      const baseURL = this.configService.get<string>('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1');
+      this.model = this.configService.get<string>('OPENROUTER_MODEL', 'openrouter/free');
+
+      if (apiKey) {
+        this.client = new OpenAI({
+          apiKey,
+          baseURL,
+          defaultHeaders: {
+            'HTTP-Referer': 'https://jobpilot.ai',
+            'X-Title': 'JobPilot AI',
+          },
+        });
+        this.logger.log(`Initialized OpenRouter -- model: ${this.model}, baseURL: ${baseURL}`);
+      } else {
+        this.logger.warn('OPENROUTER_API_KEY not set -- provider disabled');
+      }
     }
   }
 
   private ensureClient(): OpenAI {
     if (!this.client) {
-      throw new Error(
-        'OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable.',
-      );
+      throw new Error('AI provider not configured. Set AI_PROVIDER env variable.');
     }
     return this.client;
   }
@@ -68,7 +75,7 @@ export class OpenRouterProvider implements AIProvider {
           if (attempt < maxRetries) {
             const delay = Math.pow(2, attempt - 1) * 1000;
             this.logger.warn(
-              `OpenRouter attempt ${attempt}/${maxRetries} failed (${status}), retrying in ${delay}ms: ${lastError.message}`,
+              `AI attempt ${attempt}/${maxRetries} failed (${status}), retrying in ${delay}ms: ${lastError.message}`,
             );
             await sleep(delay);
             continue;
@@ -77,13 +84,13 @@ export class OpenRouterProvider implements AIProvider {
 
         if (attempt >= maxRetries) {
           this.logger.error(
-            `OpenRouter failed after ${maxRetries} attempts: ${lastError.message}`,
+            `AI failed after ${maxRetries} attempts: ${lastError.message}`,
           );
         }
         throw lastError;
       }
     }
 
-    throw lastError || new Error('OpenRouter chat failed');
+    throw lastError || new Error('AI chat failed');
   }
 }

@@ -110,6 +110,16 @@ export class FrenchCoachResolver {
     return this.conversationService.getConversations(user.id);
   }
 
+  @Mutation(() => Boolean)
+
+  async deleteFrenchConversation(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    await this.conversationService.deleteConversation(id, user.id);
+    return true;
+  }
+
   // --- Vocabulary Queries ---
 
   @Query(() => [FrenchVocabularyWordType])
@@ -329,7 +339,7 @@ export class FrenchCoachResolver {
     @CurrentUser() user: { id: string },
     @Args('input') input: GenerateInterviewQuestionsInput,
   ) {
-    return this.interviewCoachService.generateQuestions(user.id, input.scenario, input.questionCount);
+    return this.interviewCoachService.generateQuestions(user.id, input.scenario, input.questionCount, input.jobDescription);
   }
 
   @Mutation(() => EvaluateAnswerResultType)

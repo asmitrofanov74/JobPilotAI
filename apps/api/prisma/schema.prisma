@@ -339,13 +339,14 @@ model FrenchSession {
 }
 
 model FrenchConversation {
-  id         String          @id @default(cuid())
-  scenario   String
-  profileId  String
-  profile    FrenchProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  messages   FrenchMessage[]
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  scenario       String
+  jobDescription String?
+  profileId      String
+  profile        FrenchProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  messages       FrenchMessage[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([profileId])
   @@map("french_conversations")
@@ -424,6 +425,7 @@ model FrenchVocabulary {
 model FrenchInterview {
   id             String   @id @default(cuid())
   scenario       String
+  jobDescription String?
   questionCount  Int      @default(0)
   status         String   @default("in_progress")
   questions      Json     @default("[]")

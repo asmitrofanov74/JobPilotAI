@@ -14,6 +14,7 @@ export enum InterviewScenario {
   FRONTEND_DEVELOPER = 'frontend_developer',
   FULL_STACK_DEVELOPER = 'full_stack_developer',
   TEAM_LEAD = 'team_lead',
+  CUSTOM_JOB = 'custom_job',
 }
 
 registerEnumType(InterviewScenario, {
@@ -26,6 +27,7 @@ export enum ConversationScenario {
   TEAM_MEETING = 'team_meeting',
   DAILY_STANDUP = 'daily_standup',
   OFFICE_CONVERSATION = 'office_conversation',
+  CUSTOM_JOB = 'custom_job',
 }
 
 registerEnumType(ConversationScenario, {
@@ -192,6 +194,9 @@ export class FrenchConversationType {
 
   @Field(() => ConversationScenario)
   scenario: string;
+
+  @Field({ nullable: true })
+  jobDescription?: string;
 
   @Field()
   profileId: string;
@@ -396,6 +401,9 @@ export class FrenchInterviewType {
 
   @Field()
   scenario: string;
+
+  @Field({ nullable: true })
+  jobDescription?: string;
 
   @Field(() => Int)
   questionCount: number;

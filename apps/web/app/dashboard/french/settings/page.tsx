@@ -13,7 +13,7 @@ import { Save, Languages, ArrowRightLeft, CheckCircle2, BookOpen } from 'lucide-
 
 const VARIANTS = [
   {
-    value: 'france',
+    value: 'FRANCE',
     label: 'France French',
     desc: 'Standard French as spoken in France (français de France)',
     emoji: '🇫🇷',
@@ -24,7 +24,7 @@ const VARIANTS = [
     ],
   },
   {
-    value: 'quebec',
+    value: 'QUEBEC',
     label: 'Quebec French',
     desc: 'French as spoken in Quebec, Canada (français québécois)',
     emoji: '🇨🇦',
@@ -50,7 +50,7 @@ export default function FrenchSettingsPage() {
 
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
-  const effectiveVariant = selectedVariant ?? profile?.frenchVariant ?? 'france';
+  const effectiveVariant = selectedVariant ?? profile?.frenchVariant ?? 'FRANCE';
 
   const updateMutation = useMutation({
     mutationFn: async (variant: string) => {

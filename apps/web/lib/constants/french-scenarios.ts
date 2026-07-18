@@ -1,4 +1,4 @@
-import { Mic, Users, BookOpen, MessageSquare, Coffee } from 'lucide-react';
+import { Mic, Users, BookOpen, MessageSquare, Coffee, Briefcase } from 'lucide-react';
 
 export interface FrenchScenarioMeta {
   value: string;
@@ -10,45 +10,53 @@ export interface FrenchScenarioMeta {
 }
 
 export const FRENCH_SCENARIO_RECORD: Record<string, FrenchScenarioMeta> = {
-  job_interview: {
-    value: 'job_interview',
+  JOB_INTERVIEW: {
+    value: 'JOB_INTERVIEW',
     label: 'Job Interview',
     icon: Mic,
     desc: 'Practice French interview questions',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },
-  recruiter_call: {
-    value: 'recruiter_call',
+  RECRUITER_CALL: {
+    value: 'RECRUITER_CALL',
     label: 'Recruiter Call',
     icon: Users,
     desc: 'Simulate calls with French recruiters',
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
   },
-  team_meeting: {
-    value: 'team_meeting',
+  TEAM_MEETING: {
+    value: 'TEAM_MEETING',
     label: 'Team Meeting',
     icon: BookOpen,
     desc: 'Participate in French team discussions',
     color: 'text-violet-600',
     bg: 'bg-violet-50',
   },
-  daily_standup: {
-    value: 'daily_standup',
+  DAILY_STANDUP: {
+    value: 'DAILY_STANDUP',
     label: 'Daily Standup',
     icon: MessageSquare,
     desc: 'Share updates in a French standup',
     color: 'text-amber-600',
     bg: 'bg-amber-50',
   },
-  office_conversation: {
-    value: 'office_conversation',
+  OFFICE_CONVERSATION: {
+    value: 'OFFICE_CONVERSATION',
     label: 'Office Chat',
     icon: Coffee,
     desc: 'Casual French office conversations',
     color: 'text-rose-600',
     bg: 'bg-rose-50',
+  },
+  CUSTOM_JOB: {
+    value: 'CUSTOM_JOB',
+    label: 'Custom Job',
+    icon: Briefcase,
+    desc: 'Paste a job description for tailored practice',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
   },
 };
 

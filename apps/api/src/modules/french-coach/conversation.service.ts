@@ -4,8 +4,14 @@ import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import { FrenchCoachService } from './french-coach.service';
 import { SendFrenchMessageInput } from './dto/french-coach.input';
 
-function getScenarioPrompt(scenario: string, variant: string): string {
+function getScenarioPrompt(scenario: string, variant: string, jobDescription?: string | null): string {
   const isQuebec = variant === 'quebec';
+
+  if (scenario === 'custom_job' && jobDescription) {
+    return isQuebec
+      ? `Tu es un collègue de travail québécois dans un environnement professionnel. Voici la description du poste du contexte :\n${jobDescription}\n\nTu discutes avec le candidat/employé en français québécois authentique. Utilise des expressions comme 'tu', 'ben', 'asteur', 'là', 'faque', 'bin voyons'. Pose des questions sur l'expérience pertinente au poste, les compétences requises et la compréhension du rôle. Adapte la conversation au contexte du poste décrit. Toutes tes réponses doivent être en français québécois.`
+      : `Tu es un collègue de travail français dans un environnement professionnel. Voici la description du poste du contexte :\n${jobDescription}\n\nTu discutes avec le candidat/employé en français. Pose des questions sur l'expérience pertinente au poste, les compétences requises et la compréhension du rôle. Adapte la conversation au contexte du poste décrit. Toutes tes réponses doivent être en français.`;
+  }
 
   const FRANCE_PROMPTS: Record<string, string> = {
     job_interview:
@@ -72,7 +78,7 @@ export class ConversationService {
   async sendMessage(userId: string, input: SendFrenchMessageInput) {
     const profile = await this.frenchCoachService.getProfile(userId);
 
-    let conversation: { id: string; scenario: string; profileId: string; createdAt: Date; updatedAt: Date };
+    let conversation: { id: string; scenario: string; jobDescription: string | null; profileId: string; createdAt: Date; updatedAt: Date };
 
     if (input.conversationId) {
       const existing = await this.prisma.frenchConversation.findFirst({
@@ -90,7 +96,11 @@ export class ConversationService {
       }
 
       conversation = await this.prisma.frenchConversation.create({
-        data: { scenario: input.scenario, profileId: profile.id },
+        data: {
+          scenario: input.scenario,
+          profileId: profile.id,
+          jobDescription: input.jobDescription ?? null,
+        },
       });
     }
 
@@ -103,7 +113,7 @@ export class ConversationService {
       orderBy: { createdAt: 'asc' },
     });
 
-    const systemPrompt = getScenarioPrompt(conversation.scenario, profile.frenchVariant ?? 'france');
+    const systemPrompt = getScenarioPrompt(conversation.scenario, profile.frenchVariant ?? 'france', conversation.jobDescription);
 
     const aiMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: systemPrompt },
@@ -203,6 +213,19 @@ export class ConversationService {
     }
 
     return conversation;
+  }
+
+  async deleteConversation(id: string, userId: string) {
+    const profile = await this.frenchCoachService.getProfile(userId);
+    const conversation = await this.prisma.frenchConversation.findFirst({
+      where: { id, profileId: profile.id },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    await this.prisma.frenchConversation.delete({ where: { id } });
   }
 
   async getConversations(userId: string) {

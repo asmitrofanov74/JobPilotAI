@@ -81,6 +81,7 @@ input CompareResumeInput {
 }
 
 enum ConversationScenario {
+  CUSTOM_JOB
   DAILY_STANDUP
   JOB_INTERVIEW
   OFFICE_CONVERSATION
@@ -202,6 +203,7 @@ input FinishFrenchSessionInput {
 type FrenchConversationType {
   createdAt: DateTime!
   id: String!
+  jobDescription: String
   messages: [FrenchMessageType!]!
   profileId: String!
   scenario: ConversationScenario!
@@ -234,6 +236,7 @@ type FrenchInterviewType {
   createdAt: DateTime!
   evaluations: JSON!
   id: String!
+  jobDescription: String
   overallScore: Int
   questionCount: Int!
   questions: JSON!
@@ -388,6 +391,7 @@ input GenerateHeadlineInput {
 }
 
 input GenerateInterviewQuestionsInput {
+  jobDescription: String
   questionCount: Int! = 5
   scenario: InterviewScenario!
 }
@@ -443,6 +447,7 @@ input InterviewQuestionsInput {
 }
 
 enum InterviewScenario {
+  CUSTOM_JOB
   FRONTEND_DEVELOPER
   FULL_STACK_DEVELOPER
   TEAM_LEAD
@@ -570,6 +575,7 @@ type Mutation {
   createSkillGapReport(input: CreateSkillGapReportInput!): SkillGapReportType!
   deleteAllJobs: Int!
   deleteCoverLetter(id: String!): Boolean!
+  deleteFrenchConversation(id: String!): Boolean!
   deleteFrenchVocabularyWord(wordId: String!): Boolean!
   deleteInterview(id: String!): Boolean!
   deleteInterviewQuestion(id: String!): Boolean!
@@ -796,6 +802,7 @@ type ScrapedJobType {
 
 input SendFrenchMessageInput {
   conversationId: String
+  jobDescription: String
   message: String!
   scenario: ConversationScenario
 }

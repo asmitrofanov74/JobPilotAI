@@ -6,13 +6,15 @@ import { client } from '@/lib/graphql/client';
 import {
   FRENCH_CONVERSATIONS_QUERY,
   FRENCH_CONVERSATION_QUERY,
+  FRENCH_PROFILE_QUERY,
   SEND_FRENCH_MESSAGE_MUTATION,
+  DELETE_FRENCH_CONVERSATION_MUTATION,
 } from '@/lib/graphql';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   MessageSquare, Send, ChevronLeft, Users, Mic, BookOpen, Coffee,
-  GraduationCap, Sparkles, ArrowLeft, Languages, Settings,
+  GraduationCap, Sparkles, ArrowLeft, Languages, Settings, Trash2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +24,8 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Textarea } from '@/components/ui/textarea';
 import { VoiceInput } from '@/components/voice/voice-input';
+import { useSpeechSynthesis } from '@/components/voice/use-speech-synthesis';
+import { VoiceReplayButton, AutoSpeakToggle } from '@/components/voice/voice-playback';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
 
 function FrenchConversationsContent() {
@@ -32,17 +36,40 @@ function FrenchConversationsContent() {
 
   const [selectedId, setSelectedId] = useState<string | null>(initialId);
   const [showNew, setShowNew] = useState(!!initialScenario);
-  const [newScenario, setNewScenario] = useState(initialScenario || 'job_interview');
+  const [newScenario, setNewScenario] = useState(initialScenario || 'JOB_INTERVIEW');
   const [inputMessage, setInputMessage] = useState('');
   const [voiceMode, setVoiceMode] = useState(false);
+  const [jobDescription, setJobDescription] = useState('');
+  const lastSpokenIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: conversations, isLoading: listLoading } = useQuery({
+  const { data: conversations, isLoading: listLoading, refetch: refetchConversations } = useQuery({
     queryKey: ['frenchConversations'],
     queryFn: async () => {
       const { frenchConversations } = await client.request(FRENCH_CONVERSATIONS_QUERY);
       return frenchConversations;
+    },
+  });
+
+  const { data: profileData } = useQuery({
+    queryKey: ['frenchProfile'],
+    queryFn: async () => {
+      const { frenchProfile } = await client.request(FRENCH_PROFILE_QUERY);
+      return frenchProfile;
+    },
+  });
+
+  const frenchLang = profileData?.frenchVariant === 'QUEBEC' ? 'fr-CA' : 'fr-FR';
+  const { speak, stop, speaking, autoSpeak, setAutoSpeak, supported: ttsSupported } = useSpeechSynthesis({ lang: frenchLang });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await client.request(DELETE_FRENCH_CONVERSATION_MUTATION, { id });
+    },
+    onSuccess: () => {
+      setSelectedId(null);
+      refetchConversations();
     },
   });
 
@@ -62,7 +89,11 @@ function FrenchConversationsContent() {
       if (selectedId) {
         vars.input.conversationId = selectedId;
       } else {
-        vars.input.scenario = newScenario;
+        const scenarioMeta = FRENCH_SCENARIO_RECORD[newScenario];
+        vars.input.scenario = scenarioMeta?.value || newScenario;
+        if (newScenario === 'CUSTOM_JOB' && jobDescription.trim()) {
+          vars.input.jobDescription = jobDescription.trim();
+        }
       }
       const { sendFrenchMessage } = await client.request(SEND_FRENCH_MESSAGE_MUTATION, vars);
       return sendFrenchMessage;
@@ -71,6 +102,7 @@ function FrenchConversationsContent() {
       setSelectedId(data.conversationId);
       setShowNew(false);
       setInputMessage('');
+      setJobDescription('');
       setTimeout(() => refetchConversation(), 100);
     },
   });
@@ -88,6 +120,16 @@ function FrenchConversationsContent() {
       inputRef.current.focus();
     }
   }, [showNew]);
+
+  useEffect(() => {
+    if (!autoSpeak || !conversationData?.messages?.length) return;
+    const msgs = conversationData.messages;
+    const lastMsg = msgs[msgs.length - 1];
+    if (lastMsg?.role === 'assistant' && lastMsg.id !== lastSpokenIdRef.current) {
+      lastSpokenIdRef.current = lastMsg.id;
+      speak(lastMsg.content);
+    }
+  }, [conversationData?.messages, autoSpeak, speak]);
 
   const handleSend = () => {
     const msg = inputMessage.trim();
@@ -112,18 +154,23 @@ function FrenchConversationsContent() {
     setSelectedId(null);
     setShowNew(true);
     setInputMessage('');
+    setJobDescription('');
+    lastSpokenIdRef.current = null;
+    stop();
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const selectConversation = (id: string) => {
     setSelectedId(id);
     setShowNew(false);
+    lastSpokenIdRef.current = null;
+    stop();
   };
 
   const messages = conversationData?.messages ?? [];
   const selectedConv = conversations?.find((c: any) => c.id === selectedId);
   const activeScenario = selectedConv?.scenario || newScenario;
-  const scenarioMeta = FRENCH_SCENARIO_RECORD[activeScenario] || FRENCH_SCENARIO_RECORD.job_interview;
+  const scenarioMeta = FRENCH_SCENARIO_RECORD[activeScenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
   const ScenarioIcon = scenarioMeta.icon;
 
   const conversationList = conversations ?? [];
@@ -170,28 +217,36 @@ function FrenchConversationsContent() {
               </div>
             ) : (
               conversationList.map((conv: any) => {
-                const meta = FRENCH_SCENARIO_RECORD[conv.scenario] || FRENCH_SCENARIO_RECORD.job_interview;
+                const meta = FRENCH_SCENARIO_RECORD[conv.scenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
                 const Icon = meta.icon;
                 return (
-                  <button
-                    key={conv.id}
-                    onClick={() => selectConversation(conv.id)}
-                    className={`w-full text-left p-2.5 rounded-lg transition-colors ${
-                      selectedId === conv.id
-                        ? 'bg-blue-50 border border-blue-100'
-                        : 'hover:bg-gray-50 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-7 h-7 ${meta.bg} rounded-lg flex items-center justify-center shrink-0`}>
-                        <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+                  <div key={conv.id} className={`flex items-center group rounded-lg transition-colors ${
+                    selectedId === conv.id
+                      ? 'bg-blue-50 border border-blue-100'
+                      : 'hover:bg-gray-50 border border-transparent'
+                  }`}>
+                    <button
+                      onClick={() => selectConversation(conv.id)}
+                      className="flex-1 text-left p-2.5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 ${meta.bg} rounded-lg flex items-center justify-center shrink-0`}>
+                          <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">{meta.label}</p>
+                          <p className="text-xs text-gray-400">{conv.messages?.length ?? 0} messages</p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{meta.label}</p>
-                        <p className="text-xs text-gray-400">{conv.messages?.length ?? 0} messages</p>
-                      </div>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(conv.id); }}
+                      className="p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      title="Delete conversation"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 );
               })
             )}
@@ -248,6 +303,13 @@ function FrenchConversationsContent() {
                 )}
               </div>
 
+              {selectedConv?.jobDescription && (
+                <div className="px-5 py-2.5 bg-indigo-50 border-b border-indigo-100 shrink-0">
+                  <p className="text-[10px] font-semibold text-indigo-700 mb-0.5">Job Description</p>
+                  <p className="text-xs text-indigo-800 line-clamp-2">{selectedConv.jobDescription}</p>
+                </div>
+              )}
+
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
                 {showNew && messages.length === 0 && !sendMutation.isPending && (
                   <div className="text-center py-8">
@@ -277,6 +339,17 @@ function FrenchConversationsContent() {
                         >
                           {msg.content}
                         </div>
+
+                        {!isUser && (
+                          <div className="px-1">
+                            <VoiceReplayButton
+                              text={msg.content}
+                              onSpeak={speak}
+                              onStop={stop}
+                              speaking={speaking}
+                            />
+                          </div>
+                        )}
 
                         {isUser && msg.evaluation && (
                           <div className="flex flex-wrap gap-1.5 px-1">
@@ -369,6 +442,23 @@ function FrenchConversationsContent() {
                   </div>
                 ) : (
                   <>
+                    {showNew && newScenario === 'CUSTOM_JOB' && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Job Description
+                        </label>
+                        <Textarea
+                          value={jobDescription}
+                          onChange={(e) => setJobDescription(e.target.value)}
+                          placeholder="Paste the job description here... (e.g., Warehouse Associate at Amazon, Delivery Driver at FedEx, etc.)"
+                          rows={4}
+                          className="w-full resize-none text-sm"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          The AI will generate a French conversation and interview tailored to this role
+                        </p>
+                      </div>
+                    )}
                     <div className="flex gap-3">
                       <Textarea
                         ref={inputRef as any}
@@ -390,13 +480,20 @@ function FrenchConversationsContent() {
                     </div>
                     <div className="flex items-center justify-between mt-1.5">
                       <p className="text-[10px] text-gray-400">Press Enter to send, Shift+Enter for new line</p>
-                      <button
-                        onClick={() => setVoiceMode(true)}
-                        className="text-[10px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                      >
-                        <Mic className="w-3 h-3" />
-                        Voice
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <AutoSpeakToggle
+                          enabled={autoSpeak}
+                          onChange={setAutoSpeak}
+                          supported={ttsSupported}
+                        />
+                        <button
+                          onClick={() => setVoiceMode(true)}
+                          className="text-[10px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                        >
+                          <Mic className="w-3 h-3" />
+                          Voice
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}

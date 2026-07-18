@@ -49,6 +49,25 @@ Retourne UNIQUEMENT un tableau JSON valide d'objets avec:
 - category (string: "technical", "experience", "problem_solving", "soft_skills")`,
 };
 
+function buildCustomJobPrompt(jobDescription: string): string {
+  return `Tu es un recruteur senior. Génère des questions d'entretien en français pour le poste décrit ci-dessous.
+
+Description du poste:
+${jobDescription}
+
+Les questions doivent être pertinentes par rapport à ce poste spécifique. Couvre:
+- Compétences techniques requises par le poste
+- Expérience pertinente
+- Compréhension du rôle et du secteur
+- Soft skills pertinentes pour ce poste
+- Situations de travail réelles liées au poste
+
+Tu dois retourner UN OBJET JSON avec une clé "questions" contenant un tableau. Exemple exact:
+{"questions":[{"id":"q1","question":"Question en français?","category":"technical"},{"id":"q2","question":"Autre question?","category":"experience"}]}
+
+Retourne UNIQUEMENT le JSON, pas de texte avant ou après.`;
+}
+
 const EVALUATE_PROMPT = `Tu es un recruteur technique expert qui évalue des réponses à des questions d'entretien en français.
 
 Évalue la réponse du candidat et retourne UNIQUEMENT un objet JSON valide avec:
@@ -74,6 +93,7 @@ Exemple:
 export interface InterviewResult {
   id: string;
   scenario: string;
+  jobDescription: string | null;
   questionCount: number;
   status: string;
   questions: any;
@@ -109,9 +129,16 @@ export class InterviewCoachService {
     private readonly frenchCoachService: FrenchCoachService,
   ) {}
 
-  async generateQuestions(userId: string, scenario: string, count: number = 5): Promise<{ questions: GeneratedQuestion[]; interview: InterviewResult }> {
+  async generateQuestions(userId: string, scenario: string, count: number = 5, jobDescription?: string): Promise<{ questions: GeneratedQuestion[]; interview: InterviewResult }> {
     const profile = await this.frenchCoachService.getProfile(userId);
-    const basePrompt = SCENARIO_PROMPTS[scenario] ?? SCENARIO_PROMPTS.frontend_developer;
+
+    let basePrompt: string;
+    if (scenario === 'custom_job' && jobDescription) {
+      basePrompt = buildCustomJobPrompt(jobDescription);
+    } else {
+      basePrompt = SCENARIO_PROMPTS[scenario] ?? SCENARIO_PROMPTS.frontend_developer;
+    }
+
     const variantInstruction = profile.frenchVariant === 'quebec'
       ? ` IMPORTANT : Les questions doivent être en français québécois authentique. Utilise des expressions et formulations naturelles du Québec.`
       : '';
@@ -129,11 +156,26 @@ export class InterviewCoachService {
     });
 
     const parsed = JSON.parse(content);
-    const questions: GeneratedQuestion[] = (Array.isArray(parsed) ? parsed : parsed.questions ?? []).slice(0, count);
+    let rawQuestions: any[];
+    if (Array.isArray(parsed)) {
+      rawQuestions = parsed;
+    } else if (parsed.questions && Array.isArray(parsed.questions)) {
+      rawQuestions = parsed.questions;
+    } else {
+      // phi3:mini sometimes returns a single object or wraps in another key
+      const values = Object.values(parsed).filter(Array.isArray);
+      rawQuestions = values.length > 0 ? values[0] as any[] : [parsed];
+    }
+    const questions: GeneratedQuestion[] = rawQuestions.slice(0, count).map((q: any, i: number) => ({
+      id: q.id || `q${i + 1}`,
+      question: q.question || String(q),
+      category: q.category || 'experience',
+    }));
 
     const interview = await this.prisma.frenchInterview.create({
       data: {
         scenario,
+        jobDescription: jobDescription ?? null,
         questionCount: questions.length,
         status: 'in_progress',
         questions: questions as any,
@@ -226,6 +268,7 @@ export class InterviewCoachService {
     return {
       id: i.id,
       scenario: i.scenario,
+      jobDescription: i.jobDescription ?? null,
       questionCount: i.questionCount,
       status: i.status,
       questions: i.questions,

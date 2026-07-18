@@ -544,6 +544,7 @@ export const FRENCH_CONVERSATIONS_QUERY = `
     frenchConversations {
       id
       scenario
+      jobDescription
       messages {
         id
         role
@@ -570,6 +571,7 @@ export const FRENCH_CONVERSATION_QUERY = `
     frenchConversation(id: $id) {
       id
       scenario
+      jobDescription
       messages {
         id
         role
@@ -611,6 +613,12 @@ export const SEND_FRENCH_MESSAGE_MUTATION = `
         createdAt
       }
     }
+  }
+`;
+
+export const DELETE_FRENCH_CONVERSATION_MUTATION = `
+  mutation DeleteFrenchConversation($id: String!) {
+    deleteFrenchConversation(id: $id)
   }
 `;
 

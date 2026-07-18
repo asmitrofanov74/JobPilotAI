@@ -1,5 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { MinLength, IsOptional } from 'class-validator';
+import { MinLength, IsOptional, IsNotEmpty, IsString, IsNumber } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 import { ConversationScenario, InterviewScenario, FrenchVariant } from './french-coach.types';
 
@@ -33,6 +33,10 @@ export class SendFrenchMessageInput {
   @Field(() => ConversationScenario, { nullable: true })
   @IsOptional()
   scenario?: ConversationScenario;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  jobDescription?: string;
 }
 
 @InputType()
@@ -93,10 +97,18 @@ export class AddTrackedVocabularyInput {
 @InputType()
 export class GenerateInterviewQuestionsInput {
   @Field(() => InterviewScenario)
+  @IsNotEmpty()
+  @IsString()
   scenario: InterviewScenario;
 
   @Field(() => Int, { defaultValue: 5 })
+  @IsNumber()
   questionCount: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  jobDescription?: string;
 }
 
 @InputType()

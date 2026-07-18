@@ -20,9 +20,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const SCENARIOS = [
-  { value: 'frontend_developer', label: 'Frontend Developer', icon: '🖥️', desc: 'React, CSS, performance web' },
-  { value: 'full_stack_developer', label: 'Full Stack Developer', icon: '🔄', desc: 'API, bases de données, architecture' },
-  { value: 'team_lead', label: 'Team Lead', icon: '👥', desc: 'Leadership, gestion, mentorat' },
+  { value: 'FRONTEND_DEVELOPER', label: 'Frontend Developer', icon: '🖥️', desc: 'React, CSS, performance web' },
+  { value: 'FULL_STACK_DEVELOPER', label: 'Full Stack Developer', icon: '🔄', desc: 'API, bases de données, architecture' },
+  { value: 'TEAM_LEAD', label: 'Team Lead', icon: '👥', desc: 'Leadership, gestion, mentorat' },
+  { value: 'CUSTOM_JOB', label: 'Custom Job', icon: '💼', desc: 'Paste a job description for tailored questions' },
 ];
 
 function getScenarioLabel(value: string) {
@@ -39,6 +40,7 @@ function FrenchInterviewContent() {
   const [activeQId, setActiveQId] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState('');
   const [showResult, setShowResult] = useState(false);
+  const [jobDescription, setJobDescription] = useState('');
 
   const { data: interviews, isLoading, refetch } = useQuery({
     queryKey: ['frenchInterviews'],
@@ -60,9 +62,13 @@ function FrenchInterviewContent() {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
+      const vars: any = { input: { scenario, questionCount } };
+      if (scenario === 'CUSTOM_JOB' && jobDescription.trim()) {
+        vars.input.jobDescription = jobDescription.trim();
+      }
       const { generateFrenchInterviewQuestions } = await client.request(
         GENERATE_FRENCH_INTERVIEW_QUESTIONS_MUTATION,
-        { input: { scenario, questionCount } },
+        vars,
       );
       return generateFrenchInterviewQuestions;
     },
@@ -343,6 +349,19 @@ function FrenchInterviewContent() {
             </div>
           </div>
 
+          {scenario === 'CUSTOM_JOB' && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Job Description</p>
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description here... The AI will generate tailored interview questions in French."
+                rows={4}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">Number of Questions</p>
@@ -366,7 +385,7 @@ function FrenchInterviewContent() {
 
           <Button
             onClick={handleGenerate}
-            disabled={!scenario || generateMutation.isPending}
+            disabled={!scenario || generateMutation.isPending || (scenario === 'CUSTOM_JOB' && !jobDescription.trim())}
             className="w-full"
           >
             {generateMutation.isPending ? (
