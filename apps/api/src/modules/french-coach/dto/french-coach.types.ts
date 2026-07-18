@@ -525,3 +525,15 @@ export class SendFrenchMessageResult {
   @Field(() => FrenchMessageType)
   response: FrenchMessageType;
 }
+
+@ObjectType()
+export class ConversationHintType {
+  @Field()
+  hint: string;
+
+  @Field()
+  keyPoints: string;
+
+  @Field()
+  suggestedResponse: string;
+}

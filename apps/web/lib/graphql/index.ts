@@ -622,6 +622,16 @@ export const DELETE_FRENCH_CONVERSATION_MUTATION = `
   }
 `;
 
+export const GENERATE_FRENCH_CONVERSATION_HINT_MUTATION = `
+  mutation GenerateFrenchConversationHint($input: GenerateConversationHintInput!) {
+    generateFrenchConversationHint(input: $input) {
+      hint
+      keyPoints
+      suggestedResponse
+    }
+  }
+`;
+
 export const FRENCH_VOCABULARY_QUERY = `
   query FrenchVocabulary($filter: VocabularyFilterInput) {
     frenchVocabulary(filter: $filter) {

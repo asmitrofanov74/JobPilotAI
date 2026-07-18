@@ -138,6 +138,13 @@ export class GenerateInterviewHintInput {
 }
 
 @InputType()
+export class GenerateConversationHintInput {
+  @Field()
+  @MinLength(1)
+  conversationId: string;
+}
+
+@InputType()
 export class GenerateCareerInterviewInput {
   @Field({ nullable: true })
   @IsOptional()

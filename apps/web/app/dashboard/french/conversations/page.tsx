@@ -9,12 +9,13 @@ import {
   FRENCH_PROFILE_QUERY,
   SEND_FRENCH_MESSAGE_MUTATION,
   DELETE_FRENCH_CONVERSATION_MUTATION,
+  GENERATE_FRENCH_CONVERSATION_HINT_MUTATION,
 } from '@/lib/graphql';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   MessageSquare, Send, ChevronLeft, Users, Mic, BookOpen, Coffee,
-  GraduationCap, Sparkles, ArrowLeft, Languages, Settings, Trash2,
+  GraduationCap, Sparkles, ArrowLeft, Languages, Settings, Trash2, Lightbulb,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ import { VoiceInput } from '@/components/voice/voice-input';
 import { useSpeechSynthesis } from '@/components/voice/use-speech-synthesis';
 import { VoiceReplayButton, AutoSpeakToggle } from '@/components/voice/voice-playback';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
-import type { GqlFrenchConversation, GqlFrenchMessage, GqlFrenchCorrection } from '@/lib/graphql/types';
+import type { GqlFrenchConversation, GqlFrenchMessage, GqlFrenchCorrection, GqlConversationHint } from '@/lib/graphql/types';
 
 function FrenchConversationsContent() {
   const router = useRouter();
@@ -41,6 +42,8 @@ function FrenchConversationsContent() {
   const [inputMessage, setInputMessage] = useState('');
   const [voiceMode, setVoiceMode] = useState(false);
   const [jobDescription, setJobDescription] = useState('');
+  const [hintData, setHintData] = useState<GqlConversationHint | null>(null);
+  const [showHint, setShowHint] = useState(false);
   const lastSpokenIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -106,6 +109,23 @@ function FrenchConversationsContent() {
       setInputMessage('');
       setJobDescription('');
       setTimeout(() => refetchConversation(), 100);
+    },
+  });
+
+  const hintMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedId) return null;
+      const { generateFrenchConversationHint } = await client.request(
+        GENERATE_FRENCH_CONVERSATION_HINT_MUTATION,
+        { input: { conversationId: selectedId } },
+      );
+      return generateFrenchConversationHint;
+    },
+    onSuccess: (data: GqlConversationHint | null) => {
+      if (data) {
+        setHintData(data);
+        setShowHint(true);
+      }
     },
   });
 
@@ -423,6 +443,39 @@ function FrenchConversationsContent() {
               </div>
 
               <div className="border-t border-gray-100 p-4 shrink-0">
+                {showHint && hintData && (
+                  <div className="mb-3 bg-amber-50 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-amber-600" />
+                        <p className="text-xs font-medium text-amber-800">Hint</p>
+                      </div>
+                      <button
+                        onClick={() => { setShowHint(false); setHintData(null); }}
+                        className="text-[10px] text-amber-600 hover:text-amber-800 underline"
+                      >
+                        Hide
+                      </button>
+                    </div>
+                    <p className="text-sm text-amber-700">{hintData.hint}</p>
+                    {hintData.keyPoints && (
+                      <p className="text-xs text-amber-600 whitespace-pre-line">{hintData.keyPoints}</p>
+                    )}
+                    {hintData.suggestedResponse && (
+                      <div className="bg-white rounded-lg p-2.5 border border-amber-100">
+                        <p className="text-[10px] font-medium text-amber-800 mb-0.5">Suggested response:</p>
+                        <p className="text-xs text-amber-700 italic">{hintData.suggestedResponse}</p>
+                        <button
+                          onClick={() => { setInputMessage(hintData.suggestedResponse); setShowHint(false); setHintData(null); }}
+                          className="text-[10px] text-blue-600 hover:text-blue-700 font-medium mt-1"
+                        >
+                          Use this response
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {voiceMode ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
@@ -495,6 +548,16 @@ function FrenchConversationsContent() {
                           <Mic className="w-3 h-3" />
                           Voice
                         </button>
+                        {selectedId && (
+                          <button
+                            onClick={() => hintMutation.mutate()}
+                            disabled={hintMutation.isPending}
+                            className="text-[10px] text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                          >
+                            <Lightbulb className="w-3 h-3" />
+                            {hintMutation.isPending ? 'Thinking...' : 'Hint'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </>

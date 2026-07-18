@@ -411,3 +411,9 @@ export interface GqlEnglishInterviewHint {
   keyPoints: string;
   exampleAnswer: string;
 }
+
+export interface GqlConversationHint {
+  hint: string;
+  keyPoints: string;
+  suggestedResponse: string;
+}

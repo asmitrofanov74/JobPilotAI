@@ -243,4 +243,53 @@ export class ConversationService {
 
     return conversations;
   }
+
+  async generateHint(userId: string, conversationId: string): Promise<{ hint: string; keyPoints: string; suggestedResponse: string }> {
+    const profile = await this.frenchCoachService.getProfile(userId);
+
+    const conversation = await this.prisma.frenchConversation.findFirst({
+      where: { id: conversationId, profileId: profile.id },
+      include: {
+        messages: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+
+    if (!conversation) throw new NotFoundException('Conversation not found');
+
+    const recentMessages = conversation.messages.slice(-6);
+    const conversationHistory = recentMessages.map((m) => `${m.role === 'user' ? 'Candidat' : 'Interlocuteur'}: ${m.content}`).join('\n');
+
+    const isQuebec = profile.frenchVariant === 'quebec';
+    const hintPrompt = isQuebec
+      ? `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français québécois dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice pour l'aider à continuer la conversation.
+
+Retourne UNIQUEMENT un objet JSON valide avec:
+- hint (string): un indice court et encourageant en français québécois
+- keyPoints (string): les points clés à mentionner, séparés par des puces
+- suggestedResponse (string): une réponse suggérée en français québécois que l'utilisateur pourrait adapter`
+      : `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice pour l'aider à continuer la conversation.
+
+Retourne UNIQUEMENT un objet JSON valide avec:
+- hint (string): un indice court et encourageant en français
+- keyPoints (string): les points clés à mentionner, séparés par des puces
+- suggestedResponse (string): une réponse suggérée en français que l'utilisateur pourrait adapter`;
+
+    const { content } = await this.provider.chat({
+      model: 'openrouter/free',
+      messages: [
+        { role: 'system', content: hintPrompt },
+        { role: 'user', content: `Scénario: ${conversation.scenario}\n${conversation.jobDescription ? `Description du poste: ${conversation.jobDescription}\n` : ''}Historique récent:\n${conversationHistory}\n\nL'utilisateur ne sait pas quoi dire. Donne-lui un indice.` },
+      ],
+      temperature: 0.5,
+      max_tokens: 600,
+      response_format: { type: 'json_object' },
+    });
+
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    return {
+      hint: typeof parsed.hint === 'string' ? parsed.hint : '',
+      keyPoints: typeof parsed.keyPoints === 'string' ? parsed.keyPoints : '',
+      suggestedResponse: typeof parsed.suggestedResponse === 'string' ? parsed.suggestedResponse : '',
+    };
+  }
 }

@@ -24,6 +24,7 @@ import {
   PronunciationResultType,
   CareerSuggestionType,
   InterviewHintType,
+  ConversationHintType,
 } from './dto/french-coach.types';
 import {
   StartFrenchSessionInput,
@@ -36,6 +37,7 @@ import {
   GenerateInterviewQuestionsInput,
   EvaluateInterviewAnswerInput,
   GenerateInterviewHintInput,
+  GenerateConversationHintInput,
   UpdateFrenchProfileInput,
   EvaluatePronunciationInput,
   GenerateCareerInterviewInput,
@@ -389,5 +391,13 @@ export class FrenchCoachResolver {
     @Args('input') input: SendFrenchMessageInput,
   ) {
     return this.conversationService.sendMessage(user.id, input);
+  }
+
+  @Mutation(() => ConversationHintType)
+  async generateFrenchConversationHint(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateConversationHintInput,
+  ) {
+    return this.conversationService.generateHint(user.id, input.conversationId);
   }
 }
