@@ -18,6 +18,7 @@ import { PreviousResults } from '@/components/linkedin-optimizer/previous-result
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { useLinkedinOptimizations } from '@/lib/linkedin-optimizer/hooks';
 import { PAGE_CONFIGS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const config = PAGE_CONFIGS.visibility_analysis;
 
@@ -29,7 +30,7 @@ export default function VisibilityPage() {
   const [targetLocations, setTargetLocations] = useState('');
   const [industry, setIndustry] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
 
   const { data: analyses, isLoading } = useLinkedinOptimizations('visibility_analysis');
 
@@ -121,7 +122,7 @@ export default function VisibilityPage() {
             <div className="mb-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Industry Comparison</h3>
               <div className="space-y-2">
-                {output.competitorComparison.map((c: any, i: number) => (
+                {output.competitorComparison.map((c: { aspect: string; yourProfile: string; industryStandard: string }, i: number) => (
                   <div key={i} className="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg text-sm">
                     <div className="font-medium text-gray-900">{c.aspect}</div>
                     <div className="text-gray-600">{c.yourProfile}</div>
@@ -144,7 +145,7 @@ export default function VisibilityPage() {
         emptyTitle={config.emptyTitle}
         emptyDescription={config.emptyDescription}
         displayField={config.historyDisplayField}
-        onSelect={(opt) => setResult(opt)}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
       />
     </div>
   );

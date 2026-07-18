@@ -40,8 +40,8 @@ export default function AnalyticsPage() {
 
   const jobs = jobsData?.edges || [];
   const totalApplications = jobs.length;
-  const interviews = jobs.filter((j: any) => j.interviews?.length > 0).length;
-  const offers = jobs.filter((j: any) => j.status === 'OFFER' || j.status === 'ACCEPTED').length;
+  const interviews = jobs.filter((j: { interviews?: unknown[] }) => (j.interviews?.length ?? 0) > 0).length;
+  const offers = jobs.filter((j: { status: string }) => j.status === 'OFFER' || j.status === 'ACCEPTED').length;
   const acceptanceRate = totalApplications > 0 ? Math.round((offers / totalApplications) * 100) : 0;
 
   const funnelChart = funnelData

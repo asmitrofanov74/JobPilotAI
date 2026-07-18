@@ -15,6 +15,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TYPE_BADGE, INTERVIEW_TYPES } from '@/lib/constants';
 import { capitalize, formatDate } from '@/lib/utils/format';
+import { type GqlJob, type GqlInterview } from '@/lib/graphql/types';
 
 export default function InterviewsPage() {
   const queryClient = useQueryClient();
@@ -79,7 +80,7 @@ export default function InterviewsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select label="Job Application" value={formData.jobApplicationId} onChange={(e) => setFormData({ ...formData, jobApplicationId: e.target.value })} required>
               <option value="">Select a job</option>
-              {jobsData?.edges?.map((job: any) => (
+              {jobsData?.edges?.map((job: GqlJob) => (
                 <option key={job.id} value={job.id}>{job.companyName} - {job.jobTitle}</option>
               ))}
             </Select>
@@ -121,7 +122,7 @@ export default function InterviewsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {interviews?.map((interview: any) => (
+                {interviews?.map((interview: GqlInterview) => (
                   <tr key={interview.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3.5">
                       <Badge variant={TYPE_BADGE[interview.type] || 'gray'}>{interview.type}</Badge>

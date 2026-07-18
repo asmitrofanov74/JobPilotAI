@@ -19,6 +19,7 @@ import { PreviousResults } from '@/components/linkedin-optimizer/previous-result
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { useLinkedinOptimizations } from '@/lib/linkedin-optimizer/hooks';
 import { PAGE_CONFIGS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const TOOLS = [
   { label: 'Headline Generator', href: '/dashboard/linkedin/headline', icon: Sparkles, desc: 'Create keyword-rich headlines that attract recruiters' },
@@ -41,7 +42,7 @@ export default function LinkedinProfilePage() {
   const [location, setLocation] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [skills, setSkills] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
 
   const { data: optimizations, isLoading } = useLinkedinOptimizations('profile_analysis');
 
@@ -142,9 +143,9 @@ export default function LinkedinProfilePage() {
           <ProgressBar value={output.overallScore} className="mb-6" />
           {output.sectionScores && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-              {Object.entries(output.sectionScores).map(([section, score]: [string, any]) => (
+              {Object.entries(output.sectionScores).map(([section, score]: [string, unknown]) => (
                 <div key={section} className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-lg font-bold text-gray-700">{score}%</div>
+                  <div className="text-lg font-bold text-gray-700">{Number(score)}%</div>
                   <div className="text-xs text-gray-500 capitalize">{section.replace(/([A-Z])/g, ' $1').trim()}</div>
                 </div>
               ))}
@@ -158,7 +159,7 @@ export default function LinkedinProfilePage() {
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Recommendations</h3>
               <div className="space-y-3">
-                {output.recommendations.map((r: any, i: number) => (
+                {output.recommendations.map((r: { priority?: string; action?: string; impact?: string; text?: string }, i: number) => (
                   <div key={i} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                     <Badge variant={r.priority === 'high' ? 'red' : r.priority === 'medium' ? 'amber' : 'blue'}>{r.priority}</Badge>
                     <div>
@@ -202,7 +203,7 @@ export default function LinkedinProfilePage() {
         emptyTitle={config.emptyTitle}
         emptyDescription={config.emptyDescription}
         displayField={config.historyDisplayField}
-        onSelect={(opt) => setResult(opt)}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
       />
     </div>
   );

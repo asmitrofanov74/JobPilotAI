@@ -2,11 +2,12 @@ import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { ArrowRight } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
 
 type StatCardProps = {
   label: string;
   value: ReactNode;
-  icon: any;
+  icon: LucideIcon;
   color?: string;
   bg?: string;
   href?: string;

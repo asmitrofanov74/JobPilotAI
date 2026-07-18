@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Search, Download, MapPin, DollarSign, ExternalLink, Globe } from 'lucide-react';
 import { SOURCE_BADGE, SOURCE_LABELS, ALL_SOURCES, POSTED_OPTIONS } from '@/lib/constants';
 import { relativeTime } from '@/lib/utils/format';
+import { type GqlScrapedJob, type GqlScrapeResult, type GqlImportResult } from '@/lib/graphql/types';
 
 export default function ScraperPage() {
   const [keywords, setKeywords] = useState('software engineer');
@@ -32,7 +33,7 @@ export default function ScraperPage() {
       });
       return scrapeJobs;
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       setErrorMsg('Search failed. Please try again.');
       console.error('Scrape error:', err);
     },
@@ -41,7 +42,7 @@ export default function ScraperPage() {
   const importAll = useMutation({
     mutationFn: async () => {
       const { importJobs } = await client.request(IMPORT_JOBS_MUTATION, {
-        jobs: jobs.map((j: any) => ({
+        jobs: jobs.map((j: GqlScrapedJob) => ({
           companyName: j.companyName,
           jobTitle: j.jobTitle,
           jobDescription: j.jobDescription,
@@ -59,7 +60,7 @@ export default function ScraperPage() {
     onSuccess: () => {
       setTimeout(() => { importAll.reset(); }, 8000);
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       setErrorMsg('Import failed');
       console.error('Import error:', err);
     },
@@ -144,21 +145,21 @@ export default function ScraperPage() {
           </p>
           {scrape.data?.stats && (
             <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-              {ALL_SOURCES.filter((s) => (scrape.data?.stats as any)?.[s.toLowerCase()] > 0).map((s) => (
+              {ALL_SOURCES.filter((s) => (scrape.data?.stats as GqlScrapeResult['stats'])?.[s.toLowerCase()]! > 0).map((s) => (
                 <span key={s} className="flex items-center gap-1">
                   <Badge variant={SOURCE_BADGE[s] || 'gray'}>{SOURCE_LABELS[s]}</Badge>
-                  {(scrape.data?.stats as any)?.[s.toLowerCase()] || 0}
+                  {(scrape.data?.stats as GqlScrapeResult['stats'])?.[s.toLowerCase()] || 0}
                 </span>
               ))}
             </div>
           )}
           <div className="grid grid-cols-1 gap-3">
-            {jobs.map((job: any, i: number) => (
+            {jobs.map((job: GqlScrapedJob, i: number) => (
               <Card key={i} padding="md" className="hover:border-gray-200 transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={SOURCE_BADGE[job.source] || 'gray'}>{job.source}</Badge>
+                      <Badge variant={SOURCE_BADGE[job.source ?? 'UNKNOWN'] || 'gray'}>{job.source}</Badge>
                       {job.employmentType && (
                         <span className="text-xs text-gray-400">{job.employmentType}</span>
                       )}

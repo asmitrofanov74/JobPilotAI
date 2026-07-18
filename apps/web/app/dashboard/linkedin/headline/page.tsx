@@ -16,6 +16,7 @@ import { PreviousResults } from '@/components/linkedin-optimizer/previous-result
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { useCopyToClipboard, useLinkedinOptimizations } from '@/lib/linkedin-optimizer/hooks';
 import { PAGE_CONFIGS, TONE_OPTIONS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const config = PAGE_CONFIGS.headline;
 
@@ -27,7 +28,7 @@ export default function HeadlinePage() {
   const [experienceLevel, setExperienceLevel] = useState('');
   const [currentHeadline, setCurrentHeadline] = useState('');
   const [tone, setTone] = useState('professional');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
   const { copiedIndex, copyToClipboard } = useCopyToClipboard();
 
   const { data: optimizations, isLoading } = useLinkedinOptimizations('headline');
@@ -70,7 +71,7 @@ export default function HeadlinePage() {
         </div>
       </Card>
 
-      {output?.headlines?.length > 0 && (
+      {output && output.headlines?.length > 0 && (
         <Card padding="lg">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Generated Headlines</h2>
@@ -87,15 +88,15 @@ export default function HeadlinePage() {
             </div>
           )}
           <div className="space-y-3">
-            {output.headlines.map((h: any, i: number) => (
+            {output.headlines.map((h: { text: string; rationale?: string; targetKeywords?: string[] }, i: number) => (
               <div key={i} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{h.text}</p>
                     <p className="text-xs text-gray-500 mt-1">{h.rationale}</p>
-                    {h.targetKeywords?.length > 0 && (
+                    {(h.targetKeywords?.length ?? 0) > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {h.targetKeywords.map((kw: string, j: number) => <Badge key={j} variant="blue" dot>{kw}</Badge>)}
+                        {h.targetKeywords?.map((kw: string, j: number) => <Badge key={j} variant="blue" dot>{kw}</Badge>)}
                       </div>
                     )}
                   </div>
@@ -117,7 +118,7 @@ export default function HeadlinePage() {
         emptyTitle={config.emptyTitle}
         emptyDescription={config.emptyDescription}
         displayField={config.historyDisplayField}
-        onSelect={(opt) => setResult(opt)}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
       />
     </div>
   );

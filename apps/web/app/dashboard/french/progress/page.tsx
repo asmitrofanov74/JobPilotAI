@@ -11,7 +11,7 @@ import Link from 'next/link';
 import {
   BarChart3, ScrollText, GraduationCap, Languages, MessageSquare,
   Users, Mic, BookOpen, Coffee, ArrowRight, TrendingUp, BookmarkCheck,
-  AlertTriangle, Zap,
+  AlertTriangle, Zap, type LucideIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
@@ -20,10 +20,11 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
+import type { GqlFrenchSession, GqlFrenchConversation, GqlFrenchProgress } from '@/lib/graphql/types';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ScoreBar } from '@/components/ui/score-bar';
 
-const SESSION_TYPE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
+const SESSION_TYPE_LABELS: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   cv_review: { label: 'CV Review', icon: ScrollText, color: 'text-blue-600' },
   cover_letter: { label: 'Cover Letter', icon: Languages, color: 'text-emerald-600' },
   interview: { label: 'Interview', icon: Mic, color: 'text-violet-600' },
@@ -120,11 +121,11 @@ export default function FrenchProgressPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {Object.entries(sessionsByType).map(([type, count]: [string, any]) => {
+              {Object.entries((sessionsByType ?? {}) as Record<string, number>).map(([type, count]) => {
                 const meta = SESSION_TYPE_LABELS[type] || { label: type, icon: ScrollText, color: 'text-gray-600' };
                 const Icon = meta.icon;
                 const total = count;
-                const completed = sessions.filter((s: any) => s.type === type && s.status === 'completed').length;
+                const completed = sessions.filter((s: GqlFrenchSession) => s.type === type && s.status === 'completed').length;
                 const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
                 return (
                   <div key={type} className="flex items-center gap-3">
@@ -154,7 +155,7 @@ export default function FrenchProgressPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {scoreHistory.filter((_: any, i: number) => i >= scoreHistory.length - 7).map((point: any) => (
+              {scoreHistory.filter((_: { date: string; grammarScore: number; vocabularyScore: number; fluencyScore: number }, i: number) => i >= scoreHistory.length - 7).map((point: { date: string; grammarScore: number; vocabularyScore: number; fluencyScore: number }) => (
                 <div key={point.date} className="flex items-center gap-2">
                   <span className="text-xs text-gray-400 w-20 shrink-0">
                     {new Date(point.date + 'T00:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
@@ -194,10 +195,10 @@ export default function FrenchProgressPage() {
             <div className="space-y-3">
               {Object.entries(FRENCH_SCENARIO_RECORD).map(([key, meta]) => {
                 const Icon = meta.icon;
-                const convCount = conversations?.filter((c: any) => c.scenario === key).length ?? 0;
+                const convCount = conversations?.filter((c: GqlFrenchConversation) => c.scenario === key).length ?? 0;
                 const msgCount = conversations
-                  ?.filter((c: any) => c.scenario === key)
-                  .reduce((sum: number, c: any) => sum + (c.messages?.length ?? 0), 0) ?? 0;
+                  ?.filter((c: GqlFrenchConversation) => c.scenario === key)
+                  .reduce((sum: number, c: GqlFrenchConversation) => sum + (c.messages?.length ?? 0), 0) ?? 0;
                 return (
                   <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${meta.color.replace('text', 'bg').replace('600', '100')}`}>
@@ -231,7 +232,7 @@ export default function FrenchProgressPage() {
             />
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              {sessions.map((session: any) => {
+              {sessions.map((session: GqlFrenchSession) => {
                 const meta = SESSION_TYPE_LABELS[session.type] || { label: session.type, icon: ScrollText, color: 'text-gray-600' };
                 const Icon = meta.icon;
                 return (

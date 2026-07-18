@@ -14,6 +14,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { STATUS_BADGE, STATUS_OPTIONS, PAGE_SIZES, COLUMNS } from '@/lib/constants';
 import { formatDate, formatStatusLabel } from '@/lib/utils/format';
+import { type GqlJob } from '@/lib/graphql/types';
 
 export default function JobsPage() {
   const [page, setPage] = useState(1);
@@ -80,7 +81,7 @@ export default function JobsPage() {
     setPage(1);
   }
 
-  const jobIds = data?.edges?.map((j: any) => j.id) ?? [];
+  const jobIds = data?.edges?.map((j: GqlJob) => j.id) ?? [];
   const allSelected = jobIds.length > 0 && jobIds.every((id: string) => selectedIds.has(id));
 
   function toggleSelect(id: string) {
@@ -190,7 +191,7 @@ export default function JobsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {data?.edges?.map((job: any) => (
+                {data?.edges?.map((job: GqlJob) => (
                   <tr key={job.id} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(job.id) ? 'bg-blue-50/50' : ''}`}>
                     <td className="w-10 px-2 py-3.5 text-center">
                       <input type="checkbox" checked={selectedIds.has(job.id)} onChange={() => toggleSelect(job.id)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />

@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { type GqlSkillGapResult, type GqlSkillGapReport } from '@/lib/graphql/types';
 
 export default function SkillsPage() {
   const queryClient = useQueryClient();
@@ -22,7 +23,7 @@ export default function SkillsPage() {
   const [companyName, setCompanyName] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [userSkills, setUserSkills] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlSkillGapResult | null>(null);
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ['skillGapReports'],
@@ -80,11 +81,11 @@ export default function SkillsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Analysis Results</h2>
           <div className="flex items-center gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="text-4xl font-bold text-blue-600">{result.matchScore}%</div>
+              <div className="text-4xl font-bold text-blue-600">{(result.matchScore ?? 0)}%</div>
               <div className="text-sm text-gray-500">Match Score</div>
             </div>
             <div className="flex-1 max-w-md">
-              <ProgressBar value={result.matchScore} color="bg-blue-600" height="lg" />
+              <ProgressBar value={result.matchScore ?? 0} color="bg-blue-600" height="lg" />
             </div>
           </div>
 
@@ -116,7 +117,7 @@ export default function SkillsPage() {
             </div>
           </div>
 
-          {result.recommendations?.length > 0 && (
+          {(result.recommendations?.length ?? 0) > 0 && (
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Recommendations</h3>
               <ul className="space-y-2">
@@ -140,7 +141,7 @@ export default function SkillsPage() {
           <EmptyState icon={TrendingUp} title="No reports yet" description="Run your first skill gap analysis" />
         ) : (
           <div className="space-y-3">
-            {reports?.map((report: any) => (
+            {reports?.map((report: GqlSkillGapReport) => (
               <Card key={report.id} hover padding="md">
                 <div className="flex items-center justify-between">
                   <div>
@@ -153,11 +154,11 @@ export default function SkillsPage() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <ProgressBar value={report.matchScore} color="bg-blue-600" height="sm" />
+                  <ProgressBar value={report.matchScore ?? 0} color="bg-blue-600" height="sm" />
                 </div>
-                {report.missingSkills?.length > 0 && (
+                {(report.missingSkills?.length ?? 0) > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {report.missingSkills.map((s: string, i: number) => (
+                    {report.missingSkills?.map((s: string, i: number) => (
                       <Badge key={i} variant="red">{s}</Badge>
                     ))}
                   </div>

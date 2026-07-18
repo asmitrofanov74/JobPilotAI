@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatDate } from '@/lib/linkedin-optimizer/utils';
+import { type GqlLinkedinOptimization } from '@/lib/graphql/types';
 
 type PreviousResultsProps = {
-  data: any[];
+  data: GqlLinkedinOptimization[] | undefined;
   isLoading: boolean;
   icon: LucideIcon;
   iconColor: string;
@@ -15,7 +16,7 @@ type PreviousResultsProps = {
   emptyTitle: string;
   emptyDescription: string;
   displayField?: string;
-  onSelect: (item: any) => void;
+  onSelect: (item: GqlLinkedinOptimization) => void;
 };
 
 export function PreviousResults({
@@ -30,7 +31,7 @@ export function PreviousResults({
     return <EmptyState icon={Icon} title={emptyTitle} description={emptyDescription} />;
   }
 
-  const displayValue = (item: any) => {
+  const displayValue = (item: { outputData?: Record<string, unknown> }) => {
     if (!displayField) return '';
     const val = item.outputData?.[displayField];
     if (typeof val === 'number') return `${val}%`;
@@ -46,7 +47,7 @@ export function PreviousResults({
     <div>
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{label}</h2>
       <div className="space-y-3">
-        {data.map((opt: any) => (
+        {data.map((opt) => (
           <Card key={opt.id} hover padding="md" className="cursor-pointer" onClick={() => onSelect(opt)}>
             <div className="flex items-center gap-3">
               <Icon className={`w-4 h-4 ${iconColor}`} />

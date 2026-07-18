@@ -18,6 +18,7 @@ import { PreviousResults } from '@/components/linkedin-optimizer/previous-result
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { useLinkedinOptimizations } from '@/lib/linkedin-optimizer/hooks';
 import { PAGE_CONFIGS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const config = PAGE_CONFIGS.resume_comparison;
 
@@ -27,7 +28,7 @@ export default function ResumeComparisonPage() {
   const [linkedinHeadline, setLinkedinHeadline] = useState('');
   const [linkedinAbout, setLinkedinAbout] = useState('');
   const [linkedinExperience, setLinkedinExperience] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
 
   const { data: resumes } = useQuery({
     queryKey: ['resumes'],
@@ -68,7 +69,7 @@ export default function ResumeComparisonPage() {
         <div className="space-y-4">
           <Select label="Select Resume" value={selectedResumeId} onChange={(e) => setSelectedResumeId(e.target.value)} required>
             <option value="">Choose a resume...</option>
-            {resumes?.map((r: any) => <option key={r.id} value={r.id}>{r.title}</option>)}
+            {resumes?.map((r: { id: string; title: string }) => <option key={r.id} value={r.id}>{r.title}</option>)}
           </Select>
           <Input label="LinkedIn Headline" value={linkedinHeadline} onChange={(e) => setLinkedinHeadline(e.target.value)} placeholder="Your LinkedIn headline" />
           <Textarea label="LinkedIn About" value={linkedinAbout} onChange={(e) => setLinkedinAbout(e.target.value)} rows={3} placeholder="Paste your LinkedIn About section" />
@@ -100,7 +101,7 @@ export default function ResumeComparisonPage() {
                 <AlertTriangle className="w-4 h-4" /> Discrepancies
               </h3>
               <div className="space-y-3">
-                {output.discrepancies.map((d: any, i: number) => (
+                {output.discrepancies.map((d: { severity?: string; field: string; resumeValue: string; linkedinValue: string; recommendation: string }, i: number) => (
                   <div key={i} className="p-3 bg-red-50 rounded-lg border border-red-100">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant={d.severity === 'high' ? 'red' : d.severity === 'medium' ? 'amber' : 'blue'}>{d.field}</Badge>
@@ -126,7 +127,7 @@ export default function ResumeComparisonPage() {
             <div className="mb-6">
               <h3 className="text-sm font-semibold text-amber-700 mb-2">Gaps Found</h3>
               <div className="space-y-2">
-                {output.gaps.map((g: any, i: number) => (
+                {output.gaps.map((g: { area: string; description: string; recommendation?: string }, i: number) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600 p-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                     <div>
@@ -152,7 +153,7 @@ export default function ResumeComparisonPage() {
         emptyTitle={config.emptyTitle}
         emptyDescription={config.emptyDescription}
         displayField={config.historyDisplayField}
-        onSelect={(opt) => setResult(opt)}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
       />
     </div>
   );

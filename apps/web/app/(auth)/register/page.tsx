@@ -28,8 +28,11 @@ export default function RegisterPage() {
       await register.mutateAsync({ email, password, firstName, lastName });
       toast.success('Account created!');
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err?.response?.errors?.[0]?.message || 'Registration failed');
+    } catch (err: unknown) {
+      const message = err instanceof Error
+        ? (err as unknown as { response?: { errors?: Array<{ message: string }> } }).response?.errors?.[0]?.message || err.message
+        : 'Registration failed';
+      toast.error(message);
     }
   }
 

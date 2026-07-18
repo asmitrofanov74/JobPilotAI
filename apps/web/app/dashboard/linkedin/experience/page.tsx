@@ -14,6 +14,7 @@ import { ToneSelector } from '@/components/linkedin-optimizer/tone-selector';
 import { BulletList } from '@/components/linkedin-optimizer/bullet-list';
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { PAGE_CONFIGS, TONE_OPTIONS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const config = PAGE_CONFIGS.experience_optimizer;
 
@@ -31,7 +32,7 @@ export default function ExperiencePage() {
   ]);
   const [industry, setIndustry] = useState('');
   const [tone, setTone] = useState('professional');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
 
   const optimizeMutation = useMutation({
     mutationFn: async () => {
@@ -104,11 +105,11 @@ export default function ExperiencePage() {
         </div>
       </Card>
 
-      {output?.optimizedEntries?.length > 0 && (
+      {output && output.optimizedEntries?.length > 0 && (
         <Card padding="lg">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Optimized Entries</h2>
           <div className="space-y-6">
-            {output.optimizedEntries.map((entry: any, i: number) => (
+            {output.optimizedEntries.map((entry: { company?: string; role?: string; originalDescription?: string; improvements?: string[]; optimizedDescription?: string; keyChanges?: string[] }, i: number) => (
               <div key={i} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                 <div className="flex items-center gap-2 mb-3">
                   <Badge variant="blue">{entry.role}</Badge>
@@ -124,9 +125,9 @@ export default function ExperiencePage() {
                     <p className="text-sm text-gray-900">{entry.optimizedDescription}</p>
                   </div>
                 </div>
-                {entry.keyChanges?.length > 0 && (
+                {(entry.keyChanges?.length ?? 0) > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {entry.keyChanges.map((change: string, j: number) => (
+                    {entry.keyChanges?.map((change: string, j: number) => (
                       <Badge key={j} variant="amber" dot>{change}</Badge>
                     ))}
                   </div>

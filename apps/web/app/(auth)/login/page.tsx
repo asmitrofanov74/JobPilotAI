@@ -23,8 +23,11 @@ export default function LoginPage() {
       await login.mutateAsync({ email, password });
       toast.success('Welcome back!');
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err?.response?.errors?.[0]?.message || 'Login failed');
+    } catch (err: unknown) {
+      const message = err instanceof Error
+        ? (err as unknown as { response?: { errors?: Array<{ message: string }> } }).response?.errors?.[0]?.message || err.message
+        : 'Login failed';
+      toast.error(message);
     }
   }
 

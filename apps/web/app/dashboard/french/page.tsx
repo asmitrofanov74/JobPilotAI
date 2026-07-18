@@ -28,6 +28,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FRENCH_SCENARIOS } from '@/lib/constants/french-scenarios';
+import type { GqlFrenchTodayWord, GqlFrenchConversation } from '@/lib/graphql/types';
 
 export default function FrenchCoachPage() {
   const router = useRouter();
@@ -172,7 +173,7 @@ export default function FrenchCoachPage() {
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-            {todayVocab.words.map((word: any) => (
+            {todayVocab.words.map((word: GqlFrenchTodayWord) => (
               <div
                 key={word.id}
                 className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-gray-200 transition-all"
@@ -294,7 +295,7 @@ export default function FrenchCoachPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {recentConversations.map((conv: any) => (
+              {recentConversations.map((conv: GqlFrenchConversation) => (
                 <Link
                   key={conv.id}
                   href={`/dashboard/french/conversations?id=${conv.id}`}
@@ -330,7 +331,7 @@ export default function FrenchCoachPage() {
             </div>
           ) : progress?.sessionsByType && Object.keys(progress.sessionsByType).length > 0 ? (
             <div className="space-y-3">
-              {Object.entries(progress.sessionsByType).map(([type, count]: [string, any]) => (
+              {Object.entries((progress.sessionsByType ?? {}) as Record<string, number>).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 capitalize">{type.replace(/_/g, ' ')}</span>
                   <Badge variant="blue">{count} session{count !== 1 ? 's' : ''}</Badge>

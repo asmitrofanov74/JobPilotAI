@@ -15,6 +15,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TONES } from '@/lib/constants';
 import { capitalize, formatDate } from '@/lib/utils/format';
+import { type GqlCoverLetter } from '@/lib/graphql/types';
 
 export default function CoverLettersPage() {
   const queryClient = useQueryClient();
@@ -108,7 +109,7 @@ export default function CoverLettersPage() {
         <EmptyState icon={PenLine} title="No cover letters yet" description="Generate your first cover letter" action={{ label: 'Generate Cover Letter', onClick: () => setShowForm(true) }} />
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
-          {coverLetters?.map((cl: any) => (
+          {coverLetters?.map((cl: GqlCoverLetter) => (
             <Card key={cl.id} hover>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">

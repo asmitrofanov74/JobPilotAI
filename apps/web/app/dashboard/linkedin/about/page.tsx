@@ -16,6 +16,7 @@ import { PreviousResults } from '@/components/linkedin-optimizer/previous-result
 import { parseCommaSeparated } from '@/lib/linkedin-optimizer/utils';
 import { useCopyToClipboard, useLinkedinOptimizations } from '@/lib/linkedin-optimizer/hooks';
 import { PAGE_CONFIGS, TONE_OPTIONS } from '@/lib/linkedin-optimizer/config';
+import { type GqlLinkedinResult } from '@/lib/graphql/types';
 
 const config = PAGE_CONFIGS.about;
 
@@ -27,7 +28,7 @@ export default function AboutPage() {
   const [currentAbout, setCurrentAbout] = useState('');
   const [experienceYears, setExperienceYears] = useState('');
   const [tone, setTone] = useState('professional');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<GqlLinkedinResult | null>(null);
   const { copiedIndex, copyToClipboard } = useCopyToClipboard();
 
   const { data: optimizations, isLoading } = useLinkedinOptimizations('about');
@@ -77,7 +78,7 @@ export default function AboutPage() {
         </div>
       </Card>
 
-      {output?.aboutSections?.length > 0 && (
+      {output && output.aboutSections?.length > 0 && (
         <Card padding="lg">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Generated About Sections</h2>
           {output.bestSection && (
@@ -90,7 +91,7 @@ export default function AboutPage() {
             </div>
           )}
           <div className="space-y-4">
-            {output.aboutSections.map((section: any, i: number) => (
+            {output.aboutSections.map((section: { style?: string; targetAudience?: string; content: string }, i: number) => (
               <div key={i} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <Badge variant="blue">{section.style || section.targetAudience || `Style ${i + 1}`}</Badge>
@@ -113,7 +114,7 @@ export default function AboutPage() {
         emptyTitle={config.emptyTitle}
         emptyDescription={config.emptyDescription}
         displayField={config.historyDisplayField}
-        onSelect={(opt) => setResult(opt)}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
       />
     </div>
   );

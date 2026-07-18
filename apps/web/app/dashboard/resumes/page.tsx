@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatFileSize, formatDate } from '@/lib/utils/format';
+import { type GqlResume } from '@/lib/graphql/types';
 
 export default function ResumesPage() {
   const queryClient = useQueryClient();
@@ -93,7 +94,7 @@ export default function ResumesPage() {
         <EmptyState icon={FileText} title="No resumes uploaded" description="Upload your first resume to get started" />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {resumes?.map((resume: any) => (
+          {resumes?.map((resume: GqlResume) => (
             <Card key={resume.id} hover>
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">

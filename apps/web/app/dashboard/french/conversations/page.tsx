@@ -27,6 +27,7 @@ import { VoiceInput } from '@/components/voice/voice-input';
 import { useSpeechSynthesis } from '@/components/voice/use-speech-synthesis';
 import { VoiceReplayButton, AutoSpeakToggle } from '@/components/voice/voice-playback';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
+import type { GqlFrenchConversation, GqlFrenchMessage, GqlFrenchCorrection } from '@/lib/graphql/types';
 
 function FrenchConversationsContent() {
   const router = useRouter();
@@ -85,16 +86,17 @@ function FrenchConversationsContent() {
 
   const sendMutation = useMutation({
     mutationFn: async (message: string) => {
-      const vars: any = { input: { message } };
+      const input: Record<string, unknown> = { message };
       if (selectedId) {
-        vars.input.conversationId = selectedId;
+        input.conversationId = selectedId;
       } else {
         const scenarioMeta = FRENCH_SCENARIO_RECORD[newScenario];
-        vars.input.scenario = scenarioMeta?.value || newScenario;
+        input.scenario = scenarioMeta?.value || newScenario;
         if (newScenario === 'CUSTOM_JOB' && jobDescription.trim()) {
-          vars.input.jobDescription = jobDescription.trim();
+          input.jobDescription = jobDescription.trim();
         }
       }
+      const vars = { input };
       const { sendFrenchMessage } = await client.request(SEND_FRENCH_MESSAGE_MUTATION, vars);
       return sendFrenchMessage;
     },
@@ -168,7 +170,7 @@ function FrenchConversationsContent() {
   };
 
   const messages = conversationData?.messages ?? [];
-  const selectedConv = conversations?.find((c: any) => c.id === selectedId);
+  const selectedConv = conversations?.find((c: GqlFrenchConversation) => c.id === selectedId);
   const activeScenario = selectedConv?.scenario || newScenario;
   const scenarioMeta = FRENCH_SCENARIO_RECORD[activeScenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
   const ScenarioIcon = scenarioMeta.icon;
@@ -216,7 +218,7 @@ function FrenchConversationsContent() {
                 <p className="text-xs text-gray-500">No conversations</p>
               </div>
             ) : (
-              conversationList.map((conv: any) => {
+              conversationList.map((conv: GqlFrenchConversation) => {
                 const meta = FRENCH_SCENARIO_RECORD[conv.scenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
                 const Icon = meta.icon;
                 return (
@@ -325,7 +327,7 @@ function FrenchConversationsContent() {
                   </div>
                 )}
 
-                {messages.map((msg: any) => {
+                {messages.map((msg: GqlFrenchMessage) => {
                   const isUser = msg.role === 'user';
                   return (
                     <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -365,7 +367,7 @@ function FrenchConversationsContent() {
                           </div>
                         )}
 
-                        {isUser && msg.evaluation && msg.evaluation.corrections?.length > 0 && (
+                        {isUser && msg.evaluation && (msg.evaluation.corrections?.length ?? 0) > 0 && (
                           <div className="px-1 space-y-1">
                             <button
                               onClick={() => {
@@ -381,7 +383,7 @@ function FrenchConversationsContent() {
                                 <p className="text-[10px] font-semibold text-green-700 mb-1">✓ Improved</p>
                                 <p className="text-xs text-green-800">{msg.evaluation.improvedVersion}</p>
                               </div>
-                              {msg.evaluation.corrections.map((c: any, i: number) => (
+                              {msg.evaluation.corrections?.map((c: GqlFrenchCorrection, i: number) => (
                                 <div key={i} className="bg-amber-50 border border-amber-100 rounded-lg p-2.5">
                                   <p className="text-[10px] font-semibold text-amber-700 mb-0.5">Correction</p>
                                   <p className="text-xs">
@@ -461,7 +463,7 @@ function FrenchConversationsContent() {
                     )}
                     <div className="flex gap-3">
                       <Textarea
-                        ref={inputRef as any}
+                        ref={inputRef}
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={handleKeyDown}

@@ -72,7 +72,7 @@ async function tryRefresh(): Promise<boolean> {
   isRefreshing = true;
   try {
     const tempClient = new GraphQLClient(API_URL);
-    const result: any = await tempClient.request(REFRESH_MUTATION, { refreshToken });
+    const result = await tempClient.request<{ refreshToken: { accessToken: string; refreshToken: string } }>(REFRESH_MUTATION, { refreshToken });
     if (result?.refreshToken) {
       setAuthToken(result.refreshToken.accessToken);
       updateStoredTokens(result.refreshToken.accessToken, result.refreshToken.refreshToken);
@@ -95,33 +95,37 @@ function isAuthError(err: unknown): boolean {
   const errors = err.response?.errors;
   if (!errors || !Array.isArray(errors)) return false;
   return errors.some(
-    (e: any) =>
+    (e: { extensions?: Record<string, unknown>; message?: string }) =>
       e?.extensions?.code === 'UNAUTHENTICATED' ||
       e?.message?.toLowerCase().includes('authentication required') ||
       e?.message?.toLowerCase().includes('unauthorized'),
   );
 }
 
-(client as any).request = async function request<T>(
-  query: string,
-  variables?: Record<string, any>,
-): Promise<T> {
-  try {
-    const token = getToken();
-    if (token) client.setHeader('Authorization', `Bearer ${token}`);
-    return await originalRequest(query, variables) as T;
-  } catch (err) {
-    if (isAuthError(err)) {
-      const refreshed = await tryRefresh();
-      if (refreshed) {
-        const token = getToken();
-        if (token) client.setHeader('Authorization', `Bearer ${token}`);
-        return await originalRequest(query, variables) as T;
+Object.defineProperty(client, 'request', {
+  configurable: true,
+  writable: true,
+  value: async function request<T>(
+    query: string,
+    variables?: Record<string, unknown>,
+  ): Promise<T> {
+    try {
+      const token = getToken();
+      if (token) client.setHeader('Authorization', `Bearer ${token}`);
+      return await originalRequest(query, variables) as T;
+    } catch (err) {
+      if (isAuthError(err)) {
+        const refreshed = await tryRefresh();
+        if (refreshed) {
+          const token = getToken();
+          if (token) client.setHeader('Authorization', `Bearer ${token}`);
+          return await originalRequest(query, variables) as T;
+        }
+        try { localStorage.removeItem('auth-storage'); } catch {}
+        setAuthToken(null);
+        if (typeof window !== 'undefined') window.location.href = '/login';
       }
-      try { localStorage.removeItem('auth-storage'); } catch {}
-      setAuthToken(null);
-      if (typeof window !== 'undefined') window.location.href = '/login';
+      throw err;
     }
-    throw err;
-  }
-};
+  },
+});

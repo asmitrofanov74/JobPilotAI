@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Brain, ArrowLeft, BarChart3, CheckCircle2, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import type { GqlFrenchInterview, GqlInterviewQuestion, GqlInterviewAnswer, GqlInterviewEvaluation, GqlFrenchCorrection } from '@/lib/graphql/types';
 
 const SCENARIOS = [
   { value: 'FRONTEND_DEVELOPER', label: 'Frontend Developer', icon: '🖥️', desc: 'React, CSS, performance web' },
@@ -62,10 +63,11 @@ function FrenchInterviewContent() {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
-      const vars: any = { input: { scenario, questionCount } };
+      const input: Record<string, unknown> = { scenario, questionCount };
       if (scenario === 'CUSTOM_JOB' && jobDescription.trim()) {
-        vars.input.jobDescription = jobDescription.trim();
+        input.jobDescription = jobDescription.trim();
       }
+      const vars = { input };
       const { generateFrenchInterviewQuestions } = await client.request(
         GENERATE_FRENCH_INTERVIEW_QUESTIONS_MUTATION,
         vars,
@@ -98,20 +100,20 @@ function FrenchInterviewContent() {
     generateMutation.mutate();
   };
 
-  const currentQuestions: any[] = activeInterview?.questions ?? [];
-  const currentAnswers: any[] = activeInterview?.answers ?? [];
-  const currentEvaluations: any[] = activeInterview?.evaluations ?? [];
-  const answeredQIds = currentAnswers.map((a: any) => a.questionId);
+  const currentQuestions: GqlInterviewQuestion[] = activeInterview?.questions ?? [];
+  const currentAnswers: GqlInterviewAnswer[] = activeInterview?.answers ?? [];
+  const currentEvaluations: GqlInterviewEvaluation[] = activeInterview?.evaluations ?? [];
+  const answeredQIds = currentAnswers.map((a: GqlInterviewAnswer) => a.questionId);
 
-  const activeQuestion = currentQuestions.find((q: any) => q.id === (activeQId ?? currentQuestions[0]?.id));
+  const activeQuestion = currentQuestions.find((q: GqlInterviewQuestion) => q.id === (activeQId ?? currentQuestions[0]?.id));
 
   function getEvaluationForQuestion(qId: string) {
-    return currentEvaluations.find((e: any) => e.questionId === qId);
+    return currentEvaluations.find((e: GqlInterviewEvaluation) => e.questionId === qId);
   }
 
   const allScores = currentEvaluations
-    .filter((e: any) => e.grammarScore != null)
-    .map((e: any) => Math.round((e.grammarScore + e.confidenceScore + e.technicalScore) / 3));
+    .filter((e: GqlInterviewEvaluation) => e.grammarScore != null)
+    .map((e: GqlInterviewEvaluation) => Math.round(((e.grammarScore ?? 0) + (e.confidenceScore ?? 0) + (e.technicalScore ?? 0)) / 3));
 
   if (isLoading) return <LoadingState />;
 
@@ -139,7 +141,7 @@ function FrenchInterviewContent() {
 
         {/* Progress bar */}
         <div className="flex gap-2">
-          {currentQuestions.map((q: any, i: number) => (
+          {currentQuestions.map((q: GqlInterviewQuestion, i: number) => (
             <button
               key={q.id}
               onClick={() => { setActiveQId(q.id); setShowResult(false); setAnswerText(''); }}
@@ -216,7 +218,7 @@ function FrenchInterviewContent() {
                   {ev.corrections && ev.corrections.length > 0 && (
                     <div className="bg-amber-50 rounded-xl p-4 space-y-2">
                       <p className="text-sm font-medium text-amber-800">Corrections</p>
-                      {ev.corrections.map((c: any, i: number) => (
+                      {ev.corrections.map((c: GqlFrenchCorrection, i: number) => (
                         <div key={i} className="text-sm text-amber-700">
                           <span className="line-through">{c.original}</span>
                           <span className="mx-1">→</span>
@@ -410,15 +412,15 @@ function FrenchInterviewContent() {
           />
         ) : (
           <div className="space-y-2">
-            {interviews.map((i: any) => {
-              const scores = (i.evaluations ?? [])
-                .filter((e: any) => e.grammarScore != null)
-                .map((e: any) => Math.round((e.grammarScore + e.confidenceScore + e.technicalScore) / 3));
+            {interviews.map((interview: GqlFrenchInterview) => {
+              const scores = (interview.evaluations ?? [])
+                .filter((e: GqlInterviewEvaluation) => e.grammarScore != null)
+                .map((e: GqlInterviewEvaluation) => Math.round(((e.grammarScore ?? 0) + (e.confidenceScore ?? 0) + (e.technicalScore ?? 0)) / 3));
               const avgScore = scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : null;
               return (
                 <Link
-                  key={i.id}
-                  href={`/dashboard/french/interview?id=${i.id}`}
+                  key={interview.id}
+                  href={`/dashboard/french/interview?id=${interview.id}`}
                   className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-4">
@@ -426,12 +428,12 @@ function FrenchInterviewContent() {
                       <Brain className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{getScenarioLabel(i.scenario)}</p>
+                      <p className="font-medium text-gray-900">{getScenarioLabel(interview.scenario)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant={i.status === 'completed' ? 'green' : 'blue'}>
-                          {i.status === 'completed' ? 'Completed' : 'In Progress'}
+                        <Badge variant={interview.status === 'completed' ? 'green' : 'blue'}>
+                          {interview.status === 'completed' ? 'Completed' : 'In Progress'}
                         </Badge>
-                        <span className="text-xs text-gray-400">{i.questionCount} questions</span>
+                        <span className="text-xs text-gray-400">{interview.questionCount} questions</span>
                         {avgScore != null && (
                           <Badge variant={avgScore >= 70 ? 'green' : avgScore >= 40 ? 'amber' : 'red'}>
                             Score: {avgScore}

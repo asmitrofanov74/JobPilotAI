@@ -9,7 +9,7 @@ import {
 } from '@/lib/graphql';
 import {
   Globe, RefreshCw, History, Lightbulb, MapPin,
-  MessageSquare, Briefcase, Users, BookOpen,
+  MessageSquare, Briefcase, Users, BookOpen, type LucideIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { Select } from '@/components/ui/select';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import type { GqlFrenchCulturalTip } from '@/lib/graphql/types';
 
 const CATEGORY_BADGE: Record<string, 'blue' | 'purple' | 'amber' | 'emerald' | 'violet'> = {
   workplace_etiquette: 'blue',
@@ -36,7 +37,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   regions: 'Regions',
 };
 
-const CATEGORY_ICONS: Record<string, any> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   workplace_etiquette: Briefcase,
   communication: MessageSquare,
   business_culture: Lightbulb,
@@ -78,7 +79,7 @@ export default function FrenchCulturalPage() {
     },
   });
 
-  const [currentTip, setCurrentTip] = useState<any>(null);
+  const [currentTip, setCurrentTip] = useState<GqlFrenchCulturalTip | null>(null);
   const [loadingTip, setLoadingTip] = useState(false);
 
   async function generateTip(t?: string) {
@@ -94,7 +95,7 @@ export default function FrenchCulturalPage() {
   }
 
   const tipCategories = (history
-    ? [...new Set(history.map((t: any) => t.category))]
+    ? [...new Set(history.map((t: GqlFrenchCulturalTip) => t.category))]
     : []) as string[];
 
   return (
@@ -155,8 +156,8 @@ export default function FrenchCulturalPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">{currentTip.topic}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={CATEGORY_BADGE[currentTip.category] ?? 'gray'}>
-                        {CATEGORY_LABELS[currentTip.category] ?? currentTip.category}
+                      <Badge variant={CATEGORY_BADGE[currentTip.category ?? ''] ?? 'gray'}>
+                        {CATEGORY_LABELS[currentTip.category ?? ''] ?? currentTip.category}
                       </Badge>
                       <Badge variant="violet" dot>
                         <MapPin className="w-3 h-3 mr-0.5" />
@@ -216,12 +217,12 @@ export default function FrenchCulturalPage() {
             />
           ) : (
             <div className="space-y-3">
-              {history.map((item: any) => (
+              {history.map((item: GqlFrenchCulturalTip) => (
                 <Card key={item.id} padding="md" className="border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant={CATEGORY_BADGE[item.category] ?? 'gray'}>
-                        {CATEGORY_LABELS[item.category] ?? item.category}
+                      <Badge variant={CATEGORY_BADGE[item.category ?? ''] ?? 'gray'}>
+                        {CATEGORY_LABELS[item.category ?? ''] ?? item.category}
                       </Badge>
                       <Badge variant="violet" dot>{item.region}</Badge>
                     </div>

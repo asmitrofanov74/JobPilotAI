@@ -27,6 +27,7 @@ import { Select } from '@/components/ui/select';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import type { GqlFrenchVocabWord, GqlFrenchConversation } from '@/lib/graphql/types';
 
 const DIFFICULTY_BADGE: Record<string, 'green' | 'amber' | 'red'> = {
   easy: 'green',
@@ -49,7 +50,7 @@ export default function FrenchVocabularyPage() {
   const [extractConvId, setExtractConvId] = useState('');
   const [showExtract, setShowExtract] = useState(false);
 
-  const vocabFilter: any = {};
+  const vocabFilter: Record<string, unknown> = {};
   if (filter === 'mastered') vocabFilter.mastered = true;
   else if (filter === 'due') vocabFilter.mastered = false;
   if (difficultyFilter) vocabFilter.difficulty = difficultyFilter;
@@ -126,13 +127,13 @@ export default function FrenchVocabularyPage() {
     },
   });
 
-  const filteredWords = (words ?? []).filter((w: any) =>
+  const filteredWords = (words ?? []).filter((w: GqlFrenchVocabWord) =>
     !searchQuery || w.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
     w.translation.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const dueWords = (words ?? []).filter((w: any) => !w.mastered).sort(
-    (a: any, b: any) => new Date(a.nextReviewAt).getTime() - new Date(b.nextReviewAt).getTime(),
+  const dueWords = (words ?? []).filter((w: GqlFrenchVocabWord) => !w.mastered).sort(
+    (a: GqlFrenchVocabWord, b: GqlFrenchVocabWord) => new Date(a.nextReviewAt ?? '').getTime() - new Date(b.nextReviewAt ?? '').getTime(),
   );
 
   const currentWord = reviewMode && dueWords.length > 0 ? dueWords[currentIndex] : null;
@@ -182,7 +183,7 @@ export default function FrenchVocabularyPage() {
               className="flex-1"
             >
               <option value="">Select a conversation...</option>
-              {(conversations ?? []).map((c: any) => (
+              {(conversations ?? []).map((c: GqlFrenchConversation) => (
                 <option key={c.id} value={c.id}>
                   {c.scenario.replace(/_/g, ' ')} ({c.messages?.length ?? 0} messages)
                 </option>
@@ -327,7 +328,7 @@ export default function FrenchVocabularyPage() {
             />
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredWords.map((word: any) => (
+              {filteredWords.map((word: GqlFrenchVocabWord) => (
                 <Card key={word.id} padding="md" className="border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -336,7 +337,7 @@ export default function FrenchVocabularyPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       {word.mastered && <Star className="w-4 h-4 text-amber-400 fill-amber-400" />}
-                      <Badge variant={DIFFICULTY_BADGE[word.difficulty] ?? 'gray'}>{word.difficulty}</Badge>
+                      <Badge variant={DIFFICULTY_BADGE[word.difficulty ?? ''] ?? 'gray'}>{word.difficulty}</Badge>
                     </div>
                   </div>
                   {word.context && (
@@ -347,7 +348,7 @@ export default function FrenchVocabularyPage() {
                   )}
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
                     <span className="text-xs text-gray-400">
-                      Reviewed {word.timesReviewed}x · {Math.round((word.timesCorrect / Math.max(word.timesReviewed, 1)) * 100)}% correct
+                      Reviewed {word.timesReviewed}x · {Math.round(((word.timesCorrect ?? 0) / Math.max(word.timesReviewed ?? 1, 1)) * 100)}% correct
                     </span>
                     <div className="flex gap-1">
                       <button
