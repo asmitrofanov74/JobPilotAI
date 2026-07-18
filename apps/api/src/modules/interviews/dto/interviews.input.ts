@@ -1,6 +1,6 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsOptional, IsString, IsEnum, IsInt, IsBoolean, IsDateString } from 'class-validator';
-import { InterviewTypeEnum } from './interviews.types';
+import { IsOptional, IsString, IsEnum, IsInt, IsBoolean, IsDateString, IsNotEmpty, MinLength, IsNumber } from 'class-validator';
+import { InterviewTypeEnum, EnglishInterviewScenario } from './interviews.types';
 
 @InputType()
 export class CreateInterviewInput {
@@ -113,4 +113,49 @@ export class UpdateInterviewInput {
   @IsOptional()
   @IsString()
   jobApplicationId?: string;
+}
+
+// --- English Interview Practice ---
+
+@InputType()
+export class GenerateEnglishInterviewInput {
+  @Field(() => EnglishInterviewScenario)
+  @IsNotEmpty()
+  @IsString()
+  scenario: EnglishInterviewScenario;
+
+  @Field(() => Int, { defaultValue: 5 })
+  @IsNumber()
+  questionCount: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  jobDescription?: string;
+}
+
+@InputType()
+export class EvaluateEnglishAnswerInput {
+  @Field()
+  @MinLength(1)
+  interviewId: string;
+
+  @Field()
+  @MinLength(1)
+  questionId: string;
+
+  @Field()
+  @MinLength(1)
+  answer: string;
+}
+
+@InputType()
+export class GenerateEnglishHintInput {
+  @Field()
+  @MinLength(1)
+  interviewId: string;
+
+  @Field()
+  @MinLength(1)
+  questionId: string;
 }

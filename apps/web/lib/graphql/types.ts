@@ -358,3 +358,56 @@ export interface GqlGenerateCoverLetterResult {
   coverLetter: GqlCoverLetter;
   content?: string;
 }
+
+// --- English Interview Practice ---
+
+export interface GqlEnglishPracticeQuestion {
+  id: string;
+  question: string;
+  category: string;
+}
+
+export interface GqlEnglishPracticeAnswer {
+  questionId: string;
+  answer: string;
+}
+
+export interface GqlEnglishPracticeEvaluation {
+  questionId: string;
+  grammarScore?: number;
+  confidenceScore?: number;
+  technicalScore?: number;
+  feedback?: string;
+  improvedAnswer?: string;
+  corrections?: GqlFrenchCorrection[];
+}
+
+export interface GqlEnglishPracticeInterview {
+  id: string;
+  scenario: string;
+  questionCount: number;
+  status: string;
+  questions?: GqlEnglishPracticeQuestion[];
+  answers?: GqlEnglishPracticeAnswer[];
+  evaluations?: GqlEnglishPracticeEvaluation[];
+  overallScore?: number;
+  jobDescription?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GqlGenerateEnglishQuestionsResult {
+  questions: GqlEnglishPracticeQuestion[];
+  interview: GqlEnglishPracticeInterview;
+}
+
+export interface GqlEvaluateEnglishAnswerResult {
+  evaluation: GqlEnglishPracticeEvaluation;
+  interview: GqlEnglishPracticeInterview;
+}
+
+export interface GqlEnglishInterviewHint {
+  hint: string;
+  keyPoints: string;
+  exampleAnswer: string;
+}

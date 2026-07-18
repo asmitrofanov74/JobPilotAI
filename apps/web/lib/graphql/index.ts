@@ -891,4 +891,92 @@ export const EVALUATE_FRENCH_PRONUNCIATION_MUTATION = `
   }
 `;
 
+// --- English Interview Practice ---
+
+export const ENGLISH_INTERVIEWS_QUERY = `
+  query EnglishInterviews {
+    englishInterviews {
+      id
+      scenario
+      questionCount
+      status
+      questions
+      answers
+      evaluations
+      overallScore
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ENGLISH_INTERVIEW_QUERY = `
+  query EnglishInterview($id: String!) {
+    englishInterview(id: $id) {
+      id
+      scenario
+      questionCount
+      status
+      questions
+      answers
+      evaluations
+      overallScore
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GENERATE_ENGLISH_INTERVIEW_QUESTIONS_MUTATION = `
+  mutation GenerateEnglishInterviewQuestions($input: GenerateEnglishInterviewInput!) {
+    generateEnglishInterviewQuestions(input: $input) {
+      questions {
+        id
+        question
+        category
+      }
+      interview {
+        id
+        scenario
+        questionCount
+        status
+        questions
+        overallScore
+      }
+    }
+  }
+`;
+
+export const EVALUATE_ENGLISH_INTERVIEW_ANSWER_MUTATION = `
+  mutation EvaluateEnglishInterviewAnswer($input: EvaluateEnglishAnswerInput!) {
+    evaluateEnglishInterviewAnswer(input: $input) {
+      evaluation {
+        questionId
+        grammarScore
+        confidenceScore
+        technicalScore
+        feedback
+        improvedAnswer
+        corrections
+      }
+      interview {
+        id
+        status
+        overallScore
+        answers
+        evaluations
+      }
+    }
+  }
+`;
+
+export const GENERATE_ENGLISH_INTERVIEW_HINT_MUTATION = `
+  mutation GenerateEnglishInterviewHint($input: GenerateEnglishHintInput!) {
+    generateEnglishInterviewHint(input: $input) {
+      hint
+      keyPoints
+      exampleAnswer
+    }
+  }
+`;
 

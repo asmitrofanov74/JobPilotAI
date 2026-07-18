@@ -82,6 +82,7 @@ model User {
   skillGapReports SkillGapReport[]
   linkedinOptimizations LinkedinOptimization[]
   frenchProfile FrenchProfile?
+  englishInterviews EnglishInterviewPractice[]
 
   @@index([email])
   @@map("users")
@@ -440,4 +441,23 @@ model FrenchInterview {
 
   @@index([profileId])
   @@map("french_interviews")
+}
+
+model EnglishInterviewPractice {
+  id             String   @id @default(cuid())
+  scenario       String
+  jobDescription String?
+  questionCount  Int      @default(0)
+  status         String   @default("in_progress")
+  questions      Json     @default("[]")
+  answers        Json     @default("[]")
+  evaluations    Json     @default("[]")
+  overallScore   Int?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("english_interview_practices")
 }

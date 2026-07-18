@@ -18,6 +18,7 @@ const NAV = [
   { label: 'Resumes', href: '/dashboard/resumes', icon: FileText },
   { label: 'Cover Letters', href: '/dashboard/cover-letters', icon: FileEdit },
   { label: 'Interviews', href: '/dashboard/interviews', icon: Calendar },
+  { label: 'Interview Practice', href: '/dashboard/interviews/practice', icon: Brain },
   { label: 'Skills', href: '/dashboard/skills', icon: Sparkles },
   { label: 'LinkedIn', href: '/dashboard/linkedin', icon: UserCheck },
   { label: 'French Coach', href: '/dashboard/french', icon: Languages },
