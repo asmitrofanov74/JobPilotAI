@@ -52,7 +52,7 @@ const fs = require('fs');
         const raw = fs.readFileSync(outFile, 'utf-8');
         const result = JSON.parse(raw);
         logger.log(`Got ${result.jobs?.length || 0} jobs from ${source}`);
-        return (result.jobs || []).map((j: any) => ({
+        return (result.jobs || []).map((j: { title: string; company: string; location: string; description: string; source: string; sourceUrl: string }) => ({
           ...j,
           postedAt: undefined,
         }));

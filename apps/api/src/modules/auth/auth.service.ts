@@ -96,7 +96,22 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  private generateAuthPayload(user: any) {
+  private generateAuthPayload(user: {
+    id: string;
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    title?: string | null;
+    targetRole?: string | null;
+    experienceLevel?: string | null;
+    targetLocations?: string | null;
+    summary?: string | null;
+    avatarUrl?: string | null;
+    isActive: boolean;
+    subscription?: { id: string; tier: string; currentPeriodEnd?: Date | null } | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
     const payload = { sub: user.id, email: user.email };
 
     const jwtSecret = this.config.get<string>('JWT_SECRET') || 'fallback_secret';
@@ -106,11 +121,11 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: jwtSecret,
-      expiresIn: jwtAccessExpiry as any,
+      expiresIn: jwtAccessExpiry as '15m',
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: jwtRefreshSecret,
-      expiresIn: jwtRefreshExpiry as any,
+      expiresIn: jwtRefreshExpiry as '7d',
     });
 
     return {
@@ -120,12 +135,27 @@ export class AuthService {
     };
   }
 
-  private mapUser(user: any) {
+  private mapUser(user: {
+    id: string;
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    title?: string | null;
+    targetRole?: string | null;
+    experienceLevel?: string | null;
+    targetLocations?: string | null;
+    summary?: string | null;
+    avatarUrl?: string | null;
+    isActive: boolean;
+    subscription?: { id: string; tier: string; currentPeriodEnd?: Date | null } | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
       title: user.title,
       targetRole: user.targetRole,
       experienceLevel: user.experienceLevel,

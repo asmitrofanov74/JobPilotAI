@@ -8,17 +8,31 @@ const execAsync = promisify(exec);
 
 const CURL_TIMEOUT = 30;
 
-async function curlJson(url: string, method = 'GET', body?: string): Promise<any> {
+interface WorkdayJobPosting {
+  id?: string | number;
+  title?: string;
+  locations?: string[];
+  jobDescription?: string;
+  externalPath?: string;
+  publicatioDate?: string;
+}
+
+interface WorkdayResponse {
+  jobPostings?: WorkdayJobPosting[];
+}
+
+async function curlJson(url: string, method = 'GET', body?: string): Promise<WorkdayResponse> {
   let cmd = `curl -s --max-time ${CURL_TIMEOUT} "${url}"`;
   if (method === 'POST') {
     cmd += ` -X POST -H "Content-Type: application/json" -H "Accept: application/json" -d '${body}'`;
   }
   try {
     const { stdout } = await execAsync(cmd, { timeout: CURL_TIMEOUT * 1000 + 5000 });
-    return JSON.parse(stdout);
-  } catch (err: any) {
-    if (err.stdout) {
-      try { return JSON.parse(err.stdout); } catch { /* not JSON */ }
+    return JSON.parse(stdout) as WorkdayResponse;
+  } catch (err: unknown) {
+    const error = err as { stdout?: string };
+    if (error.stdout) {
+      try { return JSON.parse(error.stdout) as WorkdayResponse; } catch { /* not JSON */ }
     }
     throw err;
   }
@@ -79,7 +93,7 @@ export class WorkdayProvider implements JobProvider {
       const url = `https://${cfg.tenant}.wd5.myworkdayjobs.com/wday/cxs/${cfg.tenant}/${cfg.company}/jobs`;
       const body = JSON.stringify({ limit: 20, offset: 0, searchText: query || '' });
       const data = await curlJson(url, 'POST', body);
-      const items: any[] = data.jobPostings || [];
+      const items: WorkdayJobPosting[] = data.jobPostings || [];
 
       for (const job of items) {
         const title = job.title || '';

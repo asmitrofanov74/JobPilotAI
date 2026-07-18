@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateInterviewQuestionInput, UpdateInterviewQuestionInput } from './dto/interview-questions.input';
 
@@ -24,7 +25,7 @@ export class InterviewQuestionsService {
       data: {
         question: input.question,
         answer: input.answer,
-        type: input.type as any,
+        type: input.type,
         category: input.category,
         difficulty: input.difficulty,
         source: input.source,
@@ -35,7 +36,7 @@ export class InterviewQuestionsService {
   }
 
   async update(id: string, userId: string, input: UpdateInterviewQuestionInput) {
-    const data: any = {};
+    const data: Prisma.InterviewQuestionUpdateInput = {};
     if (input.question !== undefined) data.question = input.question;
     if (input.answer !== undefined) data.answer = input.answer;
     if (input.type !== undefined) data.type = input.type;

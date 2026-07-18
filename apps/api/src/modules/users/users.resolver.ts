@@ -14,7 +14,7 @@ export class UsersResolver {
   @Mutation(() => UserType)
 
   async updateProfile(
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
     @Args('input') input: UpdateProfileInput,
   ): Promise<UserType> {
     return this.usersService.updateProfile(user.id, input);

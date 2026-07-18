@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCoverLetterInput, UpdateCoverLetterInput } from './dto/cover-letters.input';
 
@@ -34,7 +35,7 @@ export class CoverLettersService {
   }
 
   async update(id: string, userId: string, input: UpdateCoverLetterInput) {
-    const data: any = {};
+    const data: Prisma.CoverLetterUpdateInput = {};
     if (input.jobTitle !== undefined) data.jobTitle = input.jobTitle;
     if (input.companyName !== undefined) data.companyName = input.companyName;
     if (input.content !== undefined) data.content = input.content;

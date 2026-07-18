@@ -138,7 +138,7 @@ export class ConversationService {
       grammarScore: number;
       vocabularyScore: number;
       fluencyScore: number;
-      corrections: any;
+      corrections: Array<{ original: string; corrected: string; explanation: string }>;
       improvedVersion: string;
       quebecAlternative: string | null;
       createdAt: Date;
@@ -174,7 +174,7 @@ export class ConversationService {
         grammarScore: saved.grammarScore,
         vocabularyScore: saved.vocabularyScore,
         fluencyScore: saved.fluencyScore,
-        corrections: saved.corrections,
+        corrections: (saved.corrections as Array<{ original: string; corrected: string; explanation: string }>) ?? [],
         improvedVersion: saved.improvedVersion,
         quebecAlternative: saved.quebecAlternative,
         createdAt: saved.createdAt,

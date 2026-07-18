@@ -1,8 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ExtractJwt, Strategy, StrategyOptionsWithoutRequest } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
+
+interface RefreshTokenPayload {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
@@ -16,10 +23,10 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       ignoreExpiration: false,
       secretOrKey: secret,
       passReqToCallback: true,
-    } as any);
+    } as unknown as StrategyOptionsWithoutRequest);
   }
 
-  async validate(req: any, payload: { sub: string; email: string }) {
+  async validate(req: { body?: { refreshToken?: string } }, payload: RefreshTokenPayload) {
     const refreshToken = req.body?.refreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token required');

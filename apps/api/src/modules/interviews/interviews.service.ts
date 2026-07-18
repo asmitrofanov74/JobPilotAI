@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateInterviewInput, UpdateInterviewInput } from './dto/interviews.input';
 
@@ -22,7 +23,7 @@ export class InterviewsService {
   async create(userId: string, input: CreateInterviewInput) {
     return this.prisma.interview.create({
       data: {
-        type: input.type as any,
+        type: input.type,
         round: input.round || 1,
         scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
         durationMinutes: input.durationMinutes,
@@ -38,7 +39,7 @@ export class InterviewsService {
   }
 
   async update(id: string, userId: string, input: UpdateInterviewInput) {
-    const data: any = {};
+    const data: Record<string, unknown> = {};
     if (input.type !== undefined) data.type = input.type;
     if (input.round !== undefined) data.round = input.round;
     if (input.scheduledAt !== undefined) data.scheduledAt = new Date(input.scheduledAt);

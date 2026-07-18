@@ -9,21 +9,21 @@ describe('Badge', () => {
 
   it('applies gray variant by default', () => {
     const { container } = render(<Badge>Gray</Badge>);
-    const span = container.firstChild;
+    const span = container.firstChild as Element;
     expect(span?.className).toContain('bg-gray-100');
     expect(span?.className).toContain('text-gray-700');
   });
 
   it('applies blue variant', () => {
     const { container } = render(<Badge variant="blue">Blue</Badge>);
-    const span = container.firstChild;
+    const span = container.firstChild as Element;
     expect(span?.className).toContain('bg-blue-100');
     expect(span?.className).toContain('text-blue-700');
   });
 
   it('applies green variant', () => {
     const { container } = render(<Badge variant="green">Green</Badge>);
-    const span = container.firstChild;
+    const span = container.firstChild as Element;
     expect(span?.className).toContain('bg-green-100');
     expect(span?.className).toContain('text-green-700');
   });

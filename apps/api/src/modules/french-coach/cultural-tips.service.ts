@@ -120,14 +120,17 @@ export class CulturalTipsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return sessions.map((s) => ({
-      id: s.id,
-      topic: (s.outputData as any)?.topic ?? 'Cultural Tip',
-      tip: (s.outputData as any)?.tip ?? '',
-      translation: (s.outputData as any)?.translation ?? '',
-      category: (s.outputData as any)?.category ?? 'general',
-      region: (s.outputData as any)?.region ?? 'Both',
-      createdAt: s.createdAt,
-    }));
+    return sessions.map((s) => {
+      const data = (s.outputData ?? {}) as Record<string, unknown>;
+      return {
+        id: s.id,
+        topic: typeof data.topic === 'string' ? data.topic : 'Cultural Tip',
+        tip: typeof data.tip === 'string' ? data.tip : '',
+        translation: typeof data.translation === 'string' ? data.translation : '',
+        category: typeof data.category === 'string' ? data.category : 'general',
+        region: typeof data.region === 'string' ? data.region : 'Both',
+        createdAt: s.createdAt,
+      };
+    });
   }
 }

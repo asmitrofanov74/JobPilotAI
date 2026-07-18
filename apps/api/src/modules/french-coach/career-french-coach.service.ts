@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import { FrenchCoachService } from './french-coach.service';
@@ -77,7 +78,7 @@ Retourne UNIQUEMENT un tableau JSON valide d'objets avec:
         scenario: `career:${role}${job ? ` @ ${job.companyName}` : ''}`,
         questionCount: questions.length,
         status: 'in_progress',
-        questions: questions as any,
+        questions: questions as unknown as Prisma.InputJsonValue,
         profileId: profile.id,
       },
     });
@@ -91,7 +92,7 @@ Retourne UNIQUEMENT un tableau JSON valide d'objets avec:
     scenario?: string,
   ) {
     const profile = await this.frenchCoachService.getProfile(userId);
-    let job: any = null;
+    let job: { companyName: string; jobTitle: string; jobDescription: string | null; location: string | null; salaryRange: string | null } | null = null;
 
     if (jobApplicationId) {
       job = await this.jobsService.findOne(jobApplicationId, userId);
@@ -172,7 +173,7 @@ Toutes tes réponses doivent être en français.${variantInstruction}`;
     return resumes[0] || null;
   }
 
-  private buildResumeContext(resume: any): string {
+  private buildResumeContext(resume: { parsedSkills: string | null; parsedExperience: string | null; parsedEducation: string | null } | null): string {
     if (!resume) return '';
     const parts: string[] = [];
     if (resume.parsedSkills) parts.push(`Compétences: ${resume.parsedSkills}`);
@@ -181,7 +182,7 @@ Toutes tes réponses doivent être en français.${variantInstruction}`;
     return parts.join('\n');
   }
 
-  private buildJobContext(job: any): string {
+  private buildJobContext(job: { companyName: string; jobTitle: string; jobDescription: string | null; location: string | null; salaryRange: string | null } | null): string {
     if (!job) return '';
     const parts: string[] = [];
     parts.push(`Entreprise: ${job.companyName}`);

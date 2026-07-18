@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import { FrenchCoachService } from './french-coach.service';
@@ -50,7 +51,7 @@ export class VocabularyService {
     filter?: { mastered?: boolean; difficulty?: string },
   ): Promise<VocabularyWordResult[]> {
     const profile = await this.frenchCoachService.getProfile(userId);
-    const where: any = { profileId: profile.id };
+    const where: Prisma.FrenchVocabularyWordWhereInput = { profileId: profile.id };
     if (filter?.mastered !== undefined) where.mastered = filter.mastered;
     if (filter?.difficulty) where.difficulty = filter.difficulty;
 
@@ -197,7 +198,7 @@ export class VocabularyService {
             data: {
               word: w.word.toLowerCase(),
               translation: w.translation,
-              quebecEquivalent: (w as any).quebecEquivalent ?? null,
+              quebecEquivalent: w.quebecEquivalent ?? null,
               context: w.context,
               profileId: profile.id,
             },

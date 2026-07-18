@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import {
@@ -51,7 +52,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'profile_analysis',
-        inputData: input as any,
+        inputData: input as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -80,7 +81,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'headline',
-        inputData: input as any,
+        inputData: input as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -109,7 +110,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'about',
-        inputData: input as any,
+        inputData: input as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -145,7 +146,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'experience_optimizer',
-        inputData: input as any,
+        inputData: input as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -182,7 +183,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'resume_comparison',
-        inputData: { ...input, resumeTitle: resume.title } as any,
+        inputData: { ...input, resumeTitle: resume.title } as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -211,7 +212,7 @@ export class LinkedinOptimizerService {
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'visibility_analysis',
-        inputData: input as any,
+        inputData: input as unknown as Prisma.InputJsonValue,
         outputData: parsed,
         userId,
       },
@@ -221,7 +222,7 @@ export class LinkedinOptimizerService {
   }
 
   async findAllByType(userId: string, type?: string) {
-    const where: any = { userId };
+    const where: Prisma.LinkedinOptimizationWhereInput = { userId };
     if (type) where.type = type;
     return this.prisma.linkedinOptimization.findMany({
       where,

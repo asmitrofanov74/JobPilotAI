@@ -10,10 +10,10 @@ export class LinkedinOptimizationType {
   type: string;
 
   @Field(() => GraphQLJSON)
-  inputData: any;
+  inputData: Record<string, unknown>;
 
   @Field(() => GraphQLJSON)
-  outputData: any;
+  outputData: Record<string, unknown>;
 
   @Field()
   userId: string;
@@ -28,5 +28,5 @@ export class LinkedinOptimizationResult {
   optimization: LinkedinOptimizationType;
 
   @Field(() => GraphQLJSON)
-  output: any;
+  output: Record<string, unknown>;
 }

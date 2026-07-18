@@ -1,9 +1,9 @@
-import { Mic, Users, BookOpen, MessageSquare, Coffee, Briefcase } from 'lucide-react';
+import { type LucideIcon, Mic, Users, BookOpen, MessageSquare, Coffee, Briefcase } from 'lucide-react';
 
 export interface FrenchScenarioMeta {
   value: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   desc: string;
   color: string;
   bg: string;

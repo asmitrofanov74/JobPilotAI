@@ -43,7 +43,7 @@ export class ProviderFactory implements OnModuleInit {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
-    const allProviders: Record<string, new (...args: any[]) => JobProvider> = {
+    const allProviders: Record<string, new (...args: never[]) => JobProvider> = {
       GREENHOUSE: GreenhouseProvider,
       LEVER: LeverProvider,
       WORKDAY: WorkdayProvider,

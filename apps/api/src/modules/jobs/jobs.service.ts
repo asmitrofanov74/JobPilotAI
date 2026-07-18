@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateJobInput, UpdateJobInput, PaginationInput } from './dto/jobs.input';
 import { JobStatus } from './dto/jobs.types';
@@ -19,7 +20,7 @@ export class JobsService {
     const sortBy = pagination.sortBy || 'createdAt';
     const sortOrder = pagination.sortOrder || 'desc';
 
-    const where: any = { userId };
+    const where: Prisma.JobApplicationWhereInput = { userId };
 
     if (status) {
       where.status = status;
@@ -79,8 +80,8 @@ export class JobsService {
         jobTitle: input.jobTitle,
         jobDescription: input.jobDescription,
         jobUrl: input.jobUrl,
-        status: (input.status as any) || 'SAVED',
-        source: input.source as any,
+        status: input.status || JobStatus.SAVED,
+        source: input.source,
         sourceUrl: input.sourceUrl,
         sourceId: input.sourceId,
         scrapedAt: input.sourceId ? new Date() : undefined,
@@ -93,7 +94,7 @@ export class JobsService {
   }
 
   async update(id: string, userId: string, input: UpdateJobInput) {
-    const data: any = {};
+    const data: Record<string, unknown> = {};
     if (input.companyName !== undefined) data.companyName = input.companyName;
     if (input.jobTitle !== undefined) data.jobTitle = input.jobTitle;
     if (input.jobDescription !== undefined) data.jobDescription = input.jobDescription;

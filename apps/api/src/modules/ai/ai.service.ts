@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AIProvider } from './providers/ai-provider.interface';
 import { OpenRouterProvider } from './providers/openrouter.provider';
 import { GenerateCoverLetterInput, SkillGapInput, InterviewQuestionsInput } from './dto/ai.input';
+import { QuestionTypeEnum } from '../interview-questions/dto/interview-questions.types';
 
 const SYSTEM_COVER_LETTER = `You are an expert cover letter writer. Create a professional, compelling cover letter based on the given job details and tone preference. Return only the cover letter content as plain text.`;
 
@@ -121,13 +123,13 @@ export class AiService {
     const questionsData = Array.isArray(parsed) ? parsed : parsed.questions || [];
 
     const questions = await Promise.all(
-      questionsData.map((q: any) =>
+      questionsData.map((q: { question: string; type?: string; category?: string; difficulty?: string }) =>
         this.prisma.interviewQuestion.create({
           data: {
             question: q.question,
-            type: (q.type || input.questionType || 'TECHNICAL') as any,
+            type: (q.type || input.questionType || QuestionTypeEnum.TECHNICAL) as QuestionTypeEnum,
             category: q.category || null,
-            difficulty: q.difficulty || null,
+            difficulty: q.difficulty ? Number(q.difficulty) : null,
             source: 'ai',
             isFavorite: false,
             userId,

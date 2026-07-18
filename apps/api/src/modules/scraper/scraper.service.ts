@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { JobProvider } from './providers/provider.interface';
+import { JobProvider, JobSearchInput } from './providers/provider.interface';
 import { NormalizedJob } from './providers/normalized-job.interface';
 import { ProviderFactory, PROVIDER_PRIORITY, ProviderName } from './providers/provider.factory';
 import { DedupService } from './services/dedup.service';
@@ -97,7 +97,7 @@ export class ScraperService {
       };
       providers = [];
       for (const [key, name] of Object.entries(providerNameMap)) {
-        if ((sources as any)[key] !== false) {
+        if (sources[key as keyof JobSourceFilter] !== false) {
           const p = this.providerFactory.getProvider(name);
           if (p) providers.push(p);
         }
@@ -115,7 +115,7 @@ export class ScraperService {
           const jobs = await provider.search({
             query: keywords,
             location,
-            jobType: jobType as any,
+            jobType: jobType as JobSearchInput['jobType'],
             remote,
             salaryMin,
             salaryMax,

@@ -47,13 +47,27 @@ const KNOWN_BOARDS: Record<string, string> = {
 
 const CURL_TIMEOUT = 30;
 
-async function curlJson(url: string): Promise<any> {
+interface GreenhouseJob {
+  id: string | number;
+  title?: string;
+  content?: string;
+  updated_at?: string;
+  offices?: Array<{ name: string; city?: string }>;
+  metadata?: Array<{ name?: string; value?: string | number | boolean }>;
+}
+
+interface GreenhouseResponse {
+  jobs?: GreenhouseJob[];
+}
+
+async function curlJson(url: string): Promise<GreenhouseResponse> {
   try {
     const { stdout } = await execAsync(`curl -s --max-time ${CURL_TIMEOUT} "${url}"`, { timeout: CURL_TIMEOUT * 1000 + 5000 });
-    return JSON.parse(stdout);
-  } catch (err: any) {
-    if (err.stdout) {
-      try { return JSON.parse(err.stdout); } catch { /* not JSON */ }
+    return JSON.parse(stdout) as GreenhouseResponse;
+  } catch (err: unknown) {
+    const error = err as { stdout?: string };
+    if (error.stdout) {
+      try { return JSON.parse(error.stdout) as GreenhouseResponse; } catch { /* not JSON */ }
     }
     throw err;
   }
@@ -84,7 +98,7 @@ export class GreenhouseProvider implements JobProvider {
     try {
       const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`;
       const data = await curlJson(url);
-      const items: any[] = data.jobs || [];
+      const items: GreenhouseJob[] = data.jobs || [];
 
       for (const job of items) {
         const title = job.title || '';
@@ -94,7 +108,7 @@ export class GreenhouseProvider implements JobProvider {
         const jobLocation = office ? `${office.name}${office.city ? `, ${office.city}` : ''}` : '';
         const content = (job.content || '').replace(/<[^>]*>/g, '').slice(0, 2000);
         const contentLower = content.toLowerCase();
-        const haystack = `${title} ${contentLower} ${(job.metadata || []).map((m: any) => (m.value || '') + '').join(' ').toLowerCase()}`;
+        const haystack = `${title} ${contentLower} ${(job.metadata || []).map((m) => (m.value || '') + '').join(' ').toLowerCase()}`;
 
         if (q && !title.toLowerCase().includes(q)) continue;
         if (location && !jobLocation.toLowerCase().includes(location.toLowerCase())) continue;

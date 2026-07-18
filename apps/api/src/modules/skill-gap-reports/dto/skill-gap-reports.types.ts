@@ -16,19 +16,19 @@ export class SkillGapReportType {
   companyName: string;
 
   @Field(() => GraphQLJSON)
-  requiredSkills: any;
+  requiredSkills: Array<{ skill: string; importance: string }>;
 
   @Field(() => GraphQLJSON)
-  userSkills: any;
+  userSkills: string[];
 
   @Field(() => GraphQLJSON)
-  missingSkills: any;
+  missingSkills: Array<{ skill: string; importance: string; recommendation: string }>;
 
   @Field(() => Float)
   matchScore: number;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  recommendations?: any;
+  recommendations?: string[];
 
   @Field()
   userId: string;

@@ -67,9 +67,10 @@ export class OpenRouterProvider implements AIProvider {
 
         const content = completion.choices[0]?.message?.content || '';
         return { content, model: completion.model || this.model };
-      } catch (err: any) {
+      } catch (err: unknown) {
         lastError = err instanceof Error ? err : new Error(String(err));
-        const status = err?.status || err?.statusCode || 0;
+        const errorWithStatus = err as { status?: number; statusCode?: number };
+        const status = errorWithStatus?.status || errorWithStatus?.statusCode || 0;
 
         if (status === 429 || status >= 500) {
           if (attempt < maxRetries) {

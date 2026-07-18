@@ -11,13 +11,13 @@ export class StartFrenchSessionInput {
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
-  inputData?: any;
+  inputData?: Record<string, unknown>;
 }
 
 @InputType()
 export class FinishFrenchSessionInput {
   @Field(() => GraphQLJSON)
-  outputData: any;
+  outputData: Record<string, unknown>;
 }
 
 @InputType()

@@ -1,10 +1,11 @@
 import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { ScraperService, ScrapedJob as ScrapedJobInterface, PostedWithin, ProviderStats } from './scraper.service';
+import { ScraperService, ScrapedJob as ScrapedJobInterface, PostedWithin, ProviderStats, JobSourceFilter } from './scraper.service';
 import { CompanyScraperService } from './services/company-scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JobsService } from '../jobs/jobs.service';
+import { JobStatus, ApplicationSource } from '../jobs/dto/jobs.types';
 import { ObjectType, Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
 import { IsString, IsOptional, MinLength, IsBoolean, IsUrl } from 'class-validator';
 import { ProviderHealthService } from './services/provider-health.service';
@@ -213,7 +214,7 @@ export class ScraperResolver {
     const { jobs: scraped, stats } = await this.scraperService.scrapeAll(
       input.keywords, input.location, input.postedWithin, input.source,
       input.jobType, input.remote, input.salaryMin, input.salaryMax,
-      input.sources as any,
+      input.sources as unknown as JobSourceFilter,
     );
 
     let imported = 0;
@@ -227,10 +228,10 @@ export class ScraperResolver {
             jobUrl: job.jobUrl,
             location: job.location,
             salaryRange: job.salaryRange ?? undefined,
-            source: job.source as any,
+            source: job.source as ApplicationSource,
             sourceUrl: job.sourceUrl,
             sourceId: job.sourceId,
-            status: 'SAVED' as any,
+            status: JobStatus.SAVED,
           });
           imported++;
         } catch (err) {

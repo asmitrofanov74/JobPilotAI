@@ -10,6 +10,37 @@ import { AtsDiscoveryService } from './ats-discovery.service';
 const execAsync = promisify(exec);
 const CURL_TIMEOUT = 15;
 
+interface GreenhouseJob {
+  id: string | number;
+  title?: string;
+  content?: string;
+  updated_at?: string;
+  offices?: Array<{ name: string; city?: string }>;
+}
+
+interface LeverJob {
+  id: string;
+  text?: string;
+  descriptionPlain?: string;
+  description?: string;
+  hostedUrl?: string;
+  createdAt?: number;
+  categories?: { location?: string; [key: string]: string | undefined };
+}
+
+interface WorkdayJobPosting {
+  id?: string | number;
+  title?: string;
+  locations?: string[];
+  jobDescription?: string;
+  externalPath?: string;
+  publicatioDate?: string;
+}
+
+interface WorkdayResponse {
+  jobPostings?: WorkdayJobPosting[];
+}
+
 function providerFromUrl(url: string): 'GREENHOUSE' | 'LEVER' | 'WORKDAY' | null {
   if (url.includes('greenhouse.io') || url.includes('boards.greenhouse.io')) return 'GREENHOUSE';
   if (url.includes('lever.co')) return 'LEVER';
@@ -79,8 +110,8 @@ export class CompanyScraperService {
     const result: NormalizedJob[] = [];
     try {
       const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`;
-      const data = await this.curlJson(url);
-      const items: any[] = data.jobs || [];
+      const data = await this.curlJson(url) as { jobs?: GreenhouseJob[] };
+      const items: GreenhouseJob[] = data.jobs || [];
       const q = params.query.toLowerCase();
 
       for (const job of items) {
@@ -109,7 +140,7 @@ export class CompanyScraperService {
     const result: NormalizedJob[] = [];
     try {
       const url = `https://api.lever.co/v0/postings/${board}?mode=json`;
-      const data: any[] = await this.curlJson(url);
+      const data = await this.curlJson(url) as unknown as LeverJob[];
       const q = params.query.toLowerCase();
 
       for (const job of data || []) {
@@ -137,8 +168,8 @@ export class CompanyScraperService {
     try {
       const url = `https://${board}.wd5.myworkdayjobs.com/wday/cxs/${board}/${company}/jobs`;
       const body = JSON.stringify({ limit: 20, offset: 0, searchText: params.query || '' });
-      const data = await this.curlJson(url, 'POST', body);
-      const items: any[] = data.jobPostings || [];
+      const rawData = await this.curlJson(url, 'POST', body);
+      const items: WorkdayJobPosting[] = (rawData.jobPostings as WorkdayJobPosting[]) || [];
       const q = params.query.toLowerCase();
 
       for (const job of items) {
@@ -219,17 +250,18 @@ export class CompanyScraperService {
     return board.charAt(0).toUpperCase() + board.slice(1);
   }
 
-  private async curlJson(url: string, method = 'GET', body?: string): Promise<any> {
+  private async curlJson(url: string, method = 'GET', body?: string): Promise<Record<string, unknown>> {
     let cmd = `curl -s --max-time ${CURL_TIMEOUT} "${url}"`;
     if (method === 'POST') {
       cmd += ` -X POST -H "Content-Type: application/json" -H "Accept: application/json" -d '${body}'`;
     }
     try {
       const { stdout } = await execAsync(cmd, { timeout: CURL_TIMEOUT * 1000 + 5000 });
-      return JSON.parse(stdout);
-    } catch (err: any) {
-      if (err.stdout) {
-        try { return JSON.parse(err.stdout); } catch { /* not JSON */ }
+      return JSON.parse(stdout) as Record<string, unknown>;
+    } catch (err: unknown) {
+      const error = err as { stdout?: string };
+      if (error.stdout) {
+        try { return JSON.parse(error.stdout) as Record<string, unknown>; } catch { /* not JSON */ }
       }
       throw err;
     }

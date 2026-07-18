@@ -6,15 +6,26 @@ import { NormalizedJob } from './normalized-job.interface';
 
 const execAsync = promisify(exec);
 
+interface LeverJob {
+  id: string;
+  text?: string;
+  descriptionPlain?: string;
+  description?: string;
+  hostedUrl?: string;
+  createdAt?: number;
+  categories?: { location?: string; department?: string; team?: string; [key: string]: string | undefined };
+}
+
 const CURL_TIMEOUT = 30;
 
-async function curlJson(url: string): Promise<any> {
+async function curlJson(url: string): Promise<LeverJob[]> {
   try {
     const { stdout } = await execAsync(`curl -s --max-time ${CURL_TIMEOUT} "${url}"`, { timeout: CURL_TIMEOUT * 1000 + 5000 });
-    return JSON.parse(stdout);
-  } catch (err: any) {
-    if (err.stdout) {
-      try { return JSON.parse(err.stdout); } catch { /* not JSON */ }
+    return JSON.parse(stdout) as LeverJob[];
+  } catch (err: unknown) {
+    const error = err as { stdout?: string };
+    if (error.stdout) {
+      try { return JSON.parse(error.stdout) as LeverJob[]; } catch { /* not JSON */ }
     }
     throw err;
   }
@@ -59,7 +70,7 @@ export class LeverProvider implements JobProvider {
 
     try {
       const url = `https://api.lever.co/v0/postings/${board}?mode=json`;
-      const data: any[] = await curlJson(url);
+      const data: LeverJob[] = await curlJson(url);
 
       for (const job of data || []) {
         const title = job.text || '';

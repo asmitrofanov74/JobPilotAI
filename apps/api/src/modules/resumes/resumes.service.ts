@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateResumeInput, UpdateResumeInput } from './dto/resumes.input';
 
@@ -51,7 +52,7 @@ export class ResumesService {
       });
     }
 
-    const data: any = {};
+    const data: Prisma.ResumeUpdateInput = {};
     if (input.title !== undefined) data.title = input.title;
     if (input.fileUrl !== undefined) data.fileUrl = input.fileUrl;
     if (input.fileKey !== undefined) data.fileKey = input.fileKey;

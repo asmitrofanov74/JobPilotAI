@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -28,7 +29,7 @@ export class FrenchCoachService {
 
   async getSessions(userId: string, type?: string) {
     const profile = await this.getProfile(userId);
-    const where: any = { profileId: profile.id };
+    const where: Prisma.FrenchSessionWhereInput = { profileId: profile.id };
     if (type) where.type = type;
 
     return this.prisma.frenchSession.findMany({
@@ -144,20 +145,20 @@ export class FrenchCoachService {
     };
   }
 
-  async startSession(userId: string, type: string, inputData?: any) {
+  async startSession(userId: string, type: string, inputData?: Record<string, unknown>) {
     const profile = await this.getProfile(userId);
 
     return this.prisma.frenchSession.create({
       data: {
         type,
         status: 'in_progress',
-        inputData: inputData ?? {},
+        inputData: (inputData ?? {}) as Prisma.InputJsonValue,
         profileId: profile.id,
       },
     });
   }
 
-  async finishSession(id: string, userId: string, outputData: any) {
+  async finishSession(id: string, userId: string, outputData: Record<string, unknown>) {
     const profile = await this.getProfile(userId);
     const session = await this.prisma.frenchSession.findFirst({
       where: { id, profileId: profile.id },
@@ -169,7 +170,7 @@ export class FrenchCoachService {
 
     return this.prisma.frenchSession.update({
       where: { id },
-      data: { status: 'completed', outputData },
+        data: { status: 'completed', outputData: outputData as Prisma.InputJsonValue },
     });
   }
 }

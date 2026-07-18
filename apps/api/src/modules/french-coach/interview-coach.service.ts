@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import { FrenchCoachService } from './french-coach.service';
@@ -96,12 +97,27 @@ export interface InterviewResult {
   jobDescription: string | null;
   questionCount: number;
   status: string;
-  questions: any;
-  answers: any;
-  evaluations: any;
+  questions: GeneratedQuestion[];
+  answers: InterviewAnswer[];
+  evaluations: InterviewEvaluation[];
   overallScore: number | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface InterviewAnswer {
+  questionId: string;
+  answer: string;
+}
+
+export interface InterviewEvaluation {
+  questionId: string;
+  grammarScore: number;
+  confidenceScore: number;
+  technicalScore: number;
+  feedback: string;
+  improvedAnswer: string;
+  corrections: Array<{ original: string; corrected: string; explanation: string }>;
 }
 
 export interface GeneratedQuestion {
@@ -155,22 +171,26 @@ export class InterviewCoachService {
       response_format: { type: 'json_object' },
     });
 
-    const parsed = JSON.parse(content);
-    let rawQuestions: any[];
+    const parsed: unknown = JSON.parse(content);
+    let rawQuestions: unknown[];
     if (Array.isArray(parsed)) {
       rawQuestions = parsed;
-    } else if (parsed.questions && Array.isArray(parsed.questions)) {
-      rawQuestions = parsed.questions;
+    } else if (parsed && typeof parsed === 'object' && 'questions' in parsed && Array.isArray((parsed as Record<string, unknown>).questions)) {
+      rawQuestions = (parsed as Record<string, unknown>).questions as unknown[];
+    } else if (parsed && typeof parsed === 'object') {
+      const values = Object.values(parsed as Record<string, unknown>).filter(Array.isArray);
+      rawQuestions = values.length > 0 ? (values[0] as unknown[]) : [parsed];
     } else {
-      // phi3:mini sometimes returns a single object or wraps in another key
-      const values = Object.values(parsed).filter(Array.isArray);
-      rawQuestions = values.length > 0 ? values[0] as any[] : [parsed];
+      rawQuestions = [];
     }
-    const questions: GeneratedQuestion[] = rawQuestions.slice(0, count).map((q: any, i: number) => ({
-      id: q.id || `q${i + 1}`,
-      question: q.question || String(q),
-      category: q.category || 'experience',
-    }));
+    const questions: GeneratedQuestion[] = rawQuestions.slice(0, count).map((q: unknown, i: number) => {
+      const obj = q && typeof q === 'object' ? (q as Record<string, unknown>) : {};
+      return {
+        id: (typeof obj.id === 'string' ? obj.id : null) || `q${i + 1}`,
+        question: (typeof obj.question === 'string' ? obj.question : null) || String(q),
+        category: (typeof obj.category === 'string' ? obj.category : null) || 'experience',
+      };
+    });
 
     const interview = await this.prisma.frenchInterview.create({
       data: {
@@ -178,7 +198,7 @@ export class InterviewCoachService {
         jobDescription: jobDescription ?? null,
         questionCount: questions.length,
         status: 'in_progress',
-        questions: questions as any,
+        questions: questions as unknown as Prisma.InputJsonValue,
         profileId: profile.id,
       },
     });
@@ -199,8 +219,8 @@ export class InterviewCoachService {
 
     if (!interview) throw new NotFoundException('Interview not found');
 
-    const questions = interview.questions as any[];
-    const question = questions.find((q: any) => q.id === questionId);
+    const questions = interview.questions as unknown as GeneratedQuestion[];
+    const question = questions.find((q) => q.id === questionId);
     if (!question) throw new NotFoundException('Question not found in this interview');
 
     const variantEvalPrompt = profile.frenchVariant === 'quebec'
@@ -229,10 +249,10 @@ export class InterviewCoachService {
       corrections: parsed.corrections ?? [],
     };
 
-    const answers = [...((interview.answers as any[]) ?? []), { questionId, answer }];
-    const evaluations = [...((interview.evaluations as any[]) ?? []), { questionId, ...evaluation }];
+    const answers: InterviewAnswer[] = [...((interview.answers as unknown as InterviewAnswer[]) ?? []), { questionId, answer }];
+    const evaluations: InterviewEvaluation[] = [...((interview.evaluations as unknown as InterviewEvaluation[]) ?? []), { questionId, ...evaluation }];
 
-    const allScores = evaluations.map((e: any) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
+    const allScores = evaluations.map((e) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
     const overallScore = Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length);
 
     const answeredCount = answers.length;
@@ -240,7 +260,7 @@ export class InterviewCoachService {
 
     const updated = await this.prisma.frenchInterview.update({
       where: { id: interviewId },
-      data: { answers: answers as any, evaluations: evaluations as any, overallScore, status },
+      data: { answers: answers as unknown as Prisma.InputJsonValue, evaluations: evaluations as unknown as Prisma.InputJsonValue, overallScore, status },
     });
 
     return { evaluation, interview: this.mapInterview(updated) };
@@ -264,16 +284,28 @@ export class InterviewCoachService {
     return this.mapInterview(interview);
   }
 
-  private mapInterview(i: any): InterviewResult {
+  private mapInterview(i: {
+    id: string;
+    scenario: string;
+    jobDescription: string | null;
+    questionCount: number;
+    status: string;
+    questions: Prisma.JsonValue;
+    answers: Prisma.JsonValue;
+    evaluations: Prisma.JsonValue;
+    overallScore: number | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): InterviewResult {
     return {
       id: i.id,
       scenario: i.scenario,
       jobDescription: i.jobDescription ?? null,
       questionCount: i.questionCount,
       status: i.status,
-      questions: i.questions,
-      answers: i.answers,
-      evaluations: i.evaluations,
+      questions: (i.questions as unknown as GeneratedQuestion[]) ?? [],
+      answers: (i.answers as unknown as InterviewAnswer[]) ?? [],
+      evaluations: (i.evaluations as unknown as InterviewEvaluation[]) ?? [],
       overallScore: i.overallScore,
       createdAt: i.createdAt,
       updatedAt: i.updatedAt,

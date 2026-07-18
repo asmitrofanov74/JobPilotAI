@@ -73,10 +73,10 @@ export class FrenchSessionType {
   status: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  inputData?: any;
+  inputData?: Record<string, unknown>;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  outputData?: any;
+  outputData?: Record<string, unknown>;
 
   @Field()
   profileId: string;
@@ -112,7 +112,7 @@ export class FrenchProgressType {
   completedSessions: number;
 
   @Field(() => GraphQLJSON)
-  sessionsByType: any;
+  sessionsByType: Record<string, number>;
 
   @Field(() => Int, { nullable: true })
   averageScore?: number;
@@ -157,7 +157,7 @@ export class FrenchEvaluationType {
   fluencyScore: number;
 
   @Field(() => GraphQLJSON)
-  corrections: any;
+  corrections: Array<{ original: string; corrected: string; explanation: string }>;
 
   @Field()
   improvedVersion: string;
@@ -265,7 +265,7 @@ export class FrenchVocabularyStatsType {
   dueForReview: number;
 
   @Field(() => GraphQLJSON)
-  difficultyBreakdown: any;
+  difficultyBreakdown: Record<string, number>;
 }
 
 @ObjectType()
@@ -391,7 +391,7 @@ export class InterviewEvaluationType {
   improvedAnswer: string;
 
   @Field(() => GraphQLJSON)
-  corrections: any;
+  corrections: Array<{ original: string; corrected: string; explanation: string }>;
 }
 
 @ObjectType()
@@ -412,13 +412,13 @@ export class FrenchInterviewType {
   status: string;
 
   @Field(() => GraphQLJSON)
-  questions: any;
+  questions: GeneratedQuestionType[];
 
   @Field(() => GraphQLJSON)
-  answers: any;
+  answers: InterviewAnswerType[];
 
   @Field(() => GraphQLJSON)
-  evaluations: any;
+  evaluations: InterviewEvaluationType[];
 
   @Field(() => Int, { nullable: true })
   overallScore?: number;
