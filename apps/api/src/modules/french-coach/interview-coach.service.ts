@@ -181,8 +181,7 @@ export class InterviewCoachService {
     const prompt = basePrompt + variantInstruction;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: `Génère ${count} questions d'entretien en français pour ce poste.` },
       ],
@@ -249,8 +248,7 @@ export class InterviewCoachService {
     const evalPrompt = `Question d'entretien: "${question.question}"\n\nRéponse du candidat: "${answer}"\n\nÉvalue cette réponse.`;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: variantEvalPrompt },
         { role: 'user', content: evalPrompt },
       ],
@@ -321,8 +319,7 @@ export class InterviewCoachService {
     const prompt = HINT_PROMPT + variantInstruction;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: `Question d'entretien: "${question.question}"\n\nCatégorie: ${question.category}\n\nL'utilisateur ne sait pas quoi répondre. Donne-lui un indice.` },
       ],

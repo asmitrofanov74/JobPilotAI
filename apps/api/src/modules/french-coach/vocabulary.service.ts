@@ -173,8 +173,7 @@ export class VocabularyService {
 
     try {
       const { content } = await this.provider.chat({
-        model: 'openrouter/free',
-        messages: [
+                messages: [
           { role: 'system', content: VOCABULARY_EXTRACT_PROMPT },
           { role: 'user', content: `Messages de la conversation :\n${messageText}` },
         ],
@@ -224,8 +223,7 @@ export class VocabularyService {
 
     try {
       const { content } = await this.provider.chat({
-        model: 'openrouter/free',
-        messages: [
+                messages: [
           {
             role: 'system',
             content: `Tu es un expert en français québécois. Donne l'équivalent québécois du mot ou de l'expression fourni.
@@ -255,8 +253,7 @@ Si le mot est identique en France et au Québec, retourne { "quebecEquivalent": 
 
   async compareVariants(userId: string, phrase: string): Promise<{ france: string; quebec: string }> {
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         {
           role: 'system',
           content: `Tu es un expert en linguistique française. Compare le français de France et le français québécois.

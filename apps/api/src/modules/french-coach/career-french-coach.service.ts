@@ -60,8 +60,7 @@ Retourne UNIQUEMENT un tableau JSON valide d'objets avec:
 - category (string: "technical", "experience", "problem_solving", "soft_skills")` + variantInstruction;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: `Génère ${questionCount} questions d'entretien personnalisées en français pour un poste de ${role}.` },
       ],
@@ -122,8 +121,7 @@ Toutes tes réponses doivent être en français.${variantInstruction}`;
     });
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Je suis candidat pour le poste de ${title} chez ${company}. Commençons l'entretien.` },
       ],

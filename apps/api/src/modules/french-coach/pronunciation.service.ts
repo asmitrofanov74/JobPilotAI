@@ -22,8 +22,7 @@ export class PronunciationService {
       : `\nTexte prononcé: "${spokenText}"`;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         {
           role: 'system',
           content: `Tu es un expert en phonétique et prononciation du français. Évalue la prononciation d'un apprenant à partir du texte transcrit par reconnaissance vocale.

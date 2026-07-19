@@ -9,34 +9,24 @@ function getScenarioPrompt(scenario: string, variant: string, jobDescription?: s
 
   if (scenario === 'custom_job' && jobDescription) {
     return isQuebec
-      ? `Tu es un collègue de travail québécois dans un environnement professionnel. Voici la description du poste du contexte :\n${jobDescription}\n\nTu discutes avec le candidat/employé en français québécois authentique. Utilise des expressions comme 'tu', 'ben', 'asteur', 'là', 'faque', 'bin voyons'. Pose des questions sur l'expérience pertinente au poste, les compétences requises et la compréhension du rôle. Adapte la conversation au contexte du poste décrit. Toutes tes réponses doivent être en français québécois.`
-      : `Tu es un collègue de travail français dans un environnement professionnel. Voici la description du poste du contexte :\n${jobDescription}\n\nTu discutes avec le candidat/employé en français. Pose des questions sur l'expérience pertinente au poste, les compétences requises et la compréhension du rôle. Adapte la conversation au contexte du poste décrit. Toutes tes réponses doivent être en français.`;
+      ? `Tu es un collègue québécois professionnel et courtois. Contexte: ${jobDescription}. Sois poli et naturel. Réponds en 1-2 phrases courtes en français québécois standard.`
+      : `Tu es un collègue français professionnel et courtois. Contexte: ${jobDescription}. Sois poli et naturel. Réponds en 1-2 phrases courtes en français.`;
   }
 
   const FRANCE_PROMPTS: Record<string, string> = {
-    job_interview:
-      "Tu es un recruteur français qui mène un entretien d'embauche en français. Tu poses des questions pertinentes sur l'expérience, les compétences et le parcours du candidat. Tu réponds naturellement comme un recruteur. Toutes tes réponses doivent être en français.",
-    recruiter_call:
-      "Tu es un recruteur français qui passe un premier appel à un candidat. Tu discutes de ses objectifs de carrière, de son expérience et des opportunités potentielles. Toutes tes réponses doivent être en français.",
-    team_meeting:
-      "Tu es un membre d'équipe français dans une réunion. Vous discutez de l'avancement du projet, des défis rencontrés et des prochaines étapes. Toutes tes réponses doivent être en français.",
-    daily_standup:
-      "Tu es un membre d'équipe français dans un daily standup. Tu parles de ce qui a été fait hier, de ce qui sera fait aujourd'hui et des éventuels blocages. Toutes tes réponses doivent être en français.",
-    office_conversation:
-      "Tu es un collègue français lors d'une conversation informelle au bureau. Vous discutez de la vie quotidienne, du travail ou d'autres sujets appropriés. Toutes tes réponses doivent être en français.",
+    job_interview: "Tu es un recruteur français poli et professionnel. Réponds en 1-2 phrases courtes.",
+    recruiter_call: "Tu es un recruteur français poli qui appelle un candidat. Réponds en 1-2 phrases courtes.",
+    team_meeting: "Tu es un collègue français poli en réunion. Réponds en 1-2 phrases courtes.",
+    daily_standup: "Tu es un collègue français poli en standup. Réponds en 1-2 phrases courtes.",
+    office_conversation: "Tu es un collègue français poli au bureau. Sois chaleureux mais professionnel. Réponds en 1-2 phrases courtes.",
   };
 
   const QUEBEC_PROMPTS: Record<string, string> = {
-    job_interview:
-      "Tu es un recruteur québécois qui mène un entretien d'embauche en français (français québécois). Utilise des expressions québécoises naturelles comme 'tu', 'ben', 'asteur', 'là', 'faque', 'bin voyons'. Pose des questions pertinentes sur l'expérience, les compétences et le parcours du candidat. Toutes tes réponses doivent être en français québécois authentique.",
-    recruiter_call:
-      "Tu es un recruteur québécois qui passe un premier appel à un candidat. Tu discutes de ses objectifs de carrière, de son expérience et des opportunités potentielles. Utilise un registre de français québécois naturel avec des expressions comme 'allô', 'bonjour', 'comment ça va?', 'tu sais'. Toutes tes réponses doivent être en français québécois.",
-    team_meeting:
-      "Tu es un membre d'équipe québécois dans une réunion. Vous discutez de l'avancement du projet, des défis rencontrés et des prochaines étapes. Utilise des expressions québécoises comme 'faire du pouce', 'maganer', 'jaser', 'tu veux-tu?'. Toutes tes réponses doivent être en français québécois.",
-    daily_standup:
-      "Tu es un membre d'équipe québécois dans un daily standup. Tu parles de ce qui a été fait hier, de ce qui sera fait aujourd'hui et des éventuels blocages. Utilise le français québécois parlé au travail au Québec. Toutes tes réponses doivent être en français québécois.",
-    office_conversation:
-      "Tu es un collègue québécois lors d'une conversation informelle au bureau. Vous discutez de la vie quotidienne, du travail ou d'autres sujets appropriés. Utilise des expressions québécoises comme 'chu', 'tanné', 'correct', 'pas pire'. Toutes tes réponses doivent être en français québécois authentique.",
+    job_interview: "Tu es un recruteur québécois poli et professionnel. Réponds en 1-2 phrases courtes en français québécois standard.",
+    recruiter_call: "Tu es un recruteur québécois poli qui appelle un candidat. Réponds en 1-2 phrases courtes en français québécois standard.",
+    team_meeting: "Tu es un collègue québécois poli en réunion. Réponds en 1-2 phrases courtes en français québécois standard.",
+    daily_standup: "Tu es un collègue québécois poli en standup. Réponds en 1-2 phrases courtes en français québécois standard.",
+    office_conversation: "Tu es un collègue québécois poli au bureau. Sois chaleureux mais professionnel. Réponds en 1-2 phrases courtes en français québécois standard.",
   };
 
   const prompts = isQuebec ? QUEBEC_PROMPTS : FRANCE_PROMPTS;
@@ -64,6 +54,21 @@ Exemple de format :
   "improvedVersion": "Bonjour, je suis développeur depuis cinq ans.",${isQuebec ? '\n  "quebecAlternative": "Allo, chu développeur depuis cinq ans."' : '\n  "franceAlternative": "Bonjour, je suis développeur depuis cinq ans."'}
 }`;
 };
+
+function cleanResponse(raw: string): string {
+  let text = raw;
+  // Remove prompt template leaks
+  text = text.replace(/<\|[^|]*\|>/g, '');
+  // Remove system prompt leaks
+  const leakPatterns = ['IMPORTANT:', 'Tu es un expert', 'Tu es un collègue', 'Tu es un recruteur', 'Tu es un membre', 'Voici la description', 'Ne replies jamais'];
+  for (const pattern of leakPatterns) {
+    const idx = text.indexOf(pattern);
+    if (idx > 0) text = text.substring(0, idx).trim();
+  }
+  // Remove markdown and quote artifacts
+  text = text.replace(/\*\*/g, '').replace(/^["']|["']$/g, '');
+  return text.trim();
+}
 
 @Injectable()
 export class ConversationService {
@@ -118,44 +123,50 @@ export class ConversationService {
     const aiMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: systemPrompt },
       ...history.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-      { role: 'user', content: input.message },
     ];
 
-    const { content } = await this.provider.chat({
-      model: 'openrouter/free',
+    const { content: rawContent } = await this.provider.chat({
       messages: aiMessages,
-      temperature: 0.7,
-      max_tokens: 500,
+      temperature: 0.5,
+      max_tokens: 200,
     });
+
+    const content = cleanResponse(rawContent);
 
     const assistantMessage = await this.prisma.frenchMessage.create({
       data: { role: 'assistant', content, conversationId: conversation.id },
     });
 
-    // Evaluate user message
-    let evaluation: {
-      id: string;
-      grammarScore: number;
-      vocabularyScore: number;
-      fluencyScore: number;
-      corrections: Array<{ original: string; corrected: string; explanation: string }>;
-      improvedVersion: string;
-      quebecAlternative: string | null;
-      createdAt: Date;
-    } | null = null;
+    const result = {
+      conversationId: conversation.id,
+      response: {
+        id: assistantMessage.id,
+        role: assistantMessage.role,
+        content: assistantMessage.content,
+        createdAt: assistantMessage.createdAt,
+        evaluation: null as {
+          id: string;
+          grammarScore: number;
+          vocabularyScore: number;
+          fluencyScore: number;
+          corrections: Array<{ original: string; corrected: string; explanation: string }>;
+          improvedVersion: string;
+          quebecAlternative: string | null;
+          createdAt: Date;
+        } | null,
+      },
+    };
 
-    try {
-      const { content: evalRaw } = await this.provider.chat({
-        model: 'openrouter/free',
-        messages: [
-          { role: 'system', content: EVALUATION_PROMPT(profile.frenchVariant ?? 'france') },
-          { role: 'user', content: `Message de l'étudiant : ${input.message}` },
-        ],
-        temperature: 0.3,
-        max_tokens: 500,
-        response_format: { type: 'json_object' },
-      });
-
+    // Evaluate in background — don't block the response
+    this.provider.chat({
+            messages: [
+        { role: 'system', content: EVALUATION_PROMPT(profile.frenchVariant ?? 'france') },
+        { role: 'user', content: `Message de l'étudiant : ${input.message}` },
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
+      response_format: { type: 'json_object' },
+    }).then(async ({ content: evalRaw }) => {
       const parsed = JSON.parse(evalRaw);
       const saved = await this.prisma.frenchEvaluation.create({
         data: {
@@ -168,8 +179,7 @@ export class ConversationService {
           messageId: userMessage.id,
         },
       });
-
-      evaluation = {
+      result.response.evaluation = {
         id: saved.id,
         grammarScore: saved.grammarScore,
         vocabularyScore: saved.vocabularyScore,
@@ -179,20 +189,11 @@ export class ConversationService {
         quebecAlternative: saved.quebecAlternative,
         createdAt: saved.createdAt,
       };
-    } catch (err) {
+    }).catch((err) => {
       this.logger.warn(`Failed to evaluate message: ${(err as Error).message}`);
-    }
+    });
 
-    return {
-      conversationId: conversation.id,
-      response: {
-        id: assistantMessage.id,
-        role: assistantMessage.role,
-        content: assistantMessage.content,
-        createdAt: assistantMessage.createdAt,
-        evaluation,
-      },
-    };
+    return result;
   }
 
   async getConversation(id: string, userId: string) {
@@ -261,27 +262,26 @@ export class ConversationService {
 
     const isQuebec = profile.frenchVariant === 'quebec';
     const hintPrompt = isQuebec
-      ? `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français québécois dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice pour l'aider à continuer la conversation.
+      ? `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français québécois dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice court et utile.
 
 Retourne UNIQUEMENT un objet JSON valide avec:
-- hint (string): un indice court et encourageant en français québécois
-- keyPoints (string): les points clés à mentionner, séparés par des puces
-- suggestedResponse (string): une réponse suggérée en français québécois que l'utilisateur pourrait adapter`
-      : `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice pour l'aider à continuer la conversation.
+- hint (string): un indice en 1 phrase courte et encourageant en français québécois
+- keyPoints (string): 2-3 points clés à mentionner, séparés par des puces
+- suggestedResponse (string): une réponse suggérée courte (1-2 phrases max) en français québécois`
+      : `Tu es un coach de conversation bienveillant. L'utilisateur est en train de discuter en français dans une conversation de type "${conversation.scenario}". Il ne sait pas quoi dire ensuite. Donne-lui un indice court et utile.
 
 Retourne UNIQUEMENT un objet JSON valide avec:
-- hint (string): un indice court et encourageant en français
-- keyPoints (string): les points clés à mentionner, séparés par des puces
-- suggestedResponse (string): une réponse suggérée en français que l'utilisateur pourrait adapter`;
+- hint (string): un indice en 1 phrase courte et encourageant en français
+- keyPoints (string): 2-3 points clés à mentionner, séparés par des puces
+- suggestedResponse (string): une réponse suggérée courte (1-2 phrases max) en français`;
 
     const { content } = await this.provider.chat({
-      model: 'openrouter/free',
-      messages: [
+            messages: [
         { role: 'system', content: hintPrompt },
         { role: 'user', content: `Scénario: ${conversation.scenario}\n${conversation.jobDescription ? `Description du poste: ${conversation.jobDescription}\n` : ''}Historique récent:\n${conversationHistory}\n\nL'utilisateur ne sait pas quoi dire. Donne-lui un indice.` },
       ],
       temperature: 0.5,
-      max_tokens: 600,
+      max_tokens: 400,
       response_format: { type: 'json_object' },
     });
 

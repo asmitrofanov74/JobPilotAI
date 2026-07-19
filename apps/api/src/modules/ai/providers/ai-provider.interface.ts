@@ -4,7 +4,7 @@ export interface ChatMessage {
 }
 
 export interface ChatOptions {
-  model: string;
+  model?: string;
   messages: ChatMessage[];
   temperature?: number;
   max_tokens?: number;

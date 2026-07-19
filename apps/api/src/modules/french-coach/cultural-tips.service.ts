@@ -64,8 +64,7 @@ export class CulturalTipsService {
 
     try {
       const { content } = await this.provider.chat({
-        model: 'openrouter/free',
-        messages: [
+                messages: [
           { role: 'system', content: prompt },
           {
             role: 'user',

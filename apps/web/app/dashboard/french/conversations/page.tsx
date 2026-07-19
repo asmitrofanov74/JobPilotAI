@@ -109,6 +109,7 @@ function FrenchConversationsContent() {
       setInputMessage('');
       setJobDescription('');
       setTimeout(() => refetchConversation(), 100);
+      setTimeout(() => refetchConversation(), 5000);
     },
   });
 
