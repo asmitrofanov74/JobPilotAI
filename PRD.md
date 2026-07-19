@@ -2,13 +2,13 @@
 
 ## 1. Executive Summary
 
-JobPilot AI is a production-grade SaaS platform that helps software engineers manage their job search end-to-end. It combines traditional applicant tracking with AI-powered tools for resume optimization, cover letter generation, interview preparation, and market analytics.
+JobPilot AI is a production-grade SaaS platform that helps job seekers manage their job search end-to-end. It combines traditional applicant tracking with AI-powered tools for resume optimization, cover letter generation, interview preparation, bilingual conversation coaching (French/English), and market analytics.
 
-**Target Users:** Software engineers actively job searching, primarily targeting Canadian tech companies.
+**Target Users:** Any job seeker actively searching and preparing for employment — including software engineers, healthcare workers, tradespeople, office staff, and more. Supports both English and French (France and Quebec) language modes for bilingual Canadian job seekers.
 
 ## 2. Product Vision
 
-Become the single source of truth for a software engineer's job search — reducing time-to-offer by 40% through AI-assisted preparation and data-driven strategy.
+Become the single source of truth for any job seeker's search — reducing time-to-offer by 40% through AI-assisted preparation, bilingual language coaching, and data-driven strategy.
 
 ## 3. Core Features
 
@@ -52,8 +52,11 @@ Become the single source of truth for a software engineer's job search — reduc
 ### 3.6 AI Interview Preparation
 - **Technical Questions:** Generate role-specific coding/system design questions
 - **Behavioral Questions:** Generate STAR-method questions from resume + job description
-- **Mock Interview Simulator:** AI-powered interview simulation with real-time feedback (future)
+- **Mock Interview Simulator:** AI-powered interview simulation with real-time feedback
 - **Question Bank:** Save and organize interview questions
+- **English Interview Practice:** Industry-specific practice scenarios (Frontend, Full Stack, Team Lead, Behavioral, Custom Job)
+- **AI Hints:** Get contextual hints during interview practice and conversations
+- **Custom Job Descriptions:** Practice with scenarios tailored to specific job postings
 
 ### 3.7 Skill Gap Analysis
 - Parse job description required skills
@@ -65,7 +68,24 @@ Become the single source of truth for a software engineer's job search — reduc
 - Manual job save with URL, title, company, description
 - Future: Browser extension for one-click import
 
-### 3.9 Market Analytics
+### 3.9 French Language Coach
+- **Conversational Practice:** AI-powered French conversations for workplace scenarios (job interviews, recruiter calls, team meetings, daily standups, office chat)
+- **Interview Coaching:** French interview practice with AI evaluation and scoring
+- **Quebec French Support:** Authentic Quebec French variant with cultural context
+- **France French Support:** Standard Metropolitan French variant
+- **Custom Job Scenarios:** Tailored conversations based on specific job descriptions
+- **Vocabulary Builder:** Track, review, and learn French workplace vocabulary
+- **Cultural Tips:** Contextual advice for Canadian workplace culture
+- **Speech Synthesis:** Text-to-speech for pronunciation practice (browser-based)
+- **AI Hints:** Get contextual hints during conversations and interviews
+
+### 3.10 English Interview Practice
+- **Industry Scenarios:** Frontend, Full Stack, Team Lead, Behavioral
+- **Custom Job Descriptions:** Practice interviews tailored to specific job postings
+- **AI Evaluation:** Real-time scoring with feedback and example answers
+- **AI Hints:** Get contextual hints during practice sessions
+
+### 3.11 Market Analytics
 - **Skills Demand:** Trend analysis of most requested skills over time
 - **Technology Stack:** Most requested tech stacks by role
 - **Salary Analytics:** Salary range analysis by role, experience, location
@@ -76,8 +96,8 @@ Become the single source of truth for a software engineer's job search — reduc
 | Role | Permissions |
 |------|------------|
 | **Anonymous** | Landing page, pricing, login/register |
-| **Free User** | Up to 10 saved jobs, basic analytics, 3 AI cover letters/month, 1 resume |
-| **Pro User** | Unlimited jobs, full analytics, unlimited AI generations, resume optimization, interview prep, skill gap analysis |
+| **Free User** | Up to 10 saved jobs, basic analytics, 3 AI cover letters/month, 1 resume, basic French coach |
+| **Pro User** | Unlimited jobs, full analytics, unlimited AI generations, resume optimization, interview prep, skill gap analysis, full French/English language coaching, custom job scenarios |
 | **Admin** | User management, system config, subscription management, content moderation |
 
 ## 5. Non-Functional Requirements
@@ -369,32 +389,39 @@ Route53 (DNS)
 
 ### Phase 1: Foundation (Weeks 1-2)
 - [x] PRD & Architecture docs
-- [ ] Monorepo setup (Nx or Turborepo)
-- [ ] Docker Compose setup
-- [ ] Prisma schema + migrations
-- [ ] GraphQL schema + codegen
-- [ ] Auth module (register/login/JWT)
-- [ ] Next.js project setup with Tailwind + Shadcn
-- [ ] Basic CI/CD pipeline
+- [x] Monorepo setup (Turborepo)
+- [x] Docker Compose setup (Postgres, Redis, WMS)
+- [x] Prisma schema + migrations
+- [x] GraphQL schema + codegen
+- [x] Auth module (register/login/JWT)
+- [x] Next.js project setup with Tailwind + Shadcn
+- [x] Basic CI/CD pipeline
+- [x] Ollama AI integration (qwen2.5:7b, phi3:mini)
 
 ### Phase 2: Core Features (Weeks 3-4)
-- [ ] Job tracking CRUD
-- [ ] Application pipeline (kanban)
-- [ ] Resume upload & storage
-- [ ] AI cover letter generation
-- [ ] Basic analytics dashboard
+- [x] Job tracking CRUD
+- [x] Application pipeline (kanban)
+- [x] Resume upload & storage
+- [x] AI cover letter generation
+- [x] Basic analytics dashboard
 
 ### Phase 3: AI Features (Weeks 5-6)
-- [ ] Resume optimization against JD
-- [ ] Interview question generation
-- [ ] Skill gap analysis
-- [ ] Advanced analytics
+- [x] Resume optimization against JD
+- [x] Interview question generation
+- [x] Skill gap analysis
+- [x] Advanced analytics
+- [x] French language coach (conversations, interviews, vocabulary, cultural tips)
+- [x] English interview practice (5 scenarios, custom job descriptions)
+- [x] AI hints for conversations and interviews
+- [x] Custom job description scenarios
 
 ### Phase 4: Polish (Weeks 7-8)
-- [ ] Market analytics
-- [ ] Subscription management
-- [ ] Advanced filtering/search
-- [ ] Export functionality
+- [x] Market analytics
+- [x] Subscription management
+- [x] Advanced filtering/search
+- [x] Export functionality
+- [x] Speech synthesis for French pronunciation
+- [x] Quebec French variant support
 - [ ] Performance optimization
 - [ ] Playwright tests
 - [ ] Production deployment
@@ -408,5 +435,6 @@ Route53 (DNS)
 | **Next.js App Router** | React Server Components, streaming, SEO | More complex routing than Pages Router |
 | **ECS Fargate over Lambda** | Predictable performance for long-running AI requests | Higher baseline cost |
 | **OpenAI SDK** | Best-in-class text generation | Cost per token, vendor lock-in |
+| **Ollama (local LLM)** | Free, private AI inference — qwen2.5:7b for conversations, phi3:mini as fallback | Requires local hardware, slower than cloud APIs |
 | **TanStack Query** | Caching, retry, optimistic updates for great UX | Bundle size |
 | **Shadcn UI** | Full control over styling, no CSS conflicts | No pre-built themes |
