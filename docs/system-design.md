@@ -42,18 +42,12 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
                     ┌───────────────────┼───────────────────┐
                     │                   │                   │
                ┌────▼────┐       ┌──────▼──────┐     ┌─────▼─────┐
-                │PostgreSQL│       │   Redis       │    │   S3      │
-                │ (Docker) │       │   (Docker)    │    │ (Resumes  │
-                │  16      │       │   7           │    │  Docs)    │
-                └──────────┘       │ Sessions, Cache│    └───────────┘
-                                   └───────┬────────┘
-                                           │
-                                      ┌────▼────┐
-                                      │OpenRouter│
-                                      │  AI Hub  │
-                                      │GPT-4o/Gemini│
-                                      │ Claude/DeepSeek│
-                                      └─────────┘
+                │PostgreSQL│       │   Redis       │    │  Ollama   │
+                │ (Docker) │       │   (Docker)    │    │  Local    │
+                │  16      │       │   7           │    │  LLM Hub  │
+                └──────────┘       │ Sessions, Cache│    │qwen2.5:7b │
+                                   └───────────────┘    │phi3:mini  │
+                                                        └───────────┘
 ```
 
 ### 1.2 Technology Stack
@@ -69,7 +63,7 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
 | **ORM** | Prisma 6 (engine=none) | Type-safe database access (no binary deps) |
 | **DB** | PostgreSQL 16 (Docker Compose) | Primary data store |
 | **Cache** | Redis 7 (Docker Compose) | Sessions, rate limiting, cache |
-| **AI** | OpenRouter Hub (GPT-4o, Claude, Gemini, DeepSeek) | Cover letters, interviews, skills, French coach |
+| **AI** | Ollama (local LLM) — qwen2.5:7b primary, phi3:mini fallback | Free, private AI inference — no cloud API dependency |
 | **Voice** | Web Speech API + MediaRecorder (browser) | Speech-to-text, audio recording, pronunciation scoring |
 | **Storage** | Local filesystem / S3 (future) | Resume uploads, documents |
 | **Auth** | JWT + Passport.js | Stateless authentication |
@@ -95,19 +89,19 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
 C4Context
     title System Context Diagram - JobPilot AI
 
-    Person(user, "Software Engineer", "Job seeker looking for tech roles")
+    Person(user, "Job Seeker", "Any industry — software, healthcare, trades, office, etc.")
     Person(recruiter, "Recruiter", "Hiring manager (future)")
 
-    System(jobpilot, "JobPilot AI", "AI-powered job search platform")
+    System(jobpilot, "JobPilot AI", "AI-powered job search platform with bilingual coaching")
 
-    System_Ext(openrouter, "OpenRouter AI Hub", "GPT-4o, Claude, Gemini, DeepSeek")
-    System_Ext(email, "SendGrid", "Email notifications")
+    System_Ext(ollama, "Ollama Local LLM", "qwen2.5:7b — conversations, interviews, cover letters")
+    System_Ext(email, "SendGrid", "Email notifications (future)")
     System_Ext(s3, "AWS S3", "File storage (future)")
     System_Ext(linkedin, "LinkedIn", "Job import (future)")
 
     Rel(user, jobpilot, "Uses", "HTTPS")
-    Rel(jobpilot, openrouter, "AI calls", "HTTPS/REST")
-    Rel(jobpilot, email, "Email", "SMTP/API")
+    Rel(jobpilot, ollama, "AI calls", "HTTP/localhost:11434")
+    Rel(jobpilot, email, "Email", "SMTP/API (future)")
     Rel(jobpilot, s3, "Store/Retrieve", "S3 API (future)")
 ```
 
@@ -117,22 +111,22 @@ C4Context
 C4Container
     title Container Diagram - JobPilot AI
 
-    Person(user, "Software Engineer", "Job seeker")
+    Person(user, "Job Seeker", "Any industry — software, healthcare, trades, office")
 
     Container_Boundary(jobpilot, "JobPilot AI Platform") {
-        Container(web, "Next.js App", "React, TypeScript", "SSR frontend with dashboard, job tracking, AI features, French Coach UI")
-        Container(api, "NestJS API", "TypeScript, GraphQL", "Business logic, auth, AI orchestration, 17 modules")
-        ContainerDb(db, "PostgreSQL 16", "Docker Compose", "User data, jobs, interviews, resumes, French vocab")
+        Container(web, "Next.js App", "React, TypeScript", "SSR frontend with dashboard, job tracking, AI features, French/English coaching UI")
+        Container(api, "NestJS API", "TypeScript, GraphQL", "Business logic, auth, AI orchestration, 19 modules")
+        ContainerDb(db, "PostgreSQL 16", "Docker Compose", "User data, jobs, interviews, resumes, French vocab, English practice")
         ContainerDb(cache, "Redis 7", "Docker Compose", "Sessions, rate limits, AI response cache")
     }
 
-    System_Ext(openrouter, "OpenRouter AI Hub", "GPT-4o, Claude, Gemini, DeepSeek")
+    System_Ext(ollama, "Ollama Local LLM", "qwen2.5:7b, phi3:mini")
 
     Rel(user, web, "HTTPS", "Browser")
     Rel(web, api, "GraphQL", "Apollo Client")
     Rel(api, db, "Prisma ORM", "SQL")
     Rel(api, cache, "ioredis", "Redis protocol")
-    Rel(api, openrouter, "OpenRouter SDK", "REST")
+    Rel(api, ollama, "OpenAI-compatible SDK", "HTTP localhost:11434")
 ```
 
 ### 2.3 Component Diagram (C3)
@@ -141,32 +135,34 @@ C4Container
 C4Component
     title Component Diagram - NestJS Backend
 
-    Container_Boundary(api, "NestJS API (17 modules)") {
+    Container_Boundary(api, "NestJS API (19 modules)") {
         Component(auth, "Auth Module", "JWT, Passport", "Register, login, refresh tokens")
         Component(users, "Users Module", "CRUD", "Profile management")
         Component(jobs, "Jobs Module", "CRUD + Analytics", "Job application tracking")
-        Component(interviews, "Interviews Module", "CRUD", "Interview scheduling & prep")
+        Component(interviews, "Interviews Module", "CRUD + AI Practice", "Interview scheduling, English interview practice with hints")
         Component(interviewQ, "Interview Questions Module", "CRUD", "Question bank, AI generation")
         Component(resumes, "Resumes Module", "Upload + Parse", "Resume management")
         Component(coverLetters, "Cover Letters Module", "AI generation", "Cover letter creation")
         Component(skillGap, "Skill Gap Reports Module", "AI analysis", "Skill gap analysis")
-        Component(ai, "AI Module", "OpenRouter", "AI orchestration, prompts")
+        Component(ai, "AI Module", "Ollama", "AI orchestration via OpenAI-compatible API")
         Component(scraper, "Scraper Module", "ATS Providers", "Job scraping via Greenhouse/Lever/Workday APIs")
         Component(linkedin, "LinkedIn Optimizer", "AI analysis", "Profile optimization, skills gap, visibility")
-        Component(french, "French Coach Module", "AI + Voice", "Pronunciation scoring, conversations, interview coach, vocabulary")
-        Component(prisma, "Prisma Service", "ORM", "Database access layer")
+        Component(french, "French Coach Module", "AI + Voice", "Conversations, interview coach, vocabulary, pronunciation, hints")
+        Component(englishPractice, "English Interview Practice", "AI", "5 scenarios, custom job descriptions, AI hints & evaluation")
+        Component(prisma, "Prisma Service", "ORM (engine=library)", "Database access layer")
 
         Rel(auth, users, "Creates/reads")
         Rel(jobs, prisma, "CRUD")
         Rel(interviews, prisma, "CRUD")
         Rel(resumes, prisma, "CRUD")
-        Rel(ai, openrouter, "API calls")
+        Rel(ai, ollama, "API calls via localhost:11434")
         Rel(scraper, prisma, "Stores jobs")
         Rel(linkedin, prisma, "Reads user data")
         Rel(french, prisma, "CRUD conversations/vocab")
+        Rel(englishPractice, prisma, "CRUD practice sessions")
     }
 
-    System_Ext(openrouter, "OpenRouter AI Hub")
+    System_Ext(ollama, "Ollama Local LLM")
     ContainerDb(db, "PostgreSQL")
 
     Rel(prisma, db, "SQL")
@@ -179,7 +175,7 @@ sequenceDiagram
     actor User
     participant Web as Next.js Frontend
     participant API as NestJS API
-    participant AI as OpenRouter AI Hub
+    participant AI as Ollama LLM (qwen2.5:7b)
 
     User->>Web: Click "Start Recording"
     Web->>Web: SpeechRecognition (Web Speech API) captures transcript
@@ -209,7 +205,7 @@ sequenceDiagram
     participant Web as Next.js Frontend
     participant API as NestJS API
     participant DB as PostgreSQL
-    participant AI as OpenRouter AI Hub
+    participant AI as Ollama LLM (qwen2.5:7b)
 
     User->>Web: Submit job application
     Web->>API: GraphQL Mutation (createJob)
@@ -221,7 +217,7 @@ sequenceDiagram
     User->>Web: Request cover letter
     Web->>API: GraphQL Mutation (generateCoverLetter)
     API->>DB: Fetch job details
-    API->>AI: GPT-4o via OpenRouter
+    API->>AI: Prompt via Ollama
     AI-->>API: Generated content
     API->>DB: INSERT cover_letter
     API-->>Web: CoverLetter response
@@ -248,15 +244,22 @@ erDiagram
     User ||--o{ CoverLetter : has
     User ||--o{ InterviewQuestion : has
     User ||--o{ SkillGapReport : has
-    User ||--o{ FrenchConversation : has
-    User ||--o{ FrenchInterview : has
-    User ||--o{ VocabularyEntry : has
-    User ||--o{ LinkedInOptimization : has
+    User ||--o{ LinkedinOptimization : has
+    User ||--o{ EnglishInterviewPractice : has
+    User ||--|{ FrenchProfile : has
+    User ||--o| Subscription : has
+
+    FrenchProfile ||--o{ FrenchSession : has
+    FrenchProfile ||--o{ FrenchConversation : has
+    FrenchProfile ||--o{ FrenchVocabularyWord : has
+    FrenchProfile ||--o{ FrenchVocabulary : has
+    FrenchProfile ||--o{ FrenchInterview : has
+
+    FrenchConversation ||--o{ FrenchMessage : has
+    FrenchMessage ||--o| FrenchEvaluation : has
 
     JobApplication ||--o{ Interview : has
     JobApplication ||--o{ ApplicationEvent : has
-
-    %% Each user can have many job applications, resumes, cover letters, etc.
 
     User {
         string id PK
@@ -303,6 +306,9 @@ erDiagram
         string workMode "nullable"
         enum status "JobStatus"
         enum source "ApplicationSource"
+        string sourceUrl "nullable"
+        string sourceId "nullable"
+        datetime scrapedAt "nullable"
         string notes "nullable"
         datetime appliedAt "nullable"
         datetime rejectedAt "nullable"
@@ -401,15 +407,135 @@ erDiagram
         datetime createdAt
     }
 
+    LinkedinOptimization {
+        string id PK
+        string type
+        json inputData
+        json outputData
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    EnglishInterviewPractice {
+        string id PK
+        string scenario
+        string jobDescription "nullable"
+        int questionCount "default 0"
+        string status "default in_progress"
+        json questions "default []"
+        json answers "default []"
+        json evaluations "default []"
+        int overallScore "nullable"
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FrenchProfile {
+        string id PK
+        string userId FK UK
+        string frenchLevel "nullable"
+        string frenchVariant "default france"
+        string targetMarket "nullable"
+        string targetRole "nullable"
+        string targetIndustry "nullable"
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FrenchSession {
+        string id PK
+        string type
+        string status "default in_progress"
+        json inputData "nullable"
+        json outputData "nullable"
+        string profileId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FrenchConversation {
+        string id PK
+        string scenario
+        string jobDescription "nullable"
+        string profileId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FrenchMessage {
+        string id PK
+        string role
+        string content
+        string conversationId FK
+        datetime createdAt
+    }
+
+    FrenchEvaluation {
+        string id PK
+        int grammarScore
+        int vocabularyScore
+        int fluencyScore
+        json corrections
+        string improvedVersion
+        string quebecAlternative "nullable"
+        string messageId FK UK
+        datetime createdAt
+    }
+
+    FrenchVocabularyWord {
+        string id PK
+        string word
+        string translation
+        string quebecEquivalent "nullable"
+        string context "nullable"
+        string note "nullable"
+        string difficulty "default medium"
+        int timesReviewed "default 0"
+        int timesCorrect "default 0"
+        datetime nextReviewAt
+        boolean mastered "default false"
+        string profileId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FrenchVocabulary {
+        string id PK
+        string word
+        string translation
+        boolean learned "default false"
+        boolean difficult "default false"
+        int reviewCount "default 0"
+        datetime lastReviewAt "nullable"
+        datetime addedAt
+        string profileId FK
+    }
+
+    FrenchInterview {
+        string id PK
+        string scenario
+        string jobDescription "nullable"
+        int questionCount "default 0"
+        string status "default in_progress"
+        json questions "default []"
+        json answers "default []"
+        json evaluations "default []"
+        int overallScore "nullable"
+        string profileId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
     MarketSkill {
         string id PK
         string skill
-        int count
+        int count "default 0"
         string month
         string role "nullable"
         datetime createdAt
         datetime updatedAt
-        @@unique [skill, month, role]
     }
 
     SalaryData {
@@ -423,51 +549,6 @@ erDiagram
         string currency "default CAD"
         string source "default job_posting"
         string month
-        datetime createdAt
-    }
-
-    FrenchConversation {
-        string id PK
-        string scenario "nullable"
-        string userMessage
-        string aiResponse
-        string correction "nullable"
-        string vocabulary "nullable"
-        enum variant "FRANCE | QUEBEC"
-        string userId FK
-        datetime createdAt
-    }
-
-    FrenchInterview {
-        string id PK
-        string question
-        string userAnswer "nullable"
-        string feedback "nullable"
-        string score "nullable"
-        enum variant "FRANCE | QUEBEC"
-        string userId FK
-        datetime createdAt
-    }
-
-    VocabularyEntry {
-        string id PK
-        string french
-        string english
-        string context "nullable"
-        string example "nullable"
-        int reviewCount "default 0"
-        datetime nextReview "nullable"
-        string userId FK
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    LinkedInOptimization {
-        string id PK
-        enum type "PROFILE | SKILLS | VISIBILITY"
-        json input
-        json result
-        string userId FK
         datetime createdAt
     }
 ```
@@ -517,7 +598,7 @@ Currently single-tenant per user (userId foreign key on all entities). Designed 
 ```
 src/schema.gql  (auto-generated by NestJS code-first approach)
      │
-     ├── Query (56 operations)
+     ├── Query (70+ operations)
      │   ├── me: UserType
      │   ├── jobs(pagination, status, search): PaginatedJobs!
      │   ├── job(id): JobType
@@ -528,11 +609,16 @@ src/schema.gql  (auto-generated by NestJS code-first approach)
      │   ├── skillGapReports: [SkillGapReportType!]!
      │   ├── funnelAnalytics: FunnelAnalytics!
      │   ├── monthlyStats(from, to): [MonthlyStat!]!
-     │   ├── frenchConversations(scenario): [FrenchConversationType!]!
-     │   ├── frenchInterviewQuestions(variant): [FrenchInterviewType!]!
-     │   ├── vocabulary(due): [VocabularyEntryType!]!
+     │   ├── frenchProfile: FrenchProfileType
+     │   ├── frenchConversations: [FrenchConversationType!]!
+     │   ├── frenchConversation(id): FrenchConversationType
+     │   ├── frenchVocabularyWords: [FrenchVocabularyWordType!]!
+     │   ├── frenchVocabularyStats: FrenchVocabularyStatsType
+     │   ├── frenchInterviews: [FrenchInterviewType!]!
      │   ├── careerFrenchSuggestions(role): [CareerSuggestionType!]!
      │   ├── linkedinOptimizations(type): [LinkedinOptimizationType!]!
+     │   ├── englishInterviews: [EnglishInterviewPracticeType!]!
+     │   ├── englishInterview(id): EnglishInterviewPracticeType
      │   └── ...
      │
      ├── Mutation
@@ -546,13 +632,26 @@ src/schema.gql  (auto-generated by NestJS code-first approach)
      │   ├── deleteResume(id): Boolean!
      │   ├── setPrimaryResume(id): Boolean!
      │   ├── generateCoverLetter(input): CoverLetterType!
-     │   ├── startFrenchConversation(scenario): FrenchConversationType!
-     │   ├── sendFrenchMessage(input): FrenchConversationType!
+     │   ├── updateFrenchProfile(input): FrenchProfileType
+     │   ├── sendFrenchMessage(input): SendFrenchMessageResult!
+     │   ├── deleteFrenchConversation(id): Boolean!
      │   ├── evaluateFrenchPronunciation(input): PronunciationResult!
-     │   ├── generateCareerInterviewQuestions(input): [FrenchInterviewType!]!
-     │   ├── generateCareerConversation(input): FrenchConversationType!
+     │   ├── generateFrenchInterviewQuestions(input): GenerateQuestionsResultType!
+     │   ├── evaluateFrenchInterviewAnswer(input): EvaluateAnswerResultType!
+     │   ├── generateFrenchInterviewHint(input): InterviewHintType!
+     │   ├── generateFrenchConversationHint(input): ConversationHintType!
+     │   ├── startFrenchSession(input): FrenchSessionType!
+     │   ├── finishFrenchSession(id, input): FrenchSessionType!
+     │   ├── addVocabularyWord(input): FrenchVocabularyWordType!
+     │   ├── reviewVocabularyWord(input): FrenchVocabularyWordType!
+     │   ├── addTrackedVocabulary(input): FrenchVocabularyType!
+     │   ├── generateCareerInterviewQuestions(input): GenerateQuestionsResultType!
+     │   ├── generateCareerConversation(input): SendFrenchMessageResult!
      │   ├── analyzeProfile(input): LinkedinOptimizationType!
      │   ├── analyzeSkillsGap(input): LinkedinOptimizationType!
+     │   ├── generateEnglishInterviewQuestions(input): GenerateEnglishQuestionsResultType!
+     │   ├── evaluateEnglishInterviewAnswer(input): EvaluateEnglishAnswerResultType!
+     │   ├── generateEnglishInterviewHint(input): EnglishInterviewHintType!
      │   └── ...
 ```
 
@@ -620,7 +719,7 @@ sequenceDiagram
     participant Web as Frontend
     participant API as NestJS API
     participant DB as PostgreSQL
-    participant AI as OpenRouter AI Hub
+    participant AI as Ollama LLM (qwen2.5:7b)
     participant Cache as Redis
 
     User->>Web: Request AI generation
@@ -630,7 +729,7 @@ sequenceDiagram
     alt Cache hit
         Cache-->>API: Cached content
     else Cache miss
-        API->>AI: Prompt with context (GPT-4o/Claude/Gemini)
+        API->>AI: Prompt via Ollama (localhost:11434)
         AI-->>API: Generated content
         API->>Cache: Store result (TTL: 24h)
     end
@@ -895,13 +994,14 @@ graph TB
 
 ### 8.4 AI Feature Scaling
 
-The OpenRouter AI Hub is the primary external dependency. To handle latency and cost:
+Ollama runs locally as a single process. To handle load and quality:
 
 1. **Caching**: Generated content cached in Redis by input hash (TTL: 24h)
-2. **Queuing**: Background job processing for batch AI operations
-3. **Rate limiting**: Per-user rate limits on AI endpoints
-4. **Streaming**: SSE for long-running generations (interviews)
-5. **Fallback**: Pre-computed templates when API is unavailable
+2. **Async evaluation**: Conversation evaluations run in background, not blocking chat responses
+3. **Model selection**: qwen2.5:7b for quality responses, phi3:mini as lightweight fallback
+4. **Rate limiting**: Per-user rate limits on AI endpoints
+5. **Response cleanup**: Post-processing strips prompt leaks, enforces brevity
+6. **Future scaling**: Add additional Ollama instances behind a load balancer, or switch to cloud LLMs for production
 
 ---
 
@@ -964,7 +1064,7 @@ The OpenRouter AI Hub is the primary external dependency. To handle latency and 
 | Frontend framework | Next.js | Remix, SPA | SSR, RSC, SEO, file-based routing |
 | CSS approach | Tailwind | CSS modules, styled-components | Utility-first, design system, bundle size |
 | Auth | JWT | Sessions, OAuth | Stateless, API-friendly, simple deployment |
-| AI provider | OpenRouter Hub | Direct OpenAI, Anthropic, Google | Single API key, model fallback, cost tracking |
+| AI provider | Ollama (local LLM) | OpenRouter, direct OpenAI/Anthropic | Free, private, no API key dependency, runs offline |
 | Voice input | Web Speech API + MediaRecorder | Azure Speech, Deepgram | No third-party dependency, free, offline-capable |
 | Prisma engine | engine=none (no binary) | Full engine | Windows EPERM workaround, lighter Docker images |
 | Deployment | Docker Compose (local), ECS Fargate (planned) | Lambda, EKS, Render | Predictable perf, no cluster management |
@@ -976,10 +1076,13 @@ The OpenRouter AI Hub is the primary external dependency. To handle latency and 
 | Issue | Workaround |
 |-------|-----------|
 | **Port 3000 conflict** | Docker Desktop holds port 3000; frontend uses `next dev -p 3001` |
-| **Prisma engine** | Generated with `--no-engine` due to Windows EPERM rename issues |
-| **External HTTPS** | Windows `node:fetch` unreliable; all external calls go through OpenRouter HTTP |
+| **Prisma engine** | Generated with `engineType = "library"` due to Windows EPERM rename issues |
+| **External HTTPS** | Windows `node:fetch` unreliable for some external calls |
 | **Scraper blockers** | Indeed/LinkedIn/ZipRecruiter block headless requests; ATS API providers (Greenhouse, Lever, Workday) preferred |
 | **Background process** | Use `Start-Process -WindowStyle Hidden` (not `Start-Job`) for persistent Windows servers |
+| **Ollama setup** | Install from `https://ollama.com`, run `ollama pull qwen2.5:7b`. Set `AI_PROVIDER=ollama` and `OLLAMA_MODEL=qwen2.5:7b` in `apps/api/.env` |
+| **Ollama path** | Windows: `C:\Users\Administrator\AppData\Local\Programs\Ollama\ollama.exe` — not in PATH by default |
+| **AI_PROVIDER env** | Set to `ollama` for local LLM, `openrouter` for cloud. OLLAMA_BASE_URL defaults to `http://127.0.0.1:11434/v1` |
 
 ## Appendix C: Monitoring & Observability
 
