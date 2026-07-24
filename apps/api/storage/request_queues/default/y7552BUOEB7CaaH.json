@@ -1,0 +1,9 @@
+{
+	"id": "y7552BUOEB7CaaH",
+	"json": "{\"id\":\"y7552BUOEB7CaaH\",\"url\":\"https://www.google.com/search?q=software%20engineer+jobs+in+Toronto%2C%20ON&ibp=htl;jobs\",\"loadedUrl\":\"https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dsoftware%2Bengineer%2Bjobs%2Bin%2BToronto,%2BON%26udm%3D8%26sei%3DtMVSaq6YMLOzwPAP2-nK0Qk&q=EgRfGAxhGLWLy9IGIjDcRaaLAtwO0pu0DLzaNcCoBl2KYrHe6nlZJpWlTkIi_DNrSZC28HQgBQ763wP6l1IyAVJaAUM\",\"uniqueKey\":\"https://www.google.com/search?ibp=htl%3Bjobs&q=software+engineer+jobs+in+Toronto%2C+ON\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"source\":\"GOOGLE_JOBS\",\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-07-11T22:37:44.903Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.google.com/search?ibp=htl%3Bjobs&q=software+engineer+jobs+in+Toronto%2C+ON",
+	"url": "https://www.google.com/search?q=software%20engineer+jobs+in+Toronto%2C%20ON&ibp=htl;jobs"
+}

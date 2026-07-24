@@ -1,0 +1,1 @@
+{"query":"mutation { generateEnglishInterviewHint(input: { interviewId: \"cmrqte4dn0001exaokahm6ur5\", questionId: \"q1\" }) { hint keyPoints exampleAnswer } }"}

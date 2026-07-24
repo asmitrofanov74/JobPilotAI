@@ -1,0 +1,403 @@
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { FrenchCoachService } from './french-coach.service';
+import { ConversationService } from './conversation.service';
+import { VocabularyService } from './vocabulary.service';
+import { CulturalTipsService } from './cultural-tips.service';
+import { VocabularyTrackerService } from './vocabulary-tracker.service';
+import {
+  FrenchProfileType,
+  FrenchSessionType,
+  FrenchProgressType,
+  FrenchConversationType,
+  SendFrenchMessageResult,
+  FrenchVocabularyWordType,
+  FrenchVocabularyStatsType,
+  FrenchCulturalTipType,
+  FrenchVocabularyType,
+  FrenchVocabularyTrackerStatsType,
+  TodayVocabularyType,
+  FrenchInterviewType,
+  GenerateQuestionsResultType,
+  EvaluateAnswerResultType,
+  FrenchVariantComparisonType,
+  PronunciationResultType,
+  CareerSuggestionType,
+  InterviewHintType,
+  ConversationHintType,
+} from './dto/french-coach.types';
+import {
+  StartFrenchSessionInput,
+  FinishFrenchSessionInput,
+  SendFrenchMessageInput,
+  AddVocabularyWordInput,
+  ReviewVocabularyWordInput,
+  VocabularyFilterInput,
+  AddTrackedVocabularyInput,
+  GenerateInterviewQuestionsInput,
+  EvaluateInterviewAnswerInput,
+  GenerateInterviewHintInput,
+  GenerateConversationHintInput,
+  UpdateFrenchProfileInput,
+  EvaluatePronunciationInput,
+  GenerateCareerInterviewInput,
+  GenerateCareerConversationInput,
+} from './dto/french-coach.input';
+import { InterviewCoachService } from './interview-coach.service';
+import { PronunciationService } from './pronunciation.service';
+import { CareerFrenchCoachService } from './career-french-coach.service';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+
+@UseGuards(JwtAuthGuard)
+@Resolver()
+export class FrenchCoachResolver {
+  constructor(
+    private readonly frenchCoachService: FrenchCoachService,
+    private readonly conversationService: ConversationService,
+    private readonly vocabularyService: VocabularyService,
+    private readonly culturalTipsService: CulturalTipsService,
+    private readonly vocabularyTrackerService: VocabularyTrackerService,
+    private readonly interviewCoachService: InterviewCoachService,
+    private readonly pronunciationService: PronunciationService,
+    private readonly careerFrenchCoachService: CareerFrenchCoachService,
+  ) {}
+
+  @Query(() => FrenchProfileType)
+
+  async frenchProfile(@CurrentUser() user: { id: string }) {
+    return this.frenchCoachService.getProfile(user.id);
+  }
+
+  @Mutation(() => FrenchProfileType)
+
+  async updateFrenchProfile(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: UpdateFrenchProfileInput,
+  ) {
+    return this.frenchCoachService.updateProfile(user.id, {
+      frenchLevel: input.frenchLevel ?? undefined,
+      frenchVariant: input.frenchVariant ?? undefined,
+      targetMarket: input.targetMarket ?? undefined,
+      targetRole: input.targetRole ?? undefined,
+      targetIndustry: input.targetIndustry ?? undefined,
+    });
+  }
+
+  @Query(() => FrenchProgressType)
+
+  async frenchProgress(@CurrentUser() user: { id: string }) {
+    return this.frenchCoachService.getProgress(user.id);
+  }
+
+  @Query(() => [FrenchSessionType])
+
+  async frenchSessions(
+    @CurrentUser() user: { id: string },
+    @Args('type', { nullable: true }) type?: string,
+  ) {
+    return this.frenchCoachService.getSessions(user.id, type);
+  }
+
+  @Query(() => FrenchConversationType)
+
+  async frenchConversation(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    return this.conversationService.getConversation(id, user.id);
+  }
+
+  @Query(() => [FrenchConversationType])
+
+  async frenchConversations(@CurrentUser() user: { id: string }) {
+    return this.conversationService.getConversations(user.id);
+  }
+
+  @Mutation(() => Boolean)
+
+  async deleteFrenchConversation(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    await this.conversationService.deleteConversation(id, user.id);
+    return true;
+  }
+
+  // --- Vocabulary Queries ---
+
+  @Query(() => [FrenchVocabularyWordType])
+
+  async frenchVocabulary(
+    @CurrentUser() user: { id: string },
+    @Args('filter', { nullable: true }) filter?: VocabularyFilterInput,
+  ) {
+    return this.vocabularyService.getVocabulary(user.id, filter);
+  }
+
+  @Query(() => FrenchVocabularyStatsType)
+
+  async frenchVocabularyStats(@CurrentUser() user: { id: string }) {
+    return this.vocabularyService.getVocabularyStats(user.id);
+  }
+
+  // --- Vocabulary Mutations ---
+
+  @Mutation(() => FrenchVocabularyWordType)
+
+  async addFrenchVocabularyWord(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: AddVocabularyWordInput,
+  ) {
+    return this.vocabularyService.addWord(user.id, input.word, input.translation, input.quebecEquivalent, input.context, input.note);
+  }
+
+  @Mutation(() => FrenchVocabularyWordType)
+
+  async reviewFrenchVocabularyWord(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: ReviewVocabularyWordInput,
+  ) {
+    return this.vocabularyService.reviewWord(user.id, input.wordId, input.score);
+  }
+
+  @Mutation(() => Boolean)
+
+  async deleteFrenchVocabularyWord(
+    @CurrentUser() user: { id: string },
+    @Args('wordId') wordId: string,
+  ) {
+    await this.vocabularyService.deleteWord(user.id, wordId);
+    return true;
+  }
+
+  @Mutation(() => [FrenchVocabularyWordType])
+
+  async extractFrenchVocabulary(
+    @CurrentUser() user: { id: string },
+    @Args('conversationId') conversationId: string,
+  ) {
+    return this.vocabularyService.extractVocabulary(user.id, conversationId);
+  }
+
+  @Mutation(() => FrenchVocabularyWordType)
+
+  async generateQuebecEquivalent(
+    @CurrentUser() user: { id: string },
+    @Args('wordId') wordId: string,
+  ) {
+    return this.vocabularyService.generateQuebecEquivalent(user.id, wordId);
+  }
+
+  @Query(() => FrenchVariantComparisonType)
+
+  async compareFrenchVariants(
+    @CurrentUser() user: { id: string },
+    @Args('phrase') phrase: string,
+  ) {
+    return this.vocabularyService.compareVariants(user.id, phrase);
+  }
+
+  // --- Pronunciation ---
+
+  @Mutation(() => PronunciationResultType)
+
+  async evaluateFrenchPronunciation(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: EvaluatePronunciationInput,
+  ) {
+    return this.pronunciationService.evaluate(input.spokenText, input.expectedText ?? undefined);
+  }
+
+  // --- Career Integration ---
+
+  @Mutation(() => GenerateQuestionsResultType)
+
+  async generateCareerInterviewQuestions(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateCareerInterviewInput,
+  ) {
+    return this.careerFrenchCoachService.generateCareerInterviewQuestions(
+      user.id,
+      input.jobApplicationId ?? undefined,
+      input.resumeId ?? undefined,
+      input.targetRole ?? undefined,
+      input.questionCount,
+    );
+  }
+
+  @Mutation(() => SendFrenchMessageResult)
+
+  async generateCareerConversation(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateCareerConversationInput,
+  ) {
+    return this.careerFrenchCoachService.generateCareerConversation(
+      user.id,
+      input.jobApplicationId ?? undefined,
+      input.scenario ?? undefined,
+    );
+  }
+
+  @Query(() => [CareerSuggestionType])
+
+  async careerFrenchSuggestions(@CurrentUser() user: { id: string }) {
+    return this.careerFrenchCoachService.getCareerSuggestions(user.id);
+  }
+
+  // --- Cultural Tips ---
+
+  @Query(() => FrenchCulturalTipType, { nullable: true })
+
+  async frenchCulturalTip(
+    @CurrentUser() user: { id: string },
+    @Args('topic', { nullable: true }) topic?: string,
+  ) {
+    return this.culturalTipsService.getTip(user.id, topic);
+  }
+
+  @Query(() => [FrenchCulturalTipType])
+
+  async frenchCulturalTipHistory(@CurrentUser() user: { id: string }) {
+    return this.culturalTipsService.getTipHistory(user.id);
+  }
+
+  // --- Vocabulary Tracker ---
+
+  @Query(() => [FrenchVocabularyType])
+
+  async frenchTrackedVocabulary(@CurrentUser() user: { id: string }) {
+    return this.vocabularyTrackerService.getAll(user.id);
+  }
+
+  @Query(() => TodayVocabularyType)
+
+  async frenchTodayVocabulary(@CurrentUser() user: { id: string }) {
+    return this.vocabularyTrackerService.getTodayVocabulary(user.id);
+  }
+
+  @Query(() => FrenchVocabularyTrackerStatsType)
+
+  async frenchVocabularyTrackerStats(@CurrentUser() user: { id: string }) {
+    return this.vocabularyTrackerService.getStats(user.id);
+  }
+
+  @Mutation(() => FrenchVocabularyType)
+
+  async addTrackedVocabulary(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: AddTrackedVocabularyInput,
+  ) {
+    return this.vocabularyTrackerService.addWord(user.id, input.word, input.translation);
+  }
+
+  @Mutation(() => FrenchVocabularyType)
+
+  async markVocabularyLearned(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    return this.vocabularyTrackerService.markLearned(user.id, id);
+  }
+
+  @Mutation(() => FrenchVocabularyType)
+
+  async markVocabularyDifficult(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+    @Args('difficult') difficult: boolean,
+  ) {
+    return this.vocabularyTrackerService.markDifficult(user.id, id, difficult);
+  }
+
+  @Mutation(() => Boolean)
+
+  async deleteTrackedVocabulary(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    await this.vocabularyTrackerService.deleteWord(user.id, id);
+    return true;
+  }
+
+  // --- Interview Coach ---
+
+  @Query(() => [FrenchInterviewType])
+
+  async frenchInterviews(@CurrentUser() user: { id: string }) {
+    return this.interviewCoachService.getInterviews(user.id);
+  }
+
+  @Query(() => FrenchInterviewType)
+
+  async frenchInterview(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+  ) {
+    return this.interviewCoachService.getInterview(id, user.id);
+  }
+
+  @Mutation(() => GenerateQuestionsResultType)
+
+  async generateFrenchInterviewQuestions(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateInterviewQuestionsInput,
+  ) {
+    return this.interviewCoachService.generateQuestions(user.id, input.scenario, input.questionCount, input.jobDescription);
+  }
+
+  @Mutation(() => EvaluateAnswerResultType)
+
+  async evaluateFrenchInterviewAnswer(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: EvaluateInterviewAnswerInput,
+  ) {
+    return this.interviewCoachService.evaluateAnswer(user.id, input.interviewId, input.questionId, input.answer);
+  }
+
+  @Mutation(() => InterviewHintType)
+  async generateFrenchInterviewHint(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateInterviewHintInput,
+  ) {
+    return this.interviewCoachService.generateHint(user.id, input.interviewId, input.questionId);
+  }
+
+  // --- Session Mutations ---
+
+  @Mutation(() => FrenchSessionType)
+
+  async startFrenchSession(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: StartFrenchSessionInput,
+  ) {
+    return this.frenchCoachService.startSession(user.id, input.type, input.inputData);
+  }
+
+  @Mutation(() => FrenchSessionType)
+
+  async finishFrenchSession(
+    @CurrentUser() user: { id: string },
+    @Args('id') id: string,
+    @Args('input') input: FinishFrenchSessionInput,
+  ) {
+    return this.frenchCoachService.finishSession(id, user.id, input.outputData);
+  }
+
+  @Mutation(() => SendFrenchMessageResult)
+
+  async sendFrenchMessage(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: SendFrenchMessageInput,
+  ) {
+    return this.conversationService.sendMessage(user.id, input);
+  }
+
+  @Mutation(() => ConversationHintType)
+  async generateFrenchConversationHint(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: GenerateConversationHintInput,
+  ) {
+    return this.conversationService.generateHint(user.id, input.conversationId);
+  }
+}

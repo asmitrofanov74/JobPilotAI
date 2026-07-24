@@ -1,0 +1,274 @@
+'use client';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { client } from '@/lib/graphql/client';
+import { JOBS_QUERY, DELETE_JOB_MUTATION, DELETE_ALL_JOBS_MUTATION } from '@/lib/graphql';
+import { Plus, Briefcase, Search, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
+import { STATUS_BADGE, STATUS_OPTIONS, PAGE_SIZES, COLUMNS } from '@/lib/constants';
+import { formatDate, formatStatusLabel } from '@/lib/utils/format';
+import { type GqlJob } from '@/lib/graphql/types';
+
+export default function JobsPage() {
+  const t = useTranslations('jobs');
+  const tc = useTranslations('common');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['jobs', statusFilter, searchQuery, page, limit, sortBy, sortOrder],
+    queryFn: async () => {
+      const { jobs } = await client.request(JOBS_QUERY, {
+        pagination: { page, limit, sortBy, sortOrder },
+        status: statusFilter || undefined,
+        search: searchQuery || undefined,
+      });
+      return jobs;
+    },
+    placeholderData: (prev) => prev,
+  });
+
+  const deleteJob = useMutation({
+    mutationFn: async (id: string) => {
+      await client.request(DELETE_JOB_MUTATION, { id });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  const deleteSelected = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => client.request(DELETE_JOB_MUTATION, { id })));
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  const deleteAll = useMutation({
+    mutationFn: async () => {
+      const { deleteAllJobs } = await client.request(DELETE_ALL_JOBS_MUTATION);
+      return deleteAllJobs;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  const meta = data?.meta;
+  const totalPages = meta?.totalPages ?? 1;
+
+  function toggleSort(key: string) {
+    if (sortBy === key) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(key);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  }
+
+  const jobIds = data?.edges?.map((j: GqlJob) => j.id) ?? [];
+  const allSelected = jobIds.length > 0 && jobIds.every((id: string) => selectedIds.has(id));
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(jobIds));
+    }
+  }
+
+  function SortIcon({ column }: { column: string }) {
+    if (sortBy !== column) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title={t('title')} description={t('description')}>
+        {meta && meta.total > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm(`Delete all ${meta.total} job applications? This cannot be undone.`)) {
+                deleteAll.mutate();
+              }
+            }}
+            disabled={deleteAll.isPending}
+            className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            {t('deleteAll')}
+          </button>
+        )}
+        <Link href="/dashboard/jobs/new">
+          <Button><Plus className="w-4 h-4" />{t('addJob')}</Button>
+        </Link>
+      </PageHeader>
+
+      <div className="flex flex-wrap items-center gap-3">
+        {selectedIds.size > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm(`Delete ${selectedIds.size} selected job${selectedIds.size !== 1 ? 's' : ''}?`)) {
+                deleteSelected.mutate([...selectedIds]);
+              }
+            }}
+            disabled={deleteSelected.isPending}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors"
+          >
+            Delete {selectedIds.size} selected
+          </button>
+        )}
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+            placeholder={t('searchPlaceholder')}
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
+          />
+        </div>
+        <Select label="" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </Select>
+        <Select label="" value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}>
+          {PAGE_SIZES.map((s) => (
+            <option key={s} value={s}>{s} {tc('perPage')}</option>
+          ))}
+        </Select>
+      </div>
+
+      {isLoading ? (
+        <LoadingState padding="lg" />
+      ) : data?.edges?.length === 0 ? (
+        <EmptyState icon={Briefcase} title={t('noJobs')} description={t('noJobsDesc')} action={{ label: t('addFirst'), onClick: () => window.location.href = '/dashboard/jobs/new' }} />
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 20rem)' }}>
+          <div className="overflow-auto flex-1 min-h-0">
+            <table className="w-full">
+              <thead className="sticky top-0 z-10 bg-gray-50">
+                <tr className="bg-gray-50">
+                  <th className="w-10 px-2 py-3.5 text-left">
+                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  </th>
+                  {COLUMNS.map((col) => (
+                    <th
+                      key={col.key}
+                      onClick={() => col.sortable && toggleSort(col.key)}
+                      className={`text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:text-gray-700 select-none' : ''}`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {col.label}
+                        {col.sortable && <SortIcon column={col.key} />}
+                      </div>
+                    </th>
+                  ))}
+                  <th className="text-right px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">{tc('actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {data?.edges?.map((job: GqlJob) => (
+                  <tr key={job.id} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(job.id) ? 'bg-blue-50/50' : ''}`}>
+                    <td className="w-10 px-2 py-3.5 text-center">
+                      <input type="checkbox" checked={selectedIds.has(job.id)} onChange={() => toggleSelect(job.id)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 text-xs font-bold uppercase shrink-0">
+                          {job.companyName?.[0]}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">{job.companyName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5"><span className="text-sm text-gray-700">{job.jobTitle}</span></td>
+                    <td className="px-4 py-3.5">
+                      <Badge variant={STATUS_BADGE[job.status] || 'gray'}>
+                        {formatStatusLabel(job.status)}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm text-gray-400">
+                        {formatDate(job.createdAt)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {job.jobUrl ? (
+                          <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">{tc('view')}</a>
+                        ) : (
+                          <Link href={`/dashboard/jobs/${job.id}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">{tc('view')}</Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Delete "${job.jobTitle}" at ${job.companyName}?`)) {
+                              deleteJob.mutate(job.id);
+                            }
+                          }}
+                          disabled={deleteJob.isPending}
+                          className="inline-flex items-center p-1.5 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {meta && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span className="text-sm text-gray-500">
+                Page {meta.page} {tc('of')} {totalPages} ({meta.total} jobs)
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  {tc('previous')}
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  {tc('next')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

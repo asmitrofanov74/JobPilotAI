@@ -1,0 +1,1058 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddTrackedVocabularyInput {
+  translation: String!
+  word: String!
+}
+
+input AddVocabularyWordInput {
+  context: String
+  note: String
+  quebecEquivalent: String
+  translation: String!
+  word: String!
+}
+
+input AnalyzeProfileInput {
+  about: String
+  currentCompany: String
+  currentRole: String
+  experienceLevel: String
+  headline: String
+  industry: String
+  location: String
+  profileUrl: String
+  skills: [String!]
+}
+
+input AnalyzeVisibilityInput {
+  about: String!
+  experienceLevel: String
+  headline: String!
+  industry: String
+  skills: [String!]!
+  targetLocations: [String!]
+  targetRoles: [String!]!
+}
+
+enum ApplicationSource {
+  COMPANY_SITE
+  GLASSDOOR
+  GREENHOUSE
+  INDEED
+  LEVER
+  LINKEDIN
+  MANUAL
+  OTHER
+  REFERRAL
+  SCRAPED
+  WORKDAY
+  WORKOPOLIS
+  ZIPRECRUITER
+}
+
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: UserType!
+}
+
+type BulkImportResult {
+  imported: Int!
+  skipped: Int!
+}
+
+type CareerSuggestionType {
+  companyName: String!
+  hasDescription: Boolean!
+  jobApplicationId: String!
+  jobTitle: String!
+  status: String!
+}
+
+input CompareResumeInput {
+  linkedinAbout: String
+  linkedinExperience: [String!]
+  linkedinHeadline: String
+  linkedinSkills: [String!]
+  resumeId: String!
+}
+
+type ConversationHintType {
+  hint: String!
+  keyPoints: String!
+  suggestedResponse: String!
+}
+
+enum ConversationScenario {
+  CUSTOM_JOB
+  DAILY_STANDUP
+  JOB_INTERVIEW
+  OFFICE_CONVERSATION
+  RECRUITER_CALL
+  TEAM_MEETING
+}
+
+type CoverLetterType {
+  companyName: String!
+  content: String!
+  createdAt: DateTime!
+  id: String!
+  isGenerated: Boolean!
+  jobDescription: String
+  jobTitle: String!
+  tone: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input CreateCoverLetterInput {
+  companyName: String!
+  content: String!
+  isGenerated: Boolean
+  jobDescription: String
+  jobTitle: String!
+  tone: String = "professional"
+}
+
+input CreateInterviewInput {
+  durationMinutes: Int
+  feedback: String
+  interviewers: String
+  isCompleted: Boolean
+  jobApplicationId: String!
+  location: String
+  notes: String
+  rating: Int
+  round: Int = 1
+  scheduledAt: String
+  type: InterviewTypeEnum!
+}
+
+input CreateInterviewQuestionInput {
+  answer: String
+  category: String
+  difficulty: Int
+  isFavorite: Boolean
+  question: String!
+  source: String
+  type: QuestionTypeEnum!
+}
+
+input CreateJobInput {
+  companyName: String!
+  jobDescription: String
+  jobTitle: String!
+  jobUrl: String
+  location: String
+  notes: String
+  salaryRange: String
+  source: ApplicationSource
+  sourceId: String
+  sourceUrl: String
+  status: JobStatus = SAVED
+}
+
+input CreateResumeInput {
+  fileKey: String!
+  fileSize: Int
+  fileUrl: String!
+  isPrimary: Boolean
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
+  title: String!
+}
+
+input CreateSkillGapReportInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type EnglishInterviewHintType {
+  exampleAnswer: String!
+  hint: String!
+  keyPoints: String!
+}
+
+type EnglishInterviewPracticeType {
+  answers: JSON!
+  createdAt: DateTime!
+  evaluations: JSON!
+  id: String!
+  jobDescription: String
+  overallScore: Int
+  questionCount: Int!
+  questions: JSON!
+  scenario: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
+enum EnglishInterviewScenario {
+  BEHAVIORAL
+  CUSTOM_JOB
+  FRONTEND_DEVELOPER
+  FULL_STACK_DEVELOPER
+  TEAM_LEAD
+}
+
+type EnglishPracticeEvaluationType {
+  confidenceScore: Int!
+  corrections: JSON!
+  feedback: String!
+  grammarScore: Int!
+  improvedAnswer: String!
+  questionId: String!
+  technicalScore: Int!
+}
+
+type EnglishPracticeQuestionType {
+  category: String!
+  id: String!
+  question: String!
+}
+
+type EvaluateAnswerResultType {
+  evaluation: InterviewEvaluationType!
+  interview: FrenchInterviewType!
+}
+
+input EvaluateEnglishAnswerInput {
+  answer: String!
+  interviewId: String!
+  questionId: String!
+}
+
+type EvaluateEnglishAnswerResultType {
+  evaluation: EnglishPracticeEvaluationType!
+  interview: EnglishInterviewPracticeType!
+}
+
+input EvaluateInterviewAnswerInput {
+  answer: String!
+  interviewId: String!
+  questionId: String!
+}
+
+input EvaluatePronunciationInput {
+  expectedText: String
+  spokenText: String!
+}
+
+input ExperienceEntry {
+  achievements: [String!]
+  company: String!
+  description: String!
+  duration: String
+  role: String!
+}
+
+input FinishFrenchSessionInput {
+  outputData: JSON!
+}
+
+type FrenchConversationType {
+  createdAt: DateTime!
+  id: String!
+  jobDescription: String
+  messages: [FrenchMessageType!]!
+  profileId: String!
+  scenario: ConversationScenario!
+  updatedAt: DateTime!
+}
+
+type FrenchCulturalTipType {
+  category: String!
+  createdAt: DateTime!
+  id: String!
+  region: String!
+  tip: String!
+  topic: String!
+  translation: String!
+}
+
+type FrenchEvaluationType {
+  corrections: JSON!
+  createdAt: DateTime!
+  fluencyScore: Int!
+  grammarScore: Int!
+  id: String!
+  improvedVersion: String!
+  quebecAlternative: String
+  vocabularyScore: Int!
+}
+
+type FrenchInterviewType {
+  answers: JSON!
+  createdAt: DateTime!
+  evaluations: JSON!
+  id: String!
+  jobDescription: String
+  overallScore: Int
+  questionCount: Int!
+  questions: JSON!
+  scenario: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
+type FrenchMessageType {
+  content: String!
+  createdAt: DateTime!
+  evaluation: FrenchEvaluationType
+  id: String!
+  role: String!
+}
+
+type FrenchProfileType {
+  createdAt: DateTime!
+  frenchLevel: String
+  frenchVariant: FrenchVariant!
+  id: String!
+  targetIndustry: String
+  targetMarket: String
+  targetRole: String
+  updatedAt: DateTime!
+}
+
+type FrenchProgressType {
+  averageScore: Int
+  completedSessions: Int!
+  fluencyAvg: Int
+  grammarAvg: Int
+  masteredWords: Int!
+  scoreHistory: [ScorePointType!]!
+  sessionsByType: JSON!
+  streakDays: Int!
+  totalSessions: Int!
+  vocabularyAvg: Int
+  vocabularyCount: Int!
+  weaknesses: [String!]!
+}
+
+type FrenchSessionType {
+  createdAt: DateTime!
+  id: String!
+  inputData: JSON
+  outputData: JSON
+  profileId: String!
+  status: String!
+  type: String!
+  updatedAt: DateTime!
+}
+
+enum FrenchVariant {
+  FRANCE
+  QUEBEC
+}
+
+type FrenchVariantComparisonType {
+  france: String!
+  quebec: String!
+}
+
+type FrenchVocabularyStatsType {
+  difficultyBreakdown: JSON!
+  dueForReview: Int!
+  mastered: Int!
+  total: Int!
+}
+
+type FrenchVocabularyTrackerStatsType {
+  difficult: Int!
+  learned: Int!
+  total: Int!
+}
+
+type FrenchVocabularyType {
+  addedAt: DateTime!
+  difficult: Boolean!
+  id: String!
+  lastReviewAt: DateTime
+  learned: Boolean!
+  reviewCount: Int!
+  translation: String!
+  word: String!
+}
+
+type FrenchVocabularyWordType {
+  context: String
+  createdAt: DateTime!
+  difficulty: String!
+  id: String!
+  mastered: Boolean!
+  nextReviewAt: DateTime!
+  note: String
+  quebecEquivalent: String
+  timesCorrect: Int!
+  timesReviewed: Int!
+  translation: String!
+  updatedAt: DateTime!
+  word: String!
+}
+
+type FunnelAnalytics {
+  accepted: Int!
+  applied: Int!
+  offer: Int!
+  onsite: Int!
+  phoneScreen: Int!
+  rejected: Int!
+  saved: Int!
+  technical: Int!
+}
+
+input GenerateAboutInput {
+  currentAbout: String
+  experienceYears: Float
+  industry: String!
+  keyAchievements: [String!]!
+  skills: [String!]!
+  targetRole: String!
+  tone: String
+}
+
+input GenerateCareerConversationInput {
+  jobApplicationId: String
+  scenario: String
+}
+
+input GenerateCareerInterviewInput {
+  jobApplicationId: String
+  questionCount: Int! = 5
+  resumeId: String
+  targetRole: String
+}
+
+input GenerateConversationHintInput {
+  conversationId: String!
+}
+
+input GenerateCoverLetterInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
+  tone: String = "professional"
+}
+
+input GenerateEnglishHintInput {
+  interviewId: String!
+  questionId: String!
+}
+
+input GenerateEnglishInterviewInput {
+  jobDescription: String
+  questionCount: Int! = 5
+  scenario: EnglishInterviewScenario!
+}
+
+type GenerateEnglishQuestionsResultType {
+  interview: EnglishInterviewPracticeType!
+  questions: [EnglishPracticeQuestionType!]!
+}
+
+input GenerateHeadlineInput {
+  currentHeadline: String
+  currentRole: String!
+  experienceLevel: String
+  industry: String!
+  skills: [String!]!
+  targetRole: String!
+  tone: String
+}
+
+input GenerateInterviewHintInput {
+  interviewId: String!
+  questionId: String!
+}
+
+input GenerateInterviewQuestionsInput {
+  jobDescription: String
+  questionCount: Int! = 5
+  scenario: InterviewScenario!
+}
+
+type GenerateQuestionsResultType {
+  interview: FrenchInterviewType!
+  questions: [GeneratedQuestionType!]!
+}
+
+type GeneratedCoverLetter {
+  content: String!
+  coverLetter: CoverLetterType!
+}
+
+type GeneratedQuestionType {
+  category: String!
+  id: String!
+  question: String!
+}
+
+type GeneratedQuestions {
+  questions: [InterviewQuestionType!]!
+}
+
+type InterviewEvaluationType {
+  confidenceScore: Int!
+  corrections: JSON!
+  feedback: String!
+  grammarScore: Int!
+  improvedAnswer: String!
+  questionId: String!
+  technicalScore: Int!
+}
+
+type InterviewHintType {
+  exampleAnswer: String!
+  hint: String!
+  keyPoints: String!
+}
+
+type InterviewQuestionType {
+  answer: String
+  category: String
+  createdAt: DateTime!
+  difficulty: Int
+  id: String!
+  isFavorite: Boolean!
+  question: String!
+  source: String
+  type: QuestionTypeEnum!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input InterviewQuestionsInput {
+  jobDescription: String!
+  questionType: QuestionTypeEnum
+  role: String!
+}
+
+enum InterviewScenario {
+  CUSTOM_JOB
+  FRONTEND_DEVELOPER
+  FULL_STACK_DEVELOPER
+  TEAM_LEAD
+}
+
+type InterviewType {
+  createdAt: DateTime!
+  durationMinutes: Int
+  feedback: String
+  id: String!
+  interviewers: String
+  isCompleted: Boolean!
+  jobApplicationId: String!
+  location: String
+  notes: String
+  rating: Int
+  round: Int!
+  scheduledAt: DateTime
+  type: InterviewTypeEnum!
+  updatedAt: DateTime!
+}
+
+enum InterviewTypeEnum {
+  BEHAVIORAL
+  CODING
+  ONSITE
+  PANEL
+  PHONE
+  SYSTEM_DESIGN
+  TAKE_HOME
+  TECHNICAL
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type JobInterviewBrief {
+  id: String!
+  isCompleted: Boolean
+  scheduledAt: DateTime
+  type: String!
+}
+
+input JobSourceInput {
+  greenhouse: Boolean = true
+  indeed: Boolean = true
+  lever: Boolean = true
+  linkedin: Boolean = true
+  workday: Boolean = true
+  workopolis: Boolean = true
+  ziprecruiter: Boolean = true
+}
+
+enum JobStatus {
+  ACCEPTED
+  APPLIED
+  OFFER
+  ONSITE
+  PHONE_SCREEN
+  REJECTED
+  SAVED
+  TECHNICAL
+  WITHDRAWN
+}
+
+type JobType {
+  companyName: String!
+  createdAt: DateTime!
+  id: String!
+  interviews: [JobInterviewBrief!]
+  jobDescription: String
+  jobTitle: String!
+  jobUrl: String
+  location: String
+  notes: String
+  salaryRange: String
+  scrapedAt: DateTime
+  source: ApplicationSource
+  sourceId: String
+  sourceUrl: String
+  status: JobStatus!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type LinkedinOptimizationResult {
+  optimization: LinkedinOptimizationType!
+  output: JSON!
+}
+
+type LinkedinOptimizationType {
+  createdAt: DateTime!
+  id: String!
+  inputData: JSON!
+  outputData: JSON!
+  type: String!
+  userId: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type MonthlyStat {
+  applications: Int!
+  interviews: Int!
+  month: String!
+}
+
+type Mutation {
+  addFrenchVocabularyWord(input: AddVocabularyWordInput!): FrenchVocabularyWordType!
+  addTrackedVocabulary(input: AddTrackedVocabularyInput!): FrenchVocabularyType!
+  analyzeLinkedinProfile(input: AnalyzeProfileInput!): LinkedinOptimizationResult!
+  analyzeLinkedinVisibility(input: AnalyzeVisibilityInput!): LinkedinOptimizationResult!
+  analyzeSkillGap(input: SkillGapInput!): SkillGapResult!
+  compareResumeWithLinkedin(input: CompareResumeInput!): LinkedinOptimizationResult!
+  createCoverLetter(input: CreateCoverLetterInput!): CoverLetterType!
+  createInterview(input: CreateInterviewInput!): InterviewType!
+  createInterviewQuestion(input: CreateInterviewQuestionInput!): InterviewQuestionType!
+  createJob(input: CreateJobInput!): JobType!
+  createResume(input: CreateResumeInput!): ResumeType!
+  createSkillGapReport(input: CreateSkillGapReportInput!): SkillGapReportType!
+  deleteAllJobs: Int!
+  deleteCoverLetter(id: String!): Boolean!
+  deleteFrenchConversation(id: String!): Boolean!
+  deleteFrenchVocabularyWord(wordId: String!): Boolean!
+  deleteInterview(id: String!): Boolean!
+  deleteInterviewQuestion(id: String!): Boolean!
+  deleteJob(id: String!): Boolean!
+  deleteLinkedinOptimization(id: String!): Boolean!
+  deleteResume(id: String!): Boolean!
+  deleteSkillGapReport(id: String!): Boolean!
+  deleteTrackedVocabulary(id: String!): Boolean!
+  evaluateEnglishInterviewAnswer(input: EvaluateEnglishAnswerInput!): EvaluateEnglishAnswerResultType!
+  evaluateFrenchInterviewAnswer(input: EvaluateInterviewAnswerInput!): EvaluateAnswerResultType!
+  evaluateFrenchPronunciation(input: EvaluatePronunciationInput!): PronunciationResultType!
+  extractFrenchVocabulary(conversationId: String!): [FrenchVocabularyWordType!]!
+  finishFrenchSession(id: String!, input: FinishFrenchSessionInput!): FrenchSessionType!
+  generateCareerConversation(input: GenerateCareerConversationInput!): SendFrenchMessageResult!
+  generateCareerInterviewQuestions(input: GenerateCareerInterviewInput!): GenerateQuestionsResultType!
+  generateCoverLetter(input: GenerateCoverLetterInput!): GeneratedCoverLetter!
+  generateEnglishInterviewHint(input: GenerateEnglishHintInput!): EnglishInterviewHintType!
+  generateEnglishInterviewQuestions(input: GenerateEnglishInterviewInput!): GenerateEnglishQuestionsResultType!
+  generateFrenchConversationHint(input: GenerateConversationHintInput!): ConversationHintType!
+  generateFrenchInterviewHint(input: GenerateInterviewHintInput!): InterviewHintType!
+  generateFrenchInterviewQuestions(input: GenerateInterviewQuestionsInput!): GenerateQuestionsResultType!
+  generateInterviewQuestions(input: InterviewQuestionsInput!): GeneratedQuestions!
+  generateLinkedinAbout(input: GenerateAboutInput!): LinkedinOptimizationResult!
+  generateLinkedinHeadlines(input: GenerateHeadlineInput!): LinkedinOptimizationResult!
+  generateQuebecEquivalent(wordId: String!): FrenchVocabularyWordType!
+  importJobs(jobs: [CreateJobInput!]!): BulkImportResult!
+  login(input: LoginInput!): AuthPayload!
+  markVocabularyDifficult(difficult: Boolean!, id: String!): FrenchVocabularyType!
+  markVocabularyLearned(id: String!): FrenchVocabularyType!
+  optimizeLinkedinExperience(input: OptimizeExperienceInput!): LinkedinOptimizationResult!
+  refreshToken(token: String!): AuthPayload!
+  register(input: RegisterInput!): AuthPayload!
+  reviewFrenchVocabularyWord(input: ReviewVocabularyWordInput!): FrenchVocabularyWordType!
+  scrapeCompany(input: ScrapeCompanyInput!): [ScrapedJobType!]!
+  scrapeJobs(input: ScrapeJobsInput!): ScrapeResult!
+  sendFrenchMessage(input: SendFrenchMessageInput!): SendFrenchMessageResult!
+  setPrimaryResume(id: String!): ResumeType!
+  startFrenchSession(input: StartFrenchSessionInput!): FrenchSessionType!
+  toggleFavoriteQuestion(id: String!): InterviewQuestionType
+  updateCoverLetter(id: String!, input: UpdateCoverLetterInput!): Boolean!
+  updateFrenchProfile(input: UpdateFrenchProfileInput!): FrenchProfileType!
+  updateInterview(id: String!, input: UpdateInterviewInput!): Boolean!
+  updateInterviewQuestion(id: String!, input: UpdateInterviewQuestionInput!): Boolean!
+  updateJob(id: String!, input: UpdateJobInput!): Boolean!
+  updateProfile(input: UpdateProfileInput!): UserType!
+  updateResume(id: String!, input: UpdateResumeInput!): Boolean!
+}
+
+input OptimizeExperienceInput {
+  entries: [ExperienceEntry!]!
+  industry: String
+  tone: String
+}
+
+type PaginatedJobs {
+  edges: [JobType!]!
+  meta: PaginationMeta!
+}
+
+input PaginationInput {
+  limit: Float = 20
+  page: Float = 1
+  sortBy: String
+  sortOrder: String
+}
+
+type PaginationMeta {
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+enum PostedWithin {
+  D3
+  D7
+  D14
+  D30
+  H24
+}
+
+type PronunciationImprovementType {
+  suggestion: String!
+  text: String!
+}
+
+type PronunciationResultType {
+  accuracyScore: Int!
+  clarityScore: Int!
+  feedback: String!
+  fluencyScore: Int!
+  improvements: [PronunciationImprovementType!]!
+  overallScore: Int!
+}
+
+type ProviderHealthType {
+  healthy: Boolean!
+  lastError: String
+  lastRun: DateTime!
+  provider: String!
+}
+
+type ProviderStatsType {
+  greenhouse: Int!
+  indeed: Int!
+  lever: Int!
+  linkedin: Int!
+  workday: Int!
+  workopolis: Int!
+  ziprecruiter: Int!
+}
+
+type Query {
+  careerFrenchSuggestions: [CareerSuggestionType!]!
+  compareFrenchVariants(phrase: String!): FrenchVariantComparisonType!
+  coverLetter(id: String!): CoverLetterType
+  coverLetters: [CoverLetterType!]!
+  englishInterview(id: String!): EnglishInterviewPracticeType!
+  englishInterviews: [EnglishInterviewPracticeType!]!
+  frenchConversation(id: String!): FrenchConversationType!
+  frenchConversations: [FrenchConversationType!]!
+  frenchCulturalTip(topic: String): FrenchCulturalTipType
+  frenchCulturalTipHistory: [FrenchCulturalTipType!]!
+  frenchInterview(id: String!): FrenchInterviewType!
+  frenchInterviews: [FrenchInterviewType!]!
+  frenchProfile: FrenchProfileType!
+  frenchProgress: FrenchProgressType!
+  frenchSessions(type: String): [FrenchSessionType!]!
+  frenchTodayVocabulary: TodayVocabularyType!
+  frenchTrackedVocabulary: [FrenchVocabularyType!]!
+  frenchVocabulary(filter: VocabularyFilterInput): [FrenchVocabularyWordType!]!
+  frenchVocabularyStats: FrenchVocabularyStatsType!
+  frenchVocabularyTrackerStats: FrenchVocabularyTrackerStatsType!
+  funnelAnalytics: FunnelAnalytics!
+  interview(id: String!): InterviewType
+  interviewQuestion(id: String!): InterviewQuestionType
+  interviewQuestionsByUser: [InterviewQuestionType!]!
+  interviews: [InterviewType!]!
+  job(id: String!): JobType
+  jobs(pagination: PaginationInput, search: String, status: JobStatus): PaginatedJobs!
+  linkedinOptimization(id: String!): LinkedinOptimizationType
+  linkedinOptimizations(type: String): [LinkedinOptimizationType!]!
+  me: UserType!
+  monthlyStats(from: DateTime!, to: DateTime!): [MonthlyStat!]!
+  resume(id: String!): ResumeType
+  resumes: [ResumeType!]!
+  scraperStatus: [ProviderHealthType!]!
+  skillGapReport(id: String!): SkillGapReportType
+  skillGapReports: [SkillGapReportType!]!
+}
+
+enum QuestionTypeEnum {
+  BEHAVIORAL
+  CODING
+  SYSTEM_DESIGN
+  TECHNICAL
+}
+
+input RegisterInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+type ResumeType {
+  createdAt: DateTime!
+  fileKey: String!
+  fileSize: Int
+  fileUrl: String!
+  id: String!
+  isPrimary: Boolean!
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input ReviewVocabularyWordInput {
+  score: Int!
+  wordId: String!
+}
+
+type ScorePointType {
+  date: String!
+  fluencyScore: Int!
+  grammarScore: Int!
+  vocabularyScore: Int!
+}
+
+input ScrapeCompanyInput {
+  careerUrl: String!
+  query: String
+}
+
+input ScrapeJobsInput {
+  importAll: Boolean = false
+  jobType: String
+  keywords: String!
+  location: String!
+  postedWithin: PostedWithin
+  remote: Boolean
+  salaryMax: Int
+  salaryMin: Int
+  source: String
+  sources: JobSourceInput
+}
+
+type ScrapeResult {
+  imported: Int!
+  jobs: [ScrapedJobType!]!
+  stats: ProviderStatsType
+  total: Int!
+}
+
+type ScrapedJobType {
+  companyName: String!
+  employmentType: String
+  jobDescription: String
+  jobTitle: String!
+  jobUrl: String
+  location: String
+  postedDate: String
+  salaryRange: String
+  source: String!
+  workMode: String
+}
+
+input SendFrenchMessageInput {
+  conversationId: String
+  jobDescription: String
+  message: String!
+  scenario: ConversationScenario
+}
+
+type SendFrenchMessageResult {
+  conversationId: String!
+  response: FrenchMessageType!
+}
+
+input SkillGapInput {
+  companyName: String!
+  jobDescription: String!
+  jobTitle: String!
+  userSkills: String!
+}
+
+type SkillGapReportType {
+  companyName: String!
+  createdAt: DateTime!
+  id: String!
+  jobDescription: String!
+  jobTitle: String!
+  matchScore: Float!
+  missingSkills: JSON!
+  recommendations: JSON
+  requiredSkills: JSON!
+  userId: String!
+  userSkills: JSON!
+}
+
+type SkillGapResult {
+  matchScore: Float!
+  missingSkills: JSON!
+  recommendations: JSON
+  report: SkillGapReportType!
+  requiredSkills: JSON!
+}
+
+input StartFrenchSessionInput {
+  inputData: JSON
+  type: String!
+}
+
+type SubscriptionType {
+  currentPeriodEnd: DateTime
+  id: String!
+  isActive: Boolean!
+  tier: String!
+}
+
+type TodayVocabularyType {
+  date: String!
+  difficultCount: Int!
+  learnedCount: Int!
+  totalCount: Int!
+  words: [FrenchVocabularyType!]!
+}
+
+input UpdateCoverLetterInput {
+  companyName: String
+  content: String
+  isGenerated: Boolean
+  jobDescription: String
+  jobTitle: String
+  tone: String
+}
+
+input UpdateFrenchProfileInput {
+  frenchLevel: String
+  frenchVariant: FrenchVariant
+  targetIndustry: String
+  targetMarket: String
+  targetRole: String
+}
+
+input UpdateInterviewInput {
+  durationMinutes: Int
+  feedback: String
+  interviewers: String
+  isCompleted: Boolean
+  jobApplicationId: String
+  location: String
+  notes: String
+  rating: Int
+  round: Int
+  scheduledAt: String
+  type: InterviewTypeEnum
+}
+
+input UpdateInterviewQuestionInput {
+  answer: String
+  category: String
+  difficulty: Int
+  isFavorite: Boolean
+  question: String
+  source: String
+  type: QuestionTypeEnum
+}
+
+input UpdateJobInput {
+  companyName: String
+  jobDescription: String
+  jobTitle: String
+  jobUrl: String
+  location: String
+  notes: String
+  salaryRange: String
+  source: ApplicationSource
+  status: JobStatus
+}
+
+input UpdateProfileInput {
+  experienceLevel: String
+  firstName: String
+  lastName: String
+  summary: String
+  targetLocations: String
+  targetRole: String
+  title: String
+}
+
+input UpdateResumeInput {
+  fileKey: String
+  fileSize: Int
+  fileUrl: String
+  isPrimary: Boolean
+  mimeType: String
+  parsedEducation: String
+  parsedExperience: String
+  parsedSkills: String
+  title: String
+}
+
+type UserType {
+  avatarUrl: String
+  createdAt: DateTime!
+  email: String!
+  experienceLevel: String
+  firstName: String!
+  id: String!
+  isActive: Boolean!
+  lastName: String!
+  subscription: SubscriptionType
+  summary: String
+  targetLocations: String
+  targetRole: String
+  title: String
+  updatedAt: DateTime!
+}
+
+input VocabularyFilterInput {
+  difficulty: String
+  mastered: Boolean
+}

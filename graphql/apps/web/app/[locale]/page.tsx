@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { useAuthStore } from '@/lib/auth-store';
 
 export default function HomePage() {
@@ -10,9 +10,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/en/dashboard');
+      router.replace('/dashboard');
     } else {
-      router.replace('/en/login');
+      router.replace('/login');
     }
   }, [isAuthenticated, router]);
 
