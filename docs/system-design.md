@@ -1,6 +1,6 @@
 # System Design Document — JobPilot AI
 
-> Version 1.1 | July 2026
+> Version 1.2 | July 2026
 
 ---
 
@@ -54,13 +54,14 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Frontend** | Next.js 15.5, React 19, TypeScript | SSR, RSC, SEO |
+| **Frontend** | Next.js 15.5, React 19, TypeScript (strict) | SSR, RSC, SEO |
 | **UI** | TailwindCSS, Shadcn UI, Radix UI | Styling, accessible components |
+| **i18n** | next-intl (v4), flat JSON dictionaries | Bilingual EN/FR with locale routing |
 | **State/Data** | TanStack Query, Zustand, GraphQL | Server state, client state, API |
 | **Charts** | Recharts | Analytics dashboards |
 | **Backend** | NestJS 11, TypeScript | GraphQL + REST API |
 | **API** | Apollo Server (GraphQL) | Flexible client queries |
-| **ORM** | Prisma 6 (engine=none) | Type-safe database access (no binary deps) |
+| **ORM** | Prisma 6 (engine=library) | Type-safe database access (no binary deps) |
 | **DB** | PostgreSQL 16 (Docker Compose) | Primary data store |
 | **Cache** | Redis 7 (Docker Compose) | Sessions, rate limiting, cache |
 | **AI** | Ollama (local LLM) — qwen2.5:7b primary, phi3:mini fallback | Free, private AI inference — no cloud API dependency |
@@ -78,6 +79,76 @@ JobPilot AI uses a **modular monolith** architecture deployed on AWS ECS Fargate
 | **GraphQL** | HTTP/2 | Frontend ↔ Backend data queries |
 | **REST** | HTTP/2 | File uploads, health checks |
 | **Internal** | In-process | Modular monolith module communication |
+
+---
+
+### 2.0 Frontend Provider Architecture
+
+```
+app/layout.tsx (Root Server Component)
+└── {children}  (no providers here — clean root)
+
+app/[locale]/layout.tsx (Locale Server Component)
+├── NextIntlClientProvider  (messages from server)
+│   ├── ThemeProvider        (client context — localStorage/matchMedia)
+│   │   └── QueryProvider    (TanStack Query client)
+│   │       └── {children}   (page content)
+│   └── (no Toaster here)
+└── ToasterProvider          (next/dynamic, ssr: false — outside provider tree)
+```
+
+**Key design decisions:**
+- **Single provider tree:** Root layout has no providers; all providers live in `[locale]/layout.tsx`. Duplicate providers cause React `ForwardRef` setState-during-render errors.
+- **Toaster isolation:** Sonner's `<Toaster>` (a `ForwardRef`) is rendered via `next/dynamic` with `ssr: false` and placed outside the `ThemeProvider`/`QueryProvider` tree to prevent hydration conflicts.
+- **Theme provider:** Always renders the `ThemeContext.Provider` wrapper (no conditional mounting); uses `mounted` state guard only for client-only DOM operations (localStorage, classList).
+- **Language switcher:** Uses `startTransition()` to wrap `router.replace()` locale changes, preventing synchronous state update conflicts during navigation.
+
+### 2.0.1 i18n Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   next-intl (v4)                     │
+├─────────────────────────────────────────────────────┤
+│  i18n/routing.ts                                    │
+│    locales: ['en', 'fr']                            │
+│    defaultLocale: 'en'                              │
+│    localePrefix: 'as-needed'                        │
+│                                                     │
+│  i18n/request.ts                                    │
+│    merges 16 flat JSON files per locale:            │
+│    messages/{locale}/{section}.json                 │
+│                                                     │
+│  middleware.ts                                       │
+│    locale detection (cookie → header → URL)          │
+└─────────────────────────────────────────────────────┘
+
+messages/
+├── en/                    (16 flat dictionaries)
+│   ├── analytics.json
+│   ├── auth.json
+│   ├── common.json
+│   ├── cover-letters.json
+│   ├── dashboard.json
+│   ├── french-coach.json
+│   ├── interview-coach.json
+│   ├── interviews.json
+│   ├── jobs.json
+│   ├── language.json
+│   ├── linkedin.json
+│   ├── nav.json
+│   ├── resumes.json
+│   ├── scraper.json
+│   ├── settings.json
+│   └── skills.json
+└── fr/                    (16 flat dictionaries — English keys → French values)
+    ├── (same 16 files)
+```
+
+**Dictionary convention:**
+- Keys ARE the English text itself (e.g., `"Generate Cover Letter": "Generate Cover Letter"`)
+- French files map English keys → French translations (e.g., `"Generate Cover Letter": "Générer la lettre de motivation"`)
+- No dots (`.`) in keys — next-intl interprets dots as nesting; use `…` (ellipsis) or `–` (dash) instead
+- All `useTranslations()` calls use no namespace — flat key lookup
 
 ---
 
@@ -1065,11 +1136,13 @@ Ollama runs locally as a single process. To handle load and quality:
 | CSS approach | Tailwind | CSS modules, styled-components | Utility-first, design system, bundle size |
 | Auth | JWT | Sessions, OAuth | Stateless, API-friendly, simple deployment |
 | AI provider | Ollama (local LLM) | OpenRouter, direct OpenAI/Anthropic | Free, private, no API key dependency, runs offline |
+| i18n | next-intl (flat JSON) | react-intl, next-i18next, i18next | Flat dictionaries with English keys, per-section loading, no namespaces |
 | Voice input | Web Speech API + MediaRecorder | Azure Speech, Deepgram | No third-party dependency, free, offline-capable |
-| Prisma engine | engine=none (no binary) | Full engine | Windows EPERM workaround, lighter Docker images |
+| Prisma engine | engine=library (no binary) | Full engine | Windows EPERM workaround, lighter Docker images |
 | Deployment | Docker Compose (local), ECS Fargate (planned) | Lambda, EKS, Render | Predictable perf, no cluster management |
 | Infra-as-Code | Terraform | Pulumi, CDK | Cloud-agnostic, mature ecosystem |
 | Monorepo | Turborepo | Nx, Lerna | Simple, fast, Vercel integration |
+| Provider tree | Single in [locale]/layout | Duplicate in root + locale | Prevents ForwardRef hydration errors |
 
 ## Appendix B: Local Development Notes
 
@@ -1083,6 +1156,11 @@ Ollama runs locally as a single process. To handle load and quality:
 | **Ollama setup** | Install from `https://ollama.com`, run `ollama pull qwen2.5:7b`. Set `AI_PROVIDER=ollama` and `OLLAMA_MODEL=qwen2.5:7b` in `apps/api/.env` |
 | **Ollama path** | Windows: `C:\Users\Administrator\AppData\Local\Programs\Ollama\ollama.exe` — not in PATH by default |
 | **AI_PROVIDER env** | Set to `ollama` for local LLM, `openrouter` for cloud. OLLAMA_BASE_URL defaults to `http://127.0.0.1:11434/v1` |
+| **i18n dot keys** | next-intl treats `.` as nesting; replace with `…` (ellipsis) or `–` (dash) in keys |
+| **Duplicate providers** | Root `app/layout.tsx` must NOT have providers; all go in `app/[locale]/layout.tsx` to avoid ForwardRef conflicts |
+| **Sonner Toaster** | Must use `next/dynamic` with `ssr: false` and render outside provider tree to prevent hydration errors |
+| **Language switcher** | Wrap `router.replace()` in `startTransition()` to prevent setState-during-render errors on locale change |
+| **PowerShell JSON** | Never use `ConvertTo-Json` for i18n files — it corrupts apostrophes (`\u0027`) and special chars. Use Node.js or Write tool directly |
 
 ## Appendix C: Monitoring & Observability
 

@@ -91,6 +91,21 @@ Become the single source of truth for any job seeker's search — reducing time-
 - **Salary Analytics:** Salary range analysis by role, experience, location
 - **Demand Trends:** Monthly/quarterly hiring demand visualization
 
+### 3.12 Internationalization (i18n)
+- **Bilingual Support:** English (default) and French (via next-intl)
+- **French Variants:** Metropolitan French (fr-FR) and Quebec French (fr-CA)
+- **Per-Section Dictionaries:** 16 flat JSON dictionary files per locale under `messages/{locale}/`
+  - Keys are English text itself; values are translations (identity mapping for EN)
+  - Sections: analytics, auth, common, cover-letters, dashboard, french-coach, interview-coach, interviews, jobs, language, linkedin, nav, resumes, scraper, settings, skills
+- **Locale Routing:** `middleware.ts` handles locale detection; `as-needed` prefix strategy
+- **Language Switcher:** Client-side locale switching via `next-intl/navigation` with `startTransition`
+- **Content Translation:** All user-facing UI text translated; AI-generated content in French or English depending on context
+
+### 3.13 System Reliability
+- **Hydration Safety:** Single provider tree (no duplicate providers); ToasterProvider rendered via `next/dynamic` with `ssr: false`
+- **Theme Provider:** Always renders context wrapper; mount-guarded UI for client-only state (localStorage, matchMedia)
+- **Zero TypeScript `any` Types:** Both API and frontend compile with strict mode, zero errors
+
 ## 4. User Roles & Permissions
 
 | Role | Permissions |
@@ -177,29 +192,39 @@ Become the single source of truth for any job seeker's search — reducing time-
 
 ### Directory Structure
 ```
-frontend/
+apps/web/
 ├── app/
-│   ├── (auth)/           # Auth pages (login, register)
-│   ├── (dashboard)/      # Authenticated pages
-│   │   ├── jobs/         # Job tracking (kanban/list)
-│   │   ├── analytics/    # Dashboard & analytics
-│   │   ├── resumes/      # Resume management
-│   │   ├── cover-letters/# Cover letter generator
-│   │   ├── interview/    # Interview preparation
-│   │   ├── skills/       # Skill gap analysis
-│   │   └── settings/     # User profile & settings
-│   ├── api/              # API routes (Next.js API handlers)
-│   └── layout.tsx
+│   ├── layout.tsx                # Root layout (no providers)
+│   ├── (auth)/                   # Auth pages (login, register)
+│   └── [locale]/                 # Locale-prefixed routes
+│       ├── layout.tsx            # Providers: NextIntl, Theme, Query, Toaster
+│       └── dashboard/
+│           ├── page.tsx          # Dashboard overview
+│           ├── jobs/             # Job tracking (kanban/list)
+│           ├── analytics/        # Dashboard & analytics
+│           ├── resumes/          # Resume management
+│           ├── cover-letters/    # Cover letter generator
+│           ├── interviews/       # Interview tracking & English practice
+│           ├── interview-coach/  # AI interview coach (FR/EN)
+│           ├── skills/           # Skill gap analysis
+│           ├── settings/         # User profile & settings
+│           ├── scraper/          # Job scraping
+│           ├── linkedin/         # LinkedIn optimizer (5 sub-pages)
+│           └── french/           # French language coach (6 sub-pages)
 ├── components/
 │   ├── ui/               # Shadcn UI components
-│   ├── forms/            # Form components
-│   ├── charts/           # Chart components (analytics)
-│   └── shared/           # Shared components
-├── lib/
-│   ├── graphql/          # GraphQL queries/mutations
-│   ├── utils/            # Utility functions
-│   └── hooks/            # Custom hooks
-└── types/                # TypeScript types
+│   ├── voice/            # Voice input, playback, speech synthesis
+│   └── providers/        # query-provider, toaster-provider
+├── i18n/
+│   ├── request.ts        # Merges 16 per-section flat JSON files
+│   └── routing.ts        # Locales, navigation helpers
+├── messages/
+│   ├── en/               # 16 flat dictionaries (EN keys = EN values)
+│   └── fr/               # 16 flat dictionaries (EN keys → FR values)
+└── lib/
+    ├── graphql/          # GraphQL queries, mutations, types
+    ├── hooks/            # Custom hooks (use-auth)
+    └── theme.tsx         # ThemeProvider (dark/light)
 ```
 
 ### State Management
@@ -210,50 +235,35 @@ frontend/
 ### Key Libraries
 - `@tanstack/react-query` — Server state & caching
 - `graphql-request` — GraphQL client
-- `next-auth` — Authentication
+- `next-intl` — Internationalization (EN/FR bilingual)
+- `sonner` — Toast notifications
 - `recharts` — Charts
 - `react-dropzone` — File upload
-- `@tiptap/react` — Rich text editor
-- `react-beautiful-dnd` — Kanban drag & drop
+- `lucide-react` — Icons
 
 ## 3. Backend Architecture (NestJS + GraphQL)
 
 ### Directory Structure
 ```
-backend/
+apps/api/
 ├── src/
 │   ├── main.ts
 │   ├── app.module.ts
-│   ├── common/
-│   │   ├── decorators/
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   ├── filters/
-│   │   ├── pipes/
-│   │   └── utils/
 │   ├── modules/
 │   │   ├── auth/
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.resolver.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── strategies/
-│   │   │   └── dto/
 │   │   ├── users/
 │   │   ├── jobs/
-│   │   ├── applications/
 │   │   ├── resumes/
 │   │   ├── cover-letters/
 │   │   ├── interviews/
 │   │   ├── skills/
 │   │   ├── analytics/
-│   │   ├── ai/
-│   │   │   ├── ai.module.ts
-│   │   │   ├── ai.service.ts
-│   │   │   ├── cover-letter.service.ts
-│   │   │   ├── interview-prep.service.ts
-│   │   │   └── resume-optimizer.service.ts
-│   │   ├── subscription/
-│   │   └── market-analytics/
+│   │   ├── ai/                    # AI orchestration (Ollama provider)
+│   │   ├── french-coach/          # French conversations, interviews, vocabulary, cultural
+│   │   ├── english-interview/     # English interview practice
+│   │   ├── linkedin/              # LinkedIn profile optimizer
+│   │   ├── scraper/               # Job scraping via ATS providers
+│   │   └── subscription/
 │   ├── prisma/
 │   │   ├── prisma.module.ts
 │   │   └── prisma.service.ts
@@ -261,7 +271,7 @@ backend/
 │       ├── config.module.ts
 │       └── config.service.ts
 ├── prisma/
-│   ├── schema.prisma
+│   ├── schema.prisma              # 21 models
 │   └── seed.ts
 └── test/
 ```
@@ -275,19 +285,28 @@ backend/
 
 ## 4. Database Schema (PostgreSQL via Prisma)
 
-### Entity Relationship Summary
+### Entity Relationship Summary (21 Models)
 ```
 User (1) ──── (N) JobApplication
 User (1) ──── (N) Resume
 User (1) ──── (N) CoverLetter
 User (1) ──── (N) InterviewQuestion
+User (1) ──── (N) SkillGapReport
+User (1) ──── (N) LinkedinOptimization
+User (1) ──── (N) EnglishInterviewPractice
+User (1) ──── (1) FrenchProfile
 User (1) ──── (1) Subscription
+
+FrenchProfile (1) ──── (N) FrenchConversation
+FrenchProfile (1) ──── (N) FrenchVocabularyWord
+FrenchProfile (1) ──── (N) FrenchVocabulary
+FrenchProfile (1) ──── (N) FrenchInterview
+
+FrenchConversation (1) ──── (N) FrenchMessage
+FrenchMessage (1) ──── (1) FrenchEvaluation
 
 JobApplication (1) ──── (N) Interview
 JobApplication (1) ──── (N) ApplicationEvent
-JobApplication (1) ──── (1) Company (via embedded/nested)
-
-JobApplication ──── Status: Saved | Applied | PhoneScreen | Technical | OnSite | Offer | Accepted | Rejected
 ```
 
 (See `database/schema.prisma` for complete schema)
@@ -434,7 +453,10 @@ Route53 (DNS)
 | **Prisma over TypeORM** | Better DX, type safety, migration tooling | Lock-in to Prisma-supported DBs |
 | **Next.js App Router** | React Server Components, streaming, SEO | More complex routing than Pages Router |
 | **ECS Fargate over Lambda** | Predictable performance for long-running AI requests | Higher baseline cost |
-| **OpenAI SDK** | Best-in-class text generation | Cost per token, vendor lock-in |
-| **Ollama (local LLM)** | Free, private AI inference — qwen2.5:7b for conversations, phi3:mini as fallback | Requires local hardware, slower than cloud APIs |
+| **Ollama (local LLM)** | Free, private AI inference — qwen2.5:7b primary, phi3:mini fallback | Requires local hardware, slower than cloud APIs |
+| **next-intl (flat dictionaries)** | English text as keys — zero `any` types, per-section loading, easy FR translation | Keys must avoid dots; tightly coupled to English wording |
+| **Single provider tree** | Root layout has no providers; all in `[locale]/layout.tsx` — prevents ForwardRef hydration errors | Providers re-mount on locale change |
+| **Toaster via dynamic import** | `ssr: false` prevents sonner's setState-during-render conflict | Extra client bundle on mount |
 | **TanStack Query** | Caching, retry, optimistic updates for great UX | Bundle size |
 | **Shadcn UI** | Full control over styling, no CSS conflicts | No pre-built themes |
+| **Zero `any` types** | Strict TypeScript across API + frontend, safer refactoring | More verbose type annotations |
