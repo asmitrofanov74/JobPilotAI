@@ -12,8 +12,9 @@ import {
   DELETE_FRENCH_CONVERSATION_MUTATION,
   GENERATE_FRENCH_CONVERSATION_HINT_MUTATION,
 } from '@/lib/graphql';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import {
   MessageSquare, Send, ChevronLeft, Users, Mic, BookOpen, Coffee,
   GraduationCap, Sparkles, ArrowLeft, Languages, Settings, Trash2, Lightbulb,
