@@ -5,7 +5,7 @@ import { client } from '@/lib/graphql/client';
 import { ANALYZE_LINKEDIN_PROFILE_MUTATION } from '@/lib/graphql';
 import { UserCheck, Sparkles, FileText, BarChart3, Search, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

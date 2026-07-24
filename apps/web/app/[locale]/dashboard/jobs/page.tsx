@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { client } from '@/lib/graphql/client';
 import { JOBS_QUERY, DELETE_JOB_MUTATION, DELETE_ALL_JOBS_MUTATION } from '@/lib/graphql';
 import { Plus, Briefcase, Search, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';

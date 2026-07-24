@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { client } from '@/lib/graphql/client';
 import { JOBS_QUERY, RESUMES_QUERY, COVER_LETTERS_QUERY, INTERVIEW_QUESTIONS_QUERY } from '@/lib/graphql';
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Briefcase, FileText, FileEdit, MessageSquare, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';

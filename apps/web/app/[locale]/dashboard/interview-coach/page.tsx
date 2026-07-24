@@ -22,9 +22,9 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Brain, ArrowLeft, BarChart3, CheckCircle2, ChevronRight, Lightbulb, Globe } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useRouter } from '@/i18n/routing';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type {
   GqlFrenchInterview,

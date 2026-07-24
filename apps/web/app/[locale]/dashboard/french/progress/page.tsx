@@ -7,7 +7,7 @@ import {
   FRENCH_SESSIONS_QUERY,
   FRENCH_CONVERSATIONS_QUERY,
 } from '@/lib/graphql';
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import {
   BarChart3, ScrollText, GraduationCap, Languages, MessageSquare,
   Users, Mic, BookOpen, Coffee, ArrowRight, TrendingUp, BookmarkCheck,
