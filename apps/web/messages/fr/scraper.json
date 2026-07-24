@@ -1,0 +1,22 @@
+{
+    "Job Scraper": "Scraper d'emplois",
+    "Search and import jobs from multiple sources": "Recherchez et importez des emplois depuis plusieurs sources",
+    "Keywords": "Mots-clés",
+    "Source": "Source",
+    "All Sources": "Toutes les sources",
+    "Posted Date": "Date de publication",
+    "Search Jobs": "Rechercher des emplois",
+    "Import All": "Tout importer",
+    "Scraping job listings…": "Recherche des offres...",
+    "Search failed – please try again": "Échec de la recherche. Veuillez réessayer.",
+    "Import failed": "Échec de l'importation",
+    "No jobs found": "Aucun emploi trouvé",
+
+    "Enter keywords and location above…": "Entrez les mots-clés et le lieu ci-dessus...",
+    "Indeed": "Indeed",
+    "Glassdoor": "Glassdoor",
+    "Search for Jobs": "Rechercher des emplois",
+    "Enter keywords and location to find job listings": "Entrez des mots-clés et un lieu pour trouver des offres d'emploi",
+    "Search failed": "La recherche a échoué",
+    "Scraping…": "Extraction en cours…"
+}

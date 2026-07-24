@@ -1,6 +1,7 @@
 import { GraphQLClient, ClientError } from 'graphql-request';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql';
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = rawUrl.endsWith('/graphql') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/graphql`;
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -36,8 +37,8 @@ export function setAuthToken(token: string | null) {
 }
 
 const REFRESH_MUTATION = `
-  mutation RefreshToken($refreshToken: String!) {
-    refreshToken(refreshToken: $refreshToken) {
+  mutation RefreshToken($token: String!) {
+    refreshToken(token: $token) {
       accessToken
       refreshToken
     }
@@ -72,7 +73,7 @@ async function tryRefresh(): Promise<boolean> {
   isRefreshing = true;
   try {
     const tempClient = new GraphQLClient(API_URL);
-    const result = await tempClient.request<{ refreshToken: { accessToken: string; refreshToken: string } }>(REFRESH_MUTATION, { refreshToken });
+    const result = await tempClient.request<{ refreshToken: { accessToken: string; refreshToken: string } }>(REFRESH_MUTATION, { token: refreshToken });
     if (result?.refreshToken) {
       setAuthToken(result.refreshToken.accessToken);
       updateStoredTokens(result.refreshToken.accessToken, result.refreshToken.refreshToken);

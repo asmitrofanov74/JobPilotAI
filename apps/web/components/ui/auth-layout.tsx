@@ -5,14 +5,16 @@ type AuthLayoutProps = {
   leftContent: ReactNode;
   showThemeToggle?: boolean;
   ThemeToggle?: ReactNode;
+  LanguageSwitcher?: ReactNode;
 };
 
-export function AuthLayout({ children, leftContent, showThemeToggle, ThemeToggle }: AuthLayoutProps) {
+export function AuthLayout({ children, leftContent, showThemeToggle, ThemeToggle, LanguageSwitcher }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex">
-      {showThemeToggle && ThemeToggle && (
-        <div className="fixed top-4 right-4 z-50">
-          {ThemeToggle}
+      {(showThemeToggle || LanguageSwitcher) && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-1">
+          {LanguageSwitcher}
+          {showThemeToggle && ThemeToggle}
         </div>
       )}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 items-center justify-center p-12 overflow-hidden">

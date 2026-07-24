@@ -80,6 +80,12 @@ input CompareResumeInput {
   resumeId: String!
 }
 
+type ConversationHintType {
+  hint: String!
+  keyPoints: String!
+  suggestedResponse: String!
+}
+
 enum ConversationScenario {
   CUSTOM_JOB
   DAILY_STANDUP
@@ -172,9 +178,64 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type EnglishInterviewHintType {
+  exampleAnswer: String!
+  hint: String!
+  keyPoints: String!
+}
+
+type EnglishInterviewPracticeType {
+  answers: JSON!
+  createdAt: DateTime!
+  evaluations: JSON!
+  id: String!
+  jobDescription: String
+  overallScore: Int
+  questionCount: Int!
+  questions: JSON!
+  scenario: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
+enum EnglishInterviewScenario {
+  BEHAVIORAL
+  CUSTOM_JOB
+  FRONTEND_DEVELOPER
+  FULL_STACK_DEVELOPER
+  TEAM_LEAD
+}
+
+type EnglishPracticeEvaluationType {
+  confidenceScore: Int!
+  corrections: JSON!
+  feedback: String!
+  grammarScore: Int!
+  improvedAnswer: String!
+  questionId: String!
+  technicalScore: Int!
+}
+
+type EnglishPracticeQuestionType {
+  category: String!
+  id: String!
+  question: String!
+}
+
 type EvaluateAnswerResultType {
   evaluation: InterviewEvaluationType!
   interview: FrenchInterviewType!
+}
+
+input EvaluateEnglishAnswerInput {
+  answer: String!
+  interviewId: String!
+  questionId: String!
+}
+
+type EvaluateEnglishAnswerResultType {
+  evaluation: EnglishPracticeEvaluationType!
+  interview: EnglishInterviewPracticeType!
 }
 
 input EvaluateInterviewAnswerInput {
@@ -373,11 +434,31 @@ input GenerateCareerInterviewInput {
   targetRole: String
 }
 
+input GenerateConversationHintInput {
+  conversationId: String!
+}
+
 input GenerateCoverLetterInput {
   companyName: String!
   jobDescription: String!
   jobTitle: String!
   tone: String = "professional"
+}
+
+input GenerateEnglishHintInput {
+  interviewId: String!
+  questionId: String!
+}
+
+input GenerateEnglishInterviewInput {
+  jobDescription: String
+  questionCount: Int! = 5
+  scenario: EnglishInterviewScenario!
+}
+
+type GenerateEnglishQuestionsResultType {
+  interview: EnglishInterviewPracticeType!
+  questions: [EnglishPracticeQuestionType!]!
 }
 
 input GenerateHeadlineInput {
@@ -388,6 +469,11 @@ input GenerateHeadlineInput {
   skills: [String!]!
   targetRole: String!
   tone: String
+}
+
+input GenerateInterviewHintInput {
+  interviewId: String!
+  questionId: String!
 }
 
 input GenerateInterviewQuestionsInput {
@@ -424,6 +510,12 @@ type InterviewEvaluationType {
   improvedAnswer: String!
   questionId: String!
   technicalScore: Int!
+}
+
+type InterviewHintType {
+  exampleAnswer: String!
+  hint: String!
+  keyPoints: String!
 }
 
 type InterviewQuestionType {
@@ -584,6 +676,7 @@ type Mutation {
   deleteResume(id: String!): Boolean!
   deleteSkillGapReport(id: String!): Boolean!
   deleteTrackedVocabulary(id: String!): Boolean!
+  evaluateEnglishInterviewAnswer(input: EvaluateEnglishAnswerInput!): EvaluateEnglishAnswerResultType!
   evaluateFrenchInterviewAnswer(input: EvaluateInterviewAnswerInput!): EvaluateAnswerResultType!
   evaluateFrenchPronunciation(input: EvaluatePronunciationInput!): PronunciationResultType!
   extractFrenchVocabulary(conversationId: String!): [FrenchVocabularyWordType!]!
@@ -591,6 +684,10 @@ type Mutation {
   generateCareerConversation(input: GenerateCareerConversationInput!): SendFrenchMessageResult!
   generateCareerInterviewQuestions(input: GenerateCareerInterviewInput!): GenerateQuestionsResultType!
   generateCoverLetter(input: GenerateCoverLetterInput!): GeneratedCoverLetter!
+  generateEnglishInterviewHint(input: GenerateEnglishHintInput!): EnglishInterviewHintType!
+  generateEnglishInterviewQuestions(input: GenerateEnglishInterviewInput!): GenerateEnglishQuestionsResultType!
+  generateFrenchConversationHint(input: GenerateConversationHintInput!): ConversationHintType!
+  generateFrenchInterviewHint(input: GenerateInterviewHintInput!): InterviewHintType!
   generateFrenchInterviewQuestions(input: GenerateInterviewQuestionsInput!): GenerateQuestionsResultType!
   generateInterviewQuestions(input: InterviewQuestionsInput!): GeneratedQuestions!
   generateLinkedinAbout(input: GenerateAboutInput!): LinkedinOptimizationResult!
@@ -688,6 +785,8 @@ type Query {
   compareFrenchVariants(phrase: String!): FrenchVariantComparisonType!
   coverLetter(id: String!): CoverLetterType
   coverLetters: [CoverLetterType!]!
+  englishInterview(id: String!): EnglishInterviewPracticeType!
+  englishInterviews: [EnglishInterviewPracticeType!]!
   frenchConversation(id: String!): FrenchConversationType!
   frenchConversations: [FrenchConversationType!]!
   frenchCulturalTip(topic: String): FrenchCulturalTipType
