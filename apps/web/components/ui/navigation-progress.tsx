@@ -42,7 +42,7 @@ export function NavigationOverlay() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-white/70 dark:bg-gray-950/70 backdrop-blur-sm flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[9999] bg-white dark:bg-gray-950 flex items-center justify-center transition-opacity duration-200 ${
         isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
     >

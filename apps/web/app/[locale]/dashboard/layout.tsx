@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const t = useTranslations();
-  const { startLoading } = useNavLoading();
+  const { startLoading, isLoading } = useNavLoading();
 
   const NAV = NAV_KEYS.map(({ key, href }) => ({
     label: t(key),
@@ -157,7 +157,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="relative p-4 sm:p-6 lg:p-8">
+          {isLoading && (
+            <div className="absolute inset-0 z-50 bg-white dark:bg-gray-950 flex items-center justify-center">
+              <div className="w-10 h-10 border-[3px] border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+          )}
           {children}
         </main>
       </div>

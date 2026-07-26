@@ -5,7 +5,7 @@ import { getMessages } from 'next-intl/server';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { ThemeProvider } from '@/lib/theme';
 import { ToasterProvider } from '@/components/providers/toaster-provider';
-import { NavigationProvider, NavigationOverlay } from '@/components/ui/navigation-progress';
+import { NavigationProvider } from '@/components/ui/navigation-progress';
 import { NavigationClickHandler } from '@/components/ui/navigation-click-handler';
 
 export const metadata: Metadata = {
@@ -29,7 +29,6 @@ export default async function LocaleLayout({
       <ThemeProvider>
         <QueryProvider>
           <NavigationProvider>
-            <NavigationOverlay />
             <NavigationClickHandler />
             {children}
           </NavigationProvider>
