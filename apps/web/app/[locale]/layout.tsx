@@ -5,7 +5,8 @@ import { getMessages } from 'next-intl/server';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { ThemeProvider } from '@/lib/theme';
 import { ToasterProvider } from '@/components/providers/toaster-provider';
-import { NavigationProgress } from '@/components/ui/navigation-progress';
+import { NavigationProvider, NavigationProgress, NavigationOverlay } from '@/components/ui/navigation-progress';
+import { NavigationClickHandler } from '@/components/ui/navigation-click-handler';
 
 export const metadata: Metadata = {
   title: 'JobPilot AI — Smart Job Search Engine',
@@ -27,8 +28,12 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
         <QueryProvider>
-          <NavigationProgress />
-          {children}
+          <NavigationProvider>
+            <NavigationProgress />
+            <NavigationOverlay />
+            <NavigationClickHandler />
+            {children}
+          </NavigationProvider>
         </QueryProvider>
       </ThemeProvider>
       <ToasterProvider />

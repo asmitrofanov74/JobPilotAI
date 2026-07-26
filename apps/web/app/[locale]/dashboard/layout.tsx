@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth-store';
+import { useNavLoading } from '@/components/ui/navigation-progress';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import {
@@ -49,6 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const t = useTranslations();
+  const { startLoading } = useNavLoading();
 
   const NAV = NAV_KEYS.map(({ key, href }) => ({
     label: t(key),
@@ -108,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-2">
               <LanguageSwitcher />
               <ThemeToggle />
-              <button onClick={() => { clearAuth(); router.push('/login'); }} className="flex items-center gap-2 ml-auto px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => { clearAuth(); startLoading(); router.push('/login'); }} className="flex items-center gap-2 ml-auto px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                 <LogOut className="w-4 h-4" />
                 {t('Sign out')}
               </button>
@@ -145,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
               </div>
-              <button onClick={() => { clearAuth(); router.push('/login'); }} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors" title="Sign out">
+              <button onClick={() => { clearAuth(); startLoading(); router.push('/login'); }} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors" title="Sign out">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>

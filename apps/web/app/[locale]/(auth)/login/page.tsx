@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useLogin } from '@/lib/hooks/use-auth';
+import { useNavLoading } from '@/components/ui/navigation-progress';
 import { AuthLayout } from '@/components/ui/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const login = useLogin();
   const t = useTranslations();
+  const { startLoading } = useNavLoading();
   const [email, setEmail] = useState('demo@jobpilot.ai');
   const [password, setPassword] = useState('demo1234');
 
@@ -25,6 +27,7 @@ export default function LoginPage() {
     try {
       await login.mutateAsync({ email, password });
       toast.success(t('Welcome back!'));
+      startLoading();
       router.push('/dashboard');
     } catch (err: unknown) {
       const message = err instanceof Error
