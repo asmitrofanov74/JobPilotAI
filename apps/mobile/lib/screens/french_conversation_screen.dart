@@ -73,6 +73,25 @@ class _FrenchConversationScreenState extends State<FrenchConversationScreen> {
     }
   }
 
+  Future<bool> _refreshMessages() async {
+    final id = _conversationId;
+    if (id == null) return false;
+    try {
+      final conversation = await _repository.getConversation(id);
+      if (!mounted || _conversationId != id) return false;
+      final hasEvaluation = conversation.messages
+          .any((m) => m.isUser && m.evaluation != null);
+      setState(() {
+        _messages = conversation.messages;
+        _error = null;
+      });
+      _scrollToBottom();
+      return hasEvaluation;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _start() async {
     setState(() => _loading = true);
     try {
@@ -147,6 +166,7 @@ class _FrenchConversationScreenState extends State<FrenchConversationScreen> {
       });
       _scrollToBottom();
       _autoSpeakLast();
+      _scheduleEvaluationRefresh();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -154,6 +174,21 @@ class _FrenchConversationScreenState extends State<FrenchConversationScreen> {
         _sending = false;
       });
     }
+  }
+
+  void _scheduleEvaluationRefresh() {
+    void tryRefresh(int delaySeconds) {
+      Future.delayed(Duration(seconds: delaySeconds), () {
+        if (!mounted || _sending) return;
+        _refreshMessages().then((hasEvaluation) {
+          if (!hasEvaluation && delaySeconds < 60) {
+            tryRefresh(delaySeconds + 15);
+          }
+        });
+      });
+    }
+
+    tryRefresh(5);
   }
 
   void _scrollToBottom() {
@@ -397,7 +432,7 @@ class _EvaluationChip extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${e.$1} ${(e.$2 * 100).round()}%',
+                  '${e.$1} ${e.$2.round()}%',
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onSecondaryContainer,

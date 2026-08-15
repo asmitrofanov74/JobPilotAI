@@ -28,6 +28,8 @@ class GraphqlService {
   static const String _accessKey = 'auth.accessToken';
   static const String _refreshKey = 'auth.refreshToken';
 
+  static const Duration _requestTimeout = Duration(seconds: 300);
+
   AuthTokens? _tokens;
   GraphQLClient? _client;
   bool _isRefreshing = false;
@@ -89,6 +91,7 @@ class GraphqlService {
         document: gql(document),
         variables: variables ?? const {},
         fetchPolicy: FetchPolicy.noCache,
+        queryRequestTimeout: _requestTimeout,
       ),
     );
 
@@ -100,6 +103,7 @@ class GraphqlService {
             document: gql(document),
             variables: variables ?? const {},
             fetchPolicy: FetchPolicy.noCache,
+            queryRequestTimeout: _requestTimeout,
           ),
         );
       }
@@ -117,6 +121,7 @@ class GraphqlService {
         document: gql(document),
         variables: variables ?? const {},
         fetchPolicy: FetchPolicy.noCache,
+        queryRequestTimeout: _requestTimeout,
       ),
     );
 
@@ -128,6 +133,7 @@ class GraphqlService {
             document: gql(document),
             variables: variables ?? const {},
             fetchPolicy: FetchPolicy.noCache,
+            queryRequestTimeout: _requestTimeout,
           ),
         );
       }
@@ -165,6 +171,7 @@ class GraphqlService {
         MutationOptions<Map<String, dynamic>>(
           document: gql(refreshDocument),
           variables: {'token': refreshToken},
+          queryRequestTimeout: _requestTimeout,
         ),
       );
       final data = result.data?['refreshToken'] as Map<String, dynamic>?;
