@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../auth/auth_state.dart';
+import 'french_coach_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -44,6 +45,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.record_voice_over,
             title: 'French Coach',
             subtitle: 'Practice job interviews with an AI recruiter.',
+            screen: FrenchCoachScreen(),
           ),
           const SizedBox(height: 12),
           const _FeatureCard(
@@ -73,11 +75,13 @@ class _FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Widget? screen;
 
   const _FeatureCard({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.screen,
   });
 
   @override
@@ -88,7 +92,13 @@ class _FeatureCard extends StatelessWidget {
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: () {
+          if (screen != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => screen!),
+            );
+          }
+        },
       ),
     );
   }
