@@ -7,6 +7,7 @@ export interface FrenchScenarioMeta {
   desc: string;
   color: string;
   bg: string;
+  gender?: 'male' | 'female';
 }
 
 export const FRENCH_SCENARIO_RECORD: Record<string, FrenchScenarioMeta> = {
@@ -17,6 +18,7 @@ export const FRENCH_SCENARIO_RECORD: Record<string, FrenchScenarioMeta> = {
     desc: 'Practice French interview questions',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
+    gender: 'male',
   },
   RECRUITER_CALL: {
     value: 'RECRUITER_CALL',
@@ -25,6 +27,7 @@ export const FRENCH_SCENARIO_RECORD: Record<string, FrenchScenarioMeta> = {
     desc: 'Simulate calls with French recruiters',
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
+    gender: 'male',
   },
   TEAM_MEETING: {
     value: 'TEAM_MEETING',
@@ -57,6 +60,7 @@ export const FRENCH_SCENARIO_RECORD: Record<string, FrenchScenarioMeta> = {
     desc: 'Paste a job description for tailored practice',
     color: 'text-indigo-600',
     bg: 'bg-indigo-50',
+    gender: 'male',
   },
 };
 

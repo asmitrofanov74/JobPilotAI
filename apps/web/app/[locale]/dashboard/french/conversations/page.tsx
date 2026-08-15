@@ -29,7 +29,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Textarea } from '@/components/ui/textarea';
 import { VoiceInput } from '@/components/voice/voice-input';
 import { useSpeechSynthesis } from '@/components/voice/use-speech-synthesis';
-import { VoiceReplayButton, AutoSpeakToggle } from '@/components/voice/voice-playback';
+import { VoiceReplayButton, AutoSpeakToggle, VoicePicker } from '@/components/voice/voice-playback';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
 import type { GqlFrenchConversation, GqlFrenchMessage, GqlFrenchCorrection, GqlConversationHint } from '@/lib/graphql/types';
 
@@ -76,7 +76,11 @@ function FrenchConversationsContent() {
   });
 
   const frenchLang = profileData?.frenchVariant === 'QUEBEC' ? 'fr-CA' : 'fr-FR';
-  const { speak, stop, speaking, autoSpeak, setAutoSpeak, supported: ttsSupported } = useSpeechSynthesis({ lang: frenchLang });
+  const activeGenderScenario = selectedId
+    ? conversations?.find((c: GqlFrenchConversation) => c.id === selectedId)?.scenario || newScenario
+    : newScenario;
+  const scenarioGender = scenarioMetaFor(activeGenderScenario).gender;
+  const { speak, stop, speaking, autoSpeak, setAutoSpeak, supported: ttsSupported, voices, selectedVoiceName, selectVoice } = useSpeechSynthesis({ lang: frenchLang, gender: scenarioGender });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -546,6 +550,7 @@ function FrenchConversationsContent() {
                         handleSendWithText(text);
                       }}
                       disabled={sendMutation.isPending}
+                      language={frenchLang}
                     />
                   </div>
                 ) : (
@@ -575,7 +580,8 @@ function FrenchConversationsContent() {
                         onKeyDown={handleKeyDown}
                         placeholder={showNew ? 'Type your first message in French...' : 'Type your message in French...'}
                         rows={1}
-                        className="flex-1 min-h-[44px] max-h-[120px] resize-none"
+                        containerClassName="flex-1"
+                        className="min-h-[44px] max-h-[120px]"
                       />
                       <Button
                         onClick={handleSend}
@@ -593,6 +599,12 @@ function FrenchConversationsContent() {
                           enabled={autoSpeak}
                           onChange={setAutoSpeak}
                           supported={ttsSupported}
+                        />
+                        <VoicePicker
+                          voices={voices}
+                          selected={selectedVoiceName}
+                          onSelect={selectVoice}
+                          disabled={!ttsSupported}
                         />
                         <button
                           onClick={() => setVoiceMode(true)}

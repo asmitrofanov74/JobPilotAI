@@ -2,13 +2,14 @@ import { type TextareaHTMLAttributes, forwardRef } from 'react';
 
 type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
+  containerClassName?: string;
 };
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, className = '', id, ...props }, ref) => {
+  ({ label, className = '', containerClassName = '', id, ...props }, ref) => {
     const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
     return (
-      <div className="space-y-1.5">
+      <div className={`space-y-1.5 ${containerClassName}`}>
         {label && (
           <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700">
             {label}
