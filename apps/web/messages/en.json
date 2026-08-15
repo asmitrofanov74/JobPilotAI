@@ -391,6 +391,8 @@
     "conversations": {
       "title": "Conversations",
       "startConversation": "Start a Conversation",
+      "startInterview": "Start the interview",
+      "jobDescription": "Job Description",
       "chooseScenario": "Choose a scenario above...",
       "newConversation": "New conversation",
       "startMessage": "Type your first message in French below",

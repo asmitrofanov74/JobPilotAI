@@ -392,6 +392,8 @@
     "conversations": {
       "title": "Conversations",
       "startConversation": "Commencer une conversation",
+      "startInterview": "Commencer l'entretien",
+      "jobDescription": "Description du poste",
       "chooseScenario": "Choisissez un scénario ci-dessus...",
       "newConversation": "Nouvelle conversation",
       "startMessage": "Tapez votre premier message en français ci-dessous",
