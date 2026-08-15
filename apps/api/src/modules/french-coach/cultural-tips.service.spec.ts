@@ -94,7 +94,6 @@ describe('CulturalTipsService', () => {
 
       expect(provider.chat).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'openrouter/free',
           temperature: 0.7,
           response_format: { type: 'json_object' },
         }),

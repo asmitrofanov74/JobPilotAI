@@ -145,7 +145,7 @@ export default function VisibilityPage() {
         emptyTitle={t('No analyses yet')}
         emptyDescription={t('Run your first visibility analysis')}
         displayField="visibilityScore"
-        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, unknown>) || {} })}
       />
     </div>
   );

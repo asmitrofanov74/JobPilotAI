@@ -115,7 +115,7 @@ export default function AboutPage() {
         emptyTitle={t('No about sections yet')}
         emptyDescription={t('Generate your first About section')}
         displayField="bestSection"
-        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, unknown>) || {} })}
       />
     </div>
   );

@@ -162,6 +162,7 @@ export interface GqlLinkedinOptimization {
 
 export interface GqlLinkedinResult {
   optimization: GqlLinkedinOptimization;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic AI-generated output consumed by index-access in pages
   output: Record<string, any>;
 }
 

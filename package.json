@@ -5,6 +5,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo clean && rm -rf node_modules",
     "db:migrate": "cd apps/api && npx prisma migrate dev",

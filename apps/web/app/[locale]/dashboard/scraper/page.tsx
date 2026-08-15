@@ -147,7 +147,7 @@ export default function ScraperPage() {
           </p>
           {scrape.data?.stats && (
             <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-              {ALL_SOURCES.filter((s) => (scrape.data?.stats as GqlScrapeResult['stats'])?.[s.toLowerCase()]! > 0).map((s) => (
+              {ALL_SOURCES.filter((s) => ((scrape.data?.stats as GqlScrapeResult['stats'])?.[s.toLowerCase()] ?? 0) > 0).map((s) => (
                 <span key={s} className="flex items-center gap-1">
                   <Badge variant={SOURCE_BADGE[s] || 'gray'}>{SOURCE_LABELS[s]}</Badge>
                   {(scrape.data?.stats as GqlScrapeResult['stats'])?.[s.toLowerCase()] || 0}

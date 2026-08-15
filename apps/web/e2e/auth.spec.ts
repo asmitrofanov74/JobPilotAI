@@ -67,6 +67,6 @@ test.describe('Dashboard', () => {
   test('settings page loads', async ({ page }) => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.waitForURL(/\/dashboard\/settings/, { timeout: 5000 });
-    await expect(page.getByText('Manage your profile')).toBeVisible();
+    await expect(page.getByText('Manage your account settings')).toBeVisible();
   });
 });

@@ -153,7 +153,7 @@ export default function ResumeComparisonPage() {
         emptyTitle={t('No comparisons yet')}
         emptyDescription={t('Compare your first resume with LinkedIn')}
         displayField="consistencyScore"
-        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, unknown>) || {} })}
       />
     </div>
   );

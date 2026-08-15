@@ -202,7 +202,7 @@ export default function LinkedinProfilePage() {
         emptyTitle={t('No analyses yet')}
         emptyDescription={t('Run your first profile analysis')}
         displayField="overallScore"
-        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, any>) || {} })}
+        onSelect={(opt) => setResult({ optimization: opt, output: (opt.outputData as Record<string, unknown>) || {} })}
       />
     </div>
   );

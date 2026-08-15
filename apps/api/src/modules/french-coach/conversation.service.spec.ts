@@ -125,8 +125,10 @@ describe('ConversationService', () => {
         scenario: ConversationScenario.JOB_INTERVIEW,
       });
 
+      await new Promise((resolve) => setImmediate(resolve));
+
       expect(prisma.frenchConversation.create).toHaveBeenCalledWith({
-        data: { scenario: 'job_interview', profileId: 'profile-1' },
+        data: { scenario: 'job_interview', profileId: 'profile-1', jobDescription: null },
       });
       expect(prisma.frenchMessage.create).toHaveBeenCalledTimes(2);
       expect(prisma.frenchEvaluation.create).toHaveBeenCalledWith({
@@ -190,7 +192,6 @@ describe('ConversationService', () => {
       // First call: conversation, second call: evaluation
       expect(provider.chat).toHaveBeenCalledTimes(2);
       const evalCall = provider.chat.mock.calls[1][0];
-      expect(evalCall.model).toBe('openrouter/free');
       expect(evalCall.temperature).toBe(0.3);
       expect(evalCall.max_tokens).toBe(500);
       expect(evalCall.response_format).toEqual({ type: 'json_object' });

@@ -9,6 +9,7 @@ import {
   FRENCH_CONVERSATION_QUERY,
   FRENCH_PROFILE_QUERY,
   SEND_FRENCH_MESSAGE_MUTATION,
+  START_FRENCH_CONVERSATION_MUTATION,
   DELETE_FRENCH_CONVERSATION_MUTATION,
   GENERATE_FRENCH_CONVERSATION_HINT_MUTATION,
 } from '@/lib/graphql';
@@ -31,6 +32,12 @@ import { useSpeechSynthesis } from '@/components/voice/use-speech-synthesis';
 import { VoiceReplayButton, AutoSpeakToggle } from '@/components/voice/voice-playback';
 import { FRENCH_SCENARIO_RECORD } from '@/lib/constants/french-scenarios';
 import type { GqlFrenchConversation, GqlFrenchMessage, GqlFrenchCorrection, GqlConversationHint } from '@/lib/graphql/types';
+
+function scenarioMetaFor(value: string) {
+  return FRENCH_SCENARIO_RECORD[value] ||
+    FRENCH_SCENARIO_RECORD[value.toUpperCase()] ||
+    FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
+}
 
 function FrenchConversationsContent() {
   const router = useRouter();
@@ -106,6 +113,27 @@ function FrenchConversationsContent() {
       const vars = { input };
       const { sendFrenchMessage } = await client.request(SEND_FRENCH_MESSAGE_MUTATION, vars);
       return sendFrenchMessage;
+    },
+    onSuccess: (data) => {
+      setSelectedId(data.conversationId);
+      setShowNew(false);
+      setInputMessage('');
+      setJobDescription('');
+      setTimeout(() => refetchConversation(), 100);
+      setTimeout(() => refetchConversation(), 5000);
+    },
+  });
+
+  const startMutation = useMutation({
+    mutationFn: async () => {
+      const scenarioMeta = FRENCH_SCENARIO_RECORD[newScenario];
+      const scenario = (scenarioMeta?.value || newScenario).toLowerCase().replace(/\s+/g, '_');
+      const vars = {
+        scenario,
+        jobDescription: newScenario === 'CUSTOM_JOB' && jobDescription.trim() ? jobDescription.trim() : null,
+      };
+      const { startFrenchConversation } = await client.request(START_FRENCH_CONVERSATION_MUTATION, vars);
+      return startFrenchConversation;
     },
     onSuccess: (data) => {
       setSelectedId(data.conversationId);
@@ -197,7 +225,7 @@ function FrenchConversationsContent() {
   const messages = conversationData?.messages ?? [];
   const selectedConv = conversations?.find((c: GqlFrenchConversation) => c.id === selectedId);
   const activeScenario = selectedConv?.scenario || newScenario;
-  const scenarioMeta = FRENCH_SCENARIO_RECORD[activeScenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
+  const scenarioMeta = scenarioMetaFor(activeScenario);
   const ScenarioIcon = scenarioMeta.icon;
 
   const conversationList = conversations ?? [];
@@ -244,7 +272,7 @@ function FrenchConversationsContent() {
               </div>
             ) : (
               conversationList.map((conv: GqlFrenchConversation) => {
-                const meta = FRENCH_SCENARIO_RECORD[conv.scenario] || FRENCH_SCENARIO_RECORD.JOB_INTERVIEW;
+                const meta = scenarioMetaFor(conv.scenario);
                 const Icon = meta.icon;
                 return (
                   <div key={conv.id} className={`flex items-center group rounded-lg transition-colors ${
@@ -338,11 +366,31 @@ function FrenchConversationsContent() {
               )}
 
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-                {showNew && messages.length === 0 && !sendMutation.isPending && (
+                {showNew && messages.length === 0 && (
                   <div className="text-center py-8">
                     <GraduationCap className="w-10 h-10 text-gray-300 mx-auto mb-3" strokeWidth={1.5} />
-                    <p className="text-sm text-gray-600 font-medium">Commencez la conversation</p>
-                    <p className="text-xs text-gray-400 mt-1">{t('Send your first message in French')}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {newScenario === 'CUSTOM_JOB' && !jobDescription.trim()
+                        ? 'Collez la description du poste puis démarrez l’entretien'
+                        : 'Démarrez l’entretien avec le recruteur'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {newScenario === 'CUSTOM_JOB' && !jobDescription.trim()
+                        ? 'Le recruteur posera des questions adaptées à ce poste'
+                        : 'Le recruteur vous salue et pose sa première question'}
+                    </p>
+                    <Button
+                      className="mt-4"
+                      loading={startMutation.isPending}
+                      disabled={
+                        startMutation.isPending ||
+                        (newScenario === 'CUSTOM_JOB' && !jobDescription.trim())
+                      }
+                      onClick={() => startMutation.mutate()}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {t('Start the interview')}
+                    </Button>
                   </div>
                 )}
 

@@ -9,7 +9,7 @@ const logger = new Logger('PlaywrightScraper');
 export class PlaywrightScraper {
   static async run(source: string, url: string, query: string, location?: string): Promise<NormalizedJob[]> {
     const tmpDir = path.join(__dirname, '..', '..', '..', '..', 'tmp');
-    try { fs.mkdirSync(tmpDir, { recursive: true }); } catch {}
+    try { fs.mkdirSync(tmpDir, { recursive: true }); } catch { /* directory already exists */ }
     const outFile = path.join(tmpDir, `${source}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.json`);
     const scriptFile = path.join(tmpDir, `${source}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.cjs`);
 
@@ -60,8 +60,8 @@ const fs = require('fs');
     } catch (err) {
       logger.warn(`${source} error: ${err instanceof Error ? err.message : err}`);
     } finally {
-      try { fs.unlinkSync(outFile); } catch {}
-      try { fs.unlinkSync(scriptFile); } catch {}
+      try { fs.unlinkSync(outFile); } catch { /* file already removed */ }
+      try { fs.unlinkSync(scriptFile); } catch { /* file already removed */ }
     }
     return [];
   }

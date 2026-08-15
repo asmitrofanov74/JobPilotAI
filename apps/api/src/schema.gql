@@ -705,6 +705,7 @@ type Mutation {
   scrapeJobs(input: ScrapeJobsInput!): ScrapeResult!
   sendFrenchMessage(input: SendFrenchMessageInput!): SendFrenchMessageResult!
   setPrimaryResume(id: String!): ResumeType!
+  startFrenchConversation(jobDescription: String, scenario: String!): SendFrenchMessageResult!
   startFrenchSession(input: StartFrenchSessionInput!): FrenchSessionType!
   toggleFavoriteQuestion(id: String!): InterviewQuestionType
   updateCoverLetter(id: String!, input: UpdateCoverLetterInput!): Boolean!

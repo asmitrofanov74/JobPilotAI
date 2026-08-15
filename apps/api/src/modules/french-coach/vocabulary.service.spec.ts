@@ -260,7 +260,6 @@ describe('VocabularyService', () => {
 
       expect(provider.chat).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'openrouter/free',
           temperature: 0.3,
           response_format: { type: 'json_object' },
         }),

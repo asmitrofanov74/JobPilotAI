@@ -4,33 +4,52 @@ import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
 import { FrenchCoachService } from './french-coach.service';
 import { SendFrenchMessageInput } from './dto/french-coach.input';
 
+function normalizeScenario(scenario: string): string {
+  return scenario.toLowerCase().replace(/\s+/g, '_');
+}
+
+const INTERVIEWER_TAIL = `
+Tu es le recruteur qui mène cet entretien d'embauche de bout en bout. Ton rôle n'est pas de répondre à ta place mais de diriger la conversation comme un vrai recruteur :
+- Accueille le candidat et pose une question à la fois.
+- Réagis naturellement à ce que le candidat dit : rebondis sur ses réponses, montre de l'intérêt, demande des précisions.
+- Pose des questions de suivi ("Pouvez-vous m'en dire plus ?", "Comment avez-vous géré cela ?").
+- Ne pose JAMAIS deux questions d'un coup.
+- Après 5-8 questions complètes, propose naturellement de passer aux questions du candidat, puis remercie-le et mets fin à l'entretien.
+- Ne réponds jamais à la place du candidat. Reste en français.
+- N'utilise JAMAIS de placeholders comme [Votre Nom], [Nom de la Société] ou [Entreprise]. Utilise un nom fictif réaliste ou évite tout nom.`;
+
 function getScenarioPrompt(scenario: string, variant: string, jobDescription?: string | null): string {
   const isQuebec = variant === 'quebec';
+  const key = normalizeScenario(scenario);
 
-  if (scenario === 'custom_job' && jobDescription) {
-    return isQuebec
-      ? `Tu es un collègue québécois professionnel et courtois. Contexte: ${jobDescription}. Sois poli et naturel. Réponds en 1-2 phrases courtes en français québécois standard.`
-      : `Tu es un collègue français professionnel et courtois. Contexte: ${jobDescription}. Sois poli et naturel. Réponds en 1-2 phrases courtes en français.`;
+  if (key === 'custom_job' && jobDescription) {
+    const custom = `Tu es un recruteur ${isQuebec ? 'québécois' : 'français'} professionnel. Tu interviewes un candidat pour le poste suivant :
+
+DESCRIPTION DU POSTE :
+${jobDescription}
+
+IMPORTANT : Pose UNE question d'entretien à la fois, directement liée à ce poste et à ses exigences.` + INTERVIEWER_TAIL;
+    return isQuebec ? custom.replace('Reste en français.', 'Reste en français québécois authentique.') : custom;
   }
 
   const FRANCE_PROMPTS: Record<string, string> = {
-    job_interview: "Tu es un recruteur français poli et professionnel. Réponds en 1-2 phrases courtes.",
-    recruiter_call: "Tu es un recruteur français poli qui appelle un candidat. Réponds en 1-2 phrases courtes.",
-    team_meeting: "Tu es un collègue français poli en réunion. Réponds en 1-2 phrases courtes.",
-    daily_standup: "Tu es un collègue français poli en standup. Réponds en 1-2 phrases courtes.",
-    office_conversation: "Tu es un collègue français poli au bureau. Sois chaleureux mais professionnel. Réponds en 1-2 phrases courtes.",
+    job_interview: `Tu es un recruteur français poli et professionnel qui mène un entretien d'embauche.` + INTERVIEWER_TAIL,
+    recruiter_call: `Tu es un recruteur français poli qui appelle un candidat pour un premier échange. Décris brièvement le poste (développeur web senior) puis pose une question à la fois.` + INTERVIEWER_TAIL,
+    team_meeting: "Tu es un collègue français poli en réunion. Sois naturel, discute des sujets de travail et relance poliment la conversation.",
+    daily_standup: "Tu es un collègue français poli en standup quotidien. Demande à chacun son avancement et réagis naturellement.",
+    office_conversation: "Tu es un collègue français poli au bureau. Sois chaleureux mais professionnel, parle de la journée, de projets, du café.",
   };
 
   const QUEBEC_PROMPTS: Record<string, string> = {
-    job_interview: "Tu es un recruteur québécois poli et professionnel. Réponds en 1-2 phrases courtes en français québécois standard.",
-    recruiter_call: "Tu es un recruteur québécois poli qui appelle un candidat. Réponds en 1-2 phrases courtes en français québécois standard.",
-    team_meeting: "Tu es un collègue québécois poli en réunion. Réponds en 1-2 phrases courtes en français québécois standard.",
-    daily_standup: "Tu es un collègue québécois poli en standup. Réponds en 1-2 phrases courtes en français québécois standard.",
-    office_conversation: "Tu es un collègue québécois poli au bureau. Sois chaleureux mais professionnel. Réponds en 1-2 phrases courtes en français québécois standard.",
+    job_interview: `Tu es un recruteur québécois poli et professionnel qui mène un entretien d'embauche.` + INTERVIEWER_TAIL.replace('Reste en français.', 'Reste en français québécois authentique.'),
+    recruiter_call: `Tu es un recruteur québécois poli qui appelle un candidat pour un premier échange. Décris brièvement le poste (développeur web senior) puis pose une question à la fois.` + INTERVIEWER_TAIL.replace('Reste en français.', 'Reste en français québécois authentique.'),
+    team_meeting: "Tu es un collègue québécois poli en réunion. Sois naturel, discute des sujets de travail et relance poliment la conversation en français québécois standard.",
+    daily_standup: "Tu es un collègue québécois poli en standup quotidien. Demande à chacun son avancement et réagis naturellement en français québécois standard.",
+    office_conversation: "Tu es un collègue québécois poli au bureau. Sois chaleureux mais professionnel, parle de la journée, de projets, du café, en français québécois standard.",
   };
 
   const prompts = isQuebec ? QUEBEC_PROMPTS : FRANCE_PROMPTS;
-  return prompts[scenario] ?? prompts.job_interview;
+  return prompts[key] ?? prompts.job_interview;
 }
 
 const EVALUATION_PROMPT = (variant: string) => {
@@ -80,6 +99,48 @@ export class ConversationService {
     private readonly frenchCoachService: FrenchCoachService,
   ) {}
 
+  async startConversation(userId: string, scenario: string, jobDescription?: string | null) {
+    const profile = await this.frenchCoachService.getProfile(userId);
+
+    if (!scenario) {
+      throw new BadRequestException('scenario is required');
+    }
+
+    const conversation = await this.prisma.frenchConversation.create({
+      data: {
+        scenario: normalizeScenario(scenario),
+        profileId: profile.id,
+        jobDescription: jobDescription ?? null,
+      },
+    });
+
+    const systemPrompt = getScenarioPrompt(conversation.scenario, profile.frenchVariant ?? 'france', conversation.jobDescription);
+    const openingPrompt = systemPrompt + '\n\nOuvre l\'entretien maintenant : salue le candidat et pose ta première question en une ou deux phrases. N\'utilise JAMAIS de crochets ou de placeholders comme [Votre Nom] ou [Nom de la Société] : écris un nom fictif ou évite le nom.';
+
+    const { content: rawContent } = await this.provider.chat({
+      messages: [{ role: 'system', content: openingPrompt }],
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    const content = cleanResponse(rawContent);
+
+    const assistantMessage = await this.prisma.frenchMessage.create({
+      data: { role: 'assistant', content, conversationId: conversation.id },
+    });
+
+    return {
+      conversationId: conversation.id,
+      response: {
+        id: assistantMessage.id,
+        role: assistantMessage.role,
+        content: assistantMessage.content,
+        createdAt: assistantMessage.createdAt,
+        evaluation: null,
+      },
+    };
+  }
+
   async sendMessage(userId: string, input: SendFrenchMessageInput) {
     const profile = await this.frenchCoachService.getProfile(userId);
 
@@ -102,7 +163,7 @@ export class ConversationService {
 
       conversation = await this.prisma.frenchConversation.create({
         data: {
-          scenario: input.scenario,
+          scenario: normalizeScenario(input.scenario),
           profileId: profile.id,
           jobDescription: input.jobDescription ?? null,
         },

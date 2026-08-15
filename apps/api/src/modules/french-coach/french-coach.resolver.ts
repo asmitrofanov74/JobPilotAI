@@ -385,12 +385,20 @@ export class FrenchCoachResolver {
   }
 
   @Mutation(() => SendFrenchMessageResult)
-
   async sendFrenchMessage(
     @CurrentUser() user: { id: string },
     @Args('input') input: SendFrenchMessageInput,
   ) {
     return this.conversationService.sendMessage(user.id, input);
+  }
+
+  @Mutation(() => SendFrenchMessageResult)
+  async startFrenchConversation(
+    @CurrentUser() user: { id: string },
+    @Args('scenario') scenario: string,
+    @Args('jobDescription', { nullable: true }) jobDescription?: string,
+  ) {
+    return this.conversationService.startConversation(user.id, scenario, jobDescription ?? null);
   }
 
   @Mutation(() => ConversationHintType)

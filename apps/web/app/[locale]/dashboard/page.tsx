@@ -46,14 +46,14 @@ export default function DashboardPage() {
     { label: t('Job Applications'), value: jobs?.paginatedItems?.length ?? jobs?.edges?.length ?? 0, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50', href: '/dashboard/jobs' },
     { label: t('Resumes'), value: resumes?.length ?? 0, icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50', href: '/dashboard/resumes' },
     { label: t('Cover Letters'), value: coverLetters?.length ?? 0, icon: FileEdit, color: 'text-violet-600', bg: 'bg-violet-50', href: '/dashboard/cover-letters' },
-    { label: t('Interview Questions'), value: questions?.length ?? 0, icon: MessageSquare, color: 'text-amber-600', bg: 'bg-amber-50', href: '/dashboard/skills' },
+    { label: t('Interview Questions'), value: questions?.length ?? 0, icon: MessageSquare, color: 'text-amber-600', bg: 'bg-amber-50', href: '/dashboard/interview-coach' },
   ];
 
   const actions = [
     { label: t('Browse Jobs'), desc: t('Find your next opportunity'), href: '/dashboard/jobs', icon: Briefcase },
     { label: t('Upload Resume'), desc: t('Let AI analyze your profile'), href: '/dashboard/resumes', icon: FileText },
     { label: t('Generate Cover Letter'), desc: t('AI-powered in seconds'), href: '/dashboard/cover-letters', icon: FileEdit },
-    { label: t('Practice Interview'), desc: t('Prepare with AI questions'), href: '/dashboard/skills', icon: MessageSquare },
+    { label: t('Practice Interview'), desc: t('Prepare with AI questions'), href: '/dashboard/interview-coach', icon: MessageSquare },
   ];
 
   const aiLinks = [

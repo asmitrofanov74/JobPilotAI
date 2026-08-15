@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useLogin } from '@/lib/hooks/use-auth';
@@ -94,9 +95,9 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
         {t("Don't have an account?")}{' '}
-        <a href="/register" className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300">
+        <Link href="/register" className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300">
           {t('Sign up')}
-        </a>
+        </Link>
       </p>
 
       <Card padding="sm" className="mt-8">

@@ -616,6 +616,29 @@ export const SEND_FRENCH_MESSAGE_MUTATION = `
   }
 `;
 
+export const START_FRENCH_CONVERSATION_MUTATION = `
+  mutation StartFrenchConversation($scenario: String!, $jobDescription: String) {
+    startFrenchConversation(scenario: $scenario, jobDescription: $jobDescription) {
+      conversationId
+      response {
+        id
+        role
+        content
+        evaluation {
+          id
+          grammarScore
+          vocabularyScore
+          fluencyScore
+          corrections
+          improvedVersion
+          quebecAlternative
+        }
+        createdAt
+      }
+    }
+  }
+`;
+
 export const DELETE_FRENCH_CONVERSATION_MUTATION = `
   mutation DeleteFrenchConversation($id: String!) {
     deleteFrenchConversation(id: $id)

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useRegister } from '@/lib/hooks/use-auth';
@@ -89,9 +90,9 @@ export default function RegisterPage() {
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
         {t('Already have an account?')}{' '}
-        <a href="/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300">
+        <Link href="/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300">
           {t('Sign in')}
-        </a>
+        </Link>
       </p>
     </AuthLayout>
   );

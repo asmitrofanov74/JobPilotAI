@@ -115,7 +115,8 @@ Object.defineProperty(client, 'request', {
       if (token) client.setHeader('Authorization', `Bearer ${token}`);
       return await originalRequest(query, variables) as T;
     } catch (err) {
-      if (isAuthError(err)) {
+      const isLoginAttempt = /mutation\s+Login\b/i.test(query);
+      if (isAuthError(err) && !isLoginAttempt) {
         const refreshed = await tryRefresh();
         if (refreshed) {
           const token = getToken();

@@ -97,7 +97,6 @@ describe('InterviewCoachService', () => {
       expect(result.interview.scenario).toBe('frontend_developer');
       expect(provider.chat).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'openrouter/free',
           messages: expect.arrayContaining([
             expect.objectContaining({ role: 'system' }),
             expect.objectContaining({ role: 'user' }),

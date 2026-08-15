@@ -250,7 +250,7 @@ export default function FrenchVocabularyPage() {
           <div className="py-8">
             <p className="text-3xl font-bold text-gray-900 mb-2">{currentWord.word}</p>
             {currentWord.context && (
-              <p className="text-sm text-gray-500 italic">"{currentWord.context}"</p>
+              <p className="text-sm text-gray-500 italic">&ldquo;{currentWord.context}&rdquo;</p>
             )}
             {!showAnswer ? (
               <Button className="mt-6" onClick={() => setShowAnswer(true)}>
@@ -344,7 +344,7 @@ export default function FrenchVocabularyPage() {
                     </div>
                   </div>
                   {word.context && (
-                    <p className="text-xs text-gray-400 italic mb-2">"{word.context}"</p>
+                    <p className="text-xs text-gray-400 italic mb-2">&ldquo;{word.context}&rdquo;</p>
                   )}
                   {word.note && (
                     <p className="text-xs text-gray-500 mb-2">{word.note}</p>
