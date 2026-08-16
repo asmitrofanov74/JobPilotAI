@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../auth/auth_state.dart';
 import 'french_coach_screen.dart';
+import 'interview_coach_screen.dart';
+import 'linkedin_optimizer_screen.dart';
+import 'vocabulary_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -52,18 +55,21 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.menu_book,
             title: 'Vocabulary Builder',
             subtitle: 'Learn interview and job-specific French.',
+            screen: VocabularyScreen(),
           ),
           const SizedBox(height: 12),
           const _FeatureCard(
             icon: Icons.business_center,
             title: 'LinkedIn Optimizer',
             subtitle: 'Polish your profile with AI suggestions.',
+            screen: LinkedinOptimizerScreen(),
           ),
           const SizedBox(height: 12),
           const _FeatureCard(
             icon: Icons.psychology,
             title: 'Interview Coach',
             subtitle: 'Get feedback and improve your answers.',
+            screen: InterviewCoachScreen(),
           ),
         ],
       ),

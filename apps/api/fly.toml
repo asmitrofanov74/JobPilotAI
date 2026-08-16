@@ -1,0 +1,40 @@
+app = "jobpilot-api"
+primary_region = "yyz"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "4000"
+  AI_PROVIDER = "ollama"
+  OLLAMA_BASE_URL = "https://ollama.example.com/v1"
+  OLLAMA_MODEL = "phi3:mini"
+  CORS_ORIGIN = "http://localhost:3000,http://localhost:4200"
+  # Ollama cannot run on Fly machines (no GPU). Host it separately and point
+  # OLLAMA_BASE_URL at it, e.g. a GPU VPS running `ollama serve --host 0.0.0.0`
+  # behind nginx with TLS + basic auth (Ollama has no auth of its own).
+  # Switch to OpenRouter later by setting:
+  #   AI_PROVIDER=openrouter  OPENROUTER_API_KEY=<key>  OPENROUTER_MODEL=openrouter/free
+  # Set real secrets via `fly secrets set` (never commit them):
+  #   fly secrets set JWT_SECRET=<random> JWT_REFRESH_SECRET=<random>
+  # Attach infra via:
+  #   fly postgres create   && fly postgres attach --app jobpilot-api <pg-app>   (sets DATABASE_URL)
+  #   fly redis create      && fly redis attach    --app jobpilot-api <redis-app> (sets REDIS_URL)
+
+[[services]]
+  internal_port = 4000
+  protocol = "tcp"
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 50
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443

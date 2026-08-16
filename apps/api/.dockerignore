@@ -1,0 +1,14 @@
+node_modules
+dist
+.next
+.turbo
+tmp
+storage
+test
+coverage
+*.log
+.env
+.env.local
+.env.*
+!Dockerfile
+!fly.toml

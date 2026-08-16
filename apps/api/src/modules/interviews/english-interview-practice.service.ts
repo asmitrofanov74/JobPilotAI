@@ -155,6 +155,7 @@ export interface PracticeEvaluation {
 }
 
 export interface EvaluationResult {
+  questionId: string;
   grammarScore: number;
   confidenceScore: number;
   technicalScore: number;
@@ -262,17 +263,33 @@ export class EnglishInterviewPracticeService {
     });
 
     const parsed = JSON.parse(content) as Record<string, unknown>;
+    const rawCorrections = Array.isArray(parsed.corrections)
+      ? (parsed.corrections as unknown[])
+      : [];
+    const corrections: EvaluationResult['corrections'] = rawCorrections.map(
+      (c) => {
+        const obj =
+          c && typeof c === 'object' ? (c as Record<string, unknown>) : {};
+        return {
+          original: typeof obj.original === 'string' ? obj.original : '',
+          corrected: typeof obj.corrected === 'string' ? obj.corrected : '',
+          explanation:
+            typeof obj.explanation === 'string' ? obj.explanation : '',
+        };
+      },
+    );
     const evaluation: EvaluationResult = {
+      questionId,
       grammarScore: typeof parsed.grammarScore === 'number' ? parsed.grammarScore : 0,
       confidenceScore: typeof parsed.confidenceScore === 'number' ? parsed.confidenceScore : 0,
       technicalScore: typeof parsed.technicalScore === 'number' ? parsed.technicalScore : 0,
       feedback: typeof parsed.feedback === 'string' ? parsed.feedback : '',
       improvedAnswer: typeof parsed.improvedAnswer === 'string' ? parsed.improvedAnswer : answer,
-      corrections: Array.isArray(parsed.corrections) ? (parsed.corrections as EvaluationResult['corrections']) : [],
+      corrections,
     };
 
     const answers: PracticeAnswer[] = [...((interview.answers as unknown as PracticeAnswer[]) ?? []), { questionId, answer }];
-    const evaluations: PracticeEvaluation[] = [...((interview.evaluations as unknown as PracticeEvaluation[]) ?? []), { questionId, ...evaluation }];
+    const evaluations: PracticeEvaluation[] = [...((interview.evaluations as unknown as PracticeEvaluation[]) ?? []), evaluation];
 
     const allScores = evaluations.map((e) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
     const overallScore = Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length);

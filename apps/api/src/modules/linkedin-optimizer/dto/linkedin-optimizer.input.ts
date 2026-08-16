@@ -1,5 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { MinLength, IsOptional } from 'class-validator';
+import { MinLength, IsOptional, IsArray, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class AnalyzeProfileInput {
@@ -51,6 +52,8 @@ export class GenerateHeadlineInput {
   currentRole: string;
 
   @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
   skills: string[];
 
   @Field()
@@ -81,9 +84,13 @@ export class GenerateAboutInput {
   industry: string;
 
   @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
   keyAchievements: string[];
 
   @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
   skills: string[];
 
   @Field({ nullable: true })
@@ -125,6 +132,9 @@ class ExperienceEntry {
 @InputType()
 export class OptimizeExperienceInput {
   @Field(() => [ExperienceEntry])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExperienceEntry)
   entries: ExperienceEntry[];
 
   @Field({ nullable: true })
@@ -170,13 +180,19 @@ export class AnalyzeVisibilityInput {
   about: string;
 
   @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
   skills: string[];
 
   @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
   targetRoles: string[];
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   targetLocations?: string[];
 
   @Field({ nullable: true })

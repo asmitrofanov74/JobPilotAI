@@ -141,6 +141,7 @@ export interface GeneratedQuestion {
 }
 
 export interface EvaluationResult {
+  questionId: string;
   grammarScore: number;
   confidenceScore: number;
   technicalScore: number;
@@ -258,17 +259,33 @@ export class InterviewCoachService {
     });
 
     const parsed = JSON.parse(content);
+    const rawCorrections = Array.isArray(parsed.corrections)
+      ? (parsed.corrections as unknown[])
+      : [];
+    const corrections: EvaluationResult['corrections'] = rawCorrections.map(
+      (c) => {
+        const obj =
+          c && typeof c === 'object' ? (c as Record<string, unknown>) : {};
+        return {
+          original: typeof obj.original === 'string' ? obj.original : '',
+          corrected: typeof obj.corrected === 'string' ? obj.corrected : '',
+          explanation:
+            typeof obj.explanation === 'string' ? obj.explanation : '',
+        };
+      },
+    );
     const evaluation: EvaluationResult = {
+      questionId,
       grammarScore: parsed.grammarScore ?? 0,
       confidenceScore: parsed.confidenceScore ?? 0,
       technicalScore: parsed.technicalScore ?? 0,
       feedback: parsed.feedback ?? '',
       improvedAnswer: parsed.improvedAnswer ?? answer,
-      corrections: parsed.corrections ?? [],
+      corrections,
     };
 
     const answers: InterviewAnswer[] = [...((interview.answers as unknown as InterviewAnswer[]) ?? []), { questionId, answer }];
-    const evaluations: InterviewEvaluation[] = [...((interview.evaluations as unknown as InterviewEvaluation[]) ?? []), { questionId, ...evaluation }];
+    const evaluations: InterviewEvaluation[] = [...((interview.evaluations as unknown as InterviewEvaluation[]) ?? []), evaluation];
 
     const allScores = evaluations.map((e) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
     const overallScore = Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length);

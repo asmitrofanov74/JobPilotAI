@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
+import { chatJson } from '../ai/llm-json.util';
 import {
   AnalyzeProfileInput,
   GenerateHeadlineInput,
@@ -33,7 +34,7 @@ export class LinkedinOptimizerService {
   ) {}
 
   async analyzeProfile(userId: string, input: AnalyzeProfileInput) {
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_PROFILE_ANALYSIS },
@@ -47,13 +48,11 @@ export class LinkedinOptimizerService {
       response_format: { type: 'json_object' },
     });
 
-    const parsed = JSON.parse(raw);
-
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'profile_analysis',
         inputData: input as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -62,7 +61,7 @@ export class LinkedinOptimizerService {
   }
 
   async generateHeadlines(userId: string, input: GenerateHeadlineInput) {
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_HEADLINE },
@@ -72,17 +71,15 @@ export class LinkedinOptimizerService {
         },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2000,
       response_format: { type: 'json_object' },
     });
-
-    const parsed = JSON.parse(raw);
 
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'headline',
         inputData: input as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -91,7 +88,7 @@ export class LinkedinOptimizerService {
   }
 
   async generateAbout(userId: string, input: GenerateAboutInput) {
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_ABOUT },
@@ -101,17 +98,15 @@ export class LinkedinOptimizerService {
         },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
-
-    const parsed = JSON.parse(raw);
 
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'about',
         inputData: input as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -127,7 +122,7 @@ export class LinkedinOptimizerService {
       )
       .join('\n\n');
 
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_EXPERIENCE },
@@ -137,17 +132,15 @@ export class LinkedinOptimizerService {
         },
       ],
       temperature: 0.6,
-      max_tokens: 2500,
+      max_tokens: 3000,
       response_format: { type: 'json_object' },
     });
-
-    const parsed = JSON.parse(raw);
 
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'experience_optimizer',
         inputData: input as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -164,7 +157,7 @@ export class LinkedinOptimizerService {
       throw new Error('Resume not found');
     }
 
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_RESUME_COMPARISON },
@@ -174,17 +167,15 @@ export class LinkedinOptimizerService {
         },
       ],
       temperature: 0.5,
-      max_tokens: 2000,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
-
-    const parsed = JSON.parse(raw);
 
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'resume_comparison',
         inputData: { ...input, resumeTitle: resume.title } as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -193,7 +184,7 @@ export class LinkedinOptimizerService {
   }
 
   async analyzeVisibility(userId: string, input: AnalyzeVisibilityInput) {
-    const { content: raw } = await this.provider.chat({
+    const parsed = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: SYSTEM_VISIBILITY },
@@ -203,17 +194,15 @@ export class LinkedinOptimizerService {
         },
       ],
       temperature: 0.5,
-      max_tokens: 2000,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
-
-    const parsed = JSON.parse(raw);
 
     const optimization = await this.prisma.linkedinOptimization.create({
       data: {
         type: 'visibility_analysis',
         inputData: input as unknown as Prisma.InputJsonValue,
-        outputData: parsed,
+        outputData: parsed as unknown as Prisma.InputJsonValue,
         userId,
       },
     });
