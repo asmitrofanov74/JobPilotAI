@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
+import { chatJson, extractNestedString } from '../ai/llm-json.util';
 import { FrenchCoachService } from './french-coach.service';
 
 const SCENARIO_PROMPTS: Record<string, string> = {
@@ -140,6 +141,27 @@ export interface GeneratedQuestion {
   category: string;
 }
 
+const FR_FALLBACK_QUESTIONS: GeneratedQuestion[] = [
+  { id: 'fq1', question: 'Présentez-moi votre parcours professionnel et ce que vous aimez le plus dans votre métier.', category: 'experience' },
+  { id: 'fq2', question: 'Décrivez un problème technique difficile que vous avez résolu récemment et comment vous l’avez abordé.', category: 'problem_solving' },
+  { id: 'fq3', question: 'Comment vous tenez-vous à jour sur les nouvelles technologies et les outils de votre domaine ?', category: 'experience' },
+  { id: 'fq4', question: 'Donnez un exemple de collaboration difficile avec un collègue et expliquez comment vous avez géré la situation.', category: 'soft_skills' },
+  { id: 'fq5', question: 'À quoi ressemble votre environnement de travail idéal et comment contribuez-vous à la culture d’équipe ?', category: 'soft_skills' },
+  { id: 'fq6', question: 'Parlez-moi d’un projet dont vous êtes particulièrement fier. Quel était votre rôle et quel impact avez-vous eu ?', category: 'experience' },
+  { id: 'fq7', question: 'Comment priorisez-vous vos tâches lorsque vous avez plusieurs échéances et un temps limité ?', category: 'problem_solving' },
+  { id: 'fq8', question: 'Quelle compétence technique souhaitez-vous développer en priorité et pourquoi ?', category: 'experience' },
+  { id: 'fq9', question: 'Décrivez une erreur que vous avez commise au travail et ce que vous en avez appris.', category: 'problem_solving' },
+  { id: 'fq10', question: 'Comment gérez-vous les retours, qu’ils soient positifs ou constructifs ?', category: 'soft_skills' },
+];
+
+function frFallbackQuestionsFor(count: number): GeneratedQuestion[] {
+  const result: GeneratedQuestion[] = [];
+  for (let i = 0; result.length < count; i++) {
+    result.push(FR_FALLBACK_QUESTIONS[i % FR_FALLBACK_QUESTIONS.length]);
+  }
+  return result;
+}
+
 export interface EvaluationResult {
   questionId: string;
   grammarScore: number;
@@ -181,17 +203,15 @@ export class InterviewCoachService {
       : '';
     const prompt = basePrompt + variantInstruction;
 
-    const { content } = await this.provider.chat({
-            messages: [
+    const parsed: unknown = await chatJson(this.provider, {
+      messages: [
         { role: 'system', content: prompt },
-        { role: 'user', content: `Génère ${count} questions d'entretien en français pour ce poste.` },
+        { role: 'user', content: `Génère exactement ${count} questions d'entretien en français pour ce poste. Retourne UNIQUEMENT un tableau JSON contenant exactement ${count} objets question, sans texte avant ou après.` },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
-
-    const parsed: unknown = JSON.parse(content);
     let rawQuestions: unknown[];
     if (Array.isArray(parsed)) {
       rawQuestions = parsed;
@@ -203,14 +223,18 @@ export class InterviewCoachService {
     } else {
       rawQuestions = [];
     }
-    const questions: GeneratedQuestion[] = rawQuestions.slice(0, count).map((q: unknown, i: number) => {
+    const generated: GeneratedQuestion[] = rawQuestions.slice(0, count).map((q: unknown, i: number) => {
       const obj = q && typeof q === 'object' ? (q as Record<string, unknown>) : {};
       return {
         id: (typeof obj.id === 'string' ? obj.id : null) || `q${i + 1}`,
-        question: (typeof obj.question === 'string' ? obj.question : null) || String(q),
+        question: extractNestedString(obj.question) || extractNestedString(obj) || `Question ${i + 1}`,
         category: (typeof obj.category === 'string' ? obj.category : null) || 'experience',
       };
     });
+    const questions: GeneratedQuestion[] =
+      generated.length >= count
+        ? generated
+        : [...generated, ...frFallbackQuestionsFor(count - generated.length)];
 
     const interview = await this.prisma.frenchInterview.create({
       data: {
@@ -290,7 +314,7 @@ export class InterviewCoachService {
     const allScores = evaluations.map((e) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
     const overallScore = Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length);
 
-    const answeredCount = answers.length;
+    const answeredCount = new Set(answers.map((a) => a.questionId)).size;
     const status = answeredCount >= (interview.questionCount ?? 0) ? 'completed' : 'in_progress';
 
     const updated = await this.prisma.frenchInterview.update({

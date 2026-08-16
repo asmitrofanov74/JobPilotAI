@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenRouterProvider } from '../ai/providers/openrouter.provider';
+import { chatJson, extractNestedString } from '../ai/llm-json.util';
 
 const SCENARIO_PROMPTS: Record<string, string> = {
   frontend_developer: `You are a senior technical recruiter conducting an interview for a Frontend Developer position. Generate interview questions in English.
@@ -64,8 +65,7 @@ Return ONLY a valid JSON array of objects with:
 - category (string: "technical", "experience", "problem_solving", "soft_skills")`,
 };
 
-function buildCustomJobPrompt(jobDescription: string): string {
-  return `You are a senior technical recruiter. Generate interview questions in English for the position described below.
+function buildCustomJobPrompt(jobDescription: string): string {  return `You are a senior technical recruiter. Generate interview questions in English for the position described below.
 
 Job Description:
 ${jobDescription}
@@ -81,6 +81,27 @@ You must return a JSON object with a "questions" key containing an array. Exact 
 {"questions":[{"id":"q1","question":"Interview question in English?","category":"technical"},{"id":"q2","question":"Another question?","category":"experience"}]}
 
 Return ONLY the JSON, no text before or after.`;
+}
+
+const FALLBACK_QUESTIONS: PracticeQuestion[] = [
+  { id: 'fq1', question: 'Tell me about your professional background and what you enjoy most about your work.', category: 'experience' },
+  { id: 'fq2', question: 'Describe a challenging technical problem you solved recently and how you approached it.', category: 'problem_solving' },
+  { id: 'fq3', question: 'How do you stay up to date with new technologies and tools in your field?', category: 'experience' },
+  { id: 'fq4', question: 'Give an example of a time you had to collaborate with a difficult teammate. How did you handle it?', category: 'soft_skills' },
+  { id: 'fq5', question: 'What does your ideal work environment look like, and how do you contribute to the team culture?', category: 'soft_skills' },
+  { id: 'fq6', question: 'Walk me through a project you are particularly proud of. What was your role and what impact did you have?', category: 'experience' },
+  { id: 'fq7', question: 'How do you prioritize tasks when you have multiple deadlines and limited time?', category: 'problem_solving' },
+  { id: 'fq8', question: 'What technical skill would you like to develop next, and why?', category: 'experience' },
+  { id: 'fq9', question: 'Describe a mistake you made at work and what you learned from it.', category: 'problem_solving' },
+  { id: 'fq10', question: 'How do you handle feedback, both positive and constructive?', category: 'soft_skills' },
+];
+
+function fallbackQuestionsFor(count: number): PracticeQuestion[] {
+  const result: PracticeQuestion[] = [];
+  for (let i = 0; result.length < count; i++) {
+    result.push(FALLBACK_QUESTIONS[i % FALLBACK_QUESTIONS.length]);
+  }
+  return result;
 }
 
 const EVALUATE_PROMPT = `You are an expert technical recruiter evaluating interview answers in English.
@@ -187,18 +208,19 @@ export class EnglishInterviewPracticeService {
       basePrompt = SCENARIO_PROMPTS[scenario] ?? SCENARIO_PROMPTS.frontend_developer;
     }
 
-    const { content } = await this.provider.chat({
+    const parsed: unknown = await chatJson(this.provider, {
       model: 'openrouter/free',
       messages: [
         { role: 'system', content: basePrompt },
-        { role: 'user', content: `Generate ${count} interview questions in English for this position.` },
+        {
+          role: 'user',
+          content: `Generate exactly ${count} interview questions in English for this position. Return ONLY a JSON array containing exactly ${count} question objects, no text before or after.`,
+        },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
-
-    const parsed: unknown = JSON.parse(content);
     let rawQuestions: unknown[];
     if (Array.isArray(parsed)) {
       rawQuestions = parsed;
@@ -210,14 +232,18 @@ export class EnglishInterviewPracticeService {
     } else {
       rawQuestions = [];
     }
-    const questions: PracticeQuestion[] = rawQuestions.slice(0, count).map((q: unknown, i: number) => {
+    const generated: PracticeQuestion[] = rawQuestions.slice(0, count).map((q: unknown, i: number) => {
       const obj = q && typeof q === 'object' ? (q as Record<string, unknown>) : {};
       return {
         id: (typeof obj.id === 'string' ? obj.id : null) || `q${i + 1}`,
-        question: (typeof obj.question === 'string' ? obj.question : null) || String(q),
+        question: extractNestedString(obj.question) || extractNestedString(obj) || `Question ${i + 1}`,
         category: (typeof obj.category === 'string' ? obj.category : null) || 'experience',
       };
     });
+    const questions: PracticeQuestion[] =
+      generated.length >= count
+        ? generated
+        : [...generated, ...fallbackQuestionsFor(count - generated.length)];
 
     const interview = await this.prisma.englishInterviewPractice.create({
       data: {
@@ -294,7 +320,7 @@ export class EnglishInterviewPracticeService {
     const allScores = evaluations.map((e) => (e.grammarScore + e.confidenceScore + e.technicalScore) / 3);
     const overallScore = Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length);
 
-    const answeredCount = answers.length;
+    const answeredCount = new Set(answers.map((a) => a.questionId)).size;
     const status = answeredCount >= (interview.questionCount ?? 0) ? 'completed' : 'in_progress';
 
     const updated = await this.prisma.englishInterviewPractice.update({

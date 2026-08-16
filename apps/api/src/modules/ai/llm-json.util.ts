@@ -45,3 +45,32 @@ export async function chatJson(
   }
   throw lastError;
 }
+
+const TEXT_KEYS = ['question', 'text', 'content', 'title', 'name', 'value', 'prompt'];
+
+export function extractNestedString(value: unknown): string {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = extractNestedString(item);
+      if (found) return found;
+    }
+    return '';
+  }
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    for (const key of TEXT_KEYS) {
+      if (key in obj) {
+        const found = extractNestedString(obj[key]);
+        if (found) return found;
+      }
+    }
+    for (const val of Object.values(obj)) {
+      const found = extractNestedString(val);
+      if (found) return found;
+    }
+  }
+  return '';
+}
+
