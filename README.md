@@ -27,15 +27,12 @@ JobPilotAI/
 │   │   │   ├── prisma/               # Prisma module & service
 │   │   │   └── modules/
 │   │   │       ├── ai/               # AI provider abstraction (Ollama / OpenRouter)
-│   │   │       ├── auth/             # JWT auth (register, login, refresh)
-│   │   │       ├── french-coach/     # French conversations, interviews, vocabulary
-│   │   │       ├── interviews/       # English interview practice & evaluation
-│   │   │       ├── linkedin-optimizer/ # LinkedIn profile optimization
-│   │   │       ├── jobs/             # Job tracking CRUD
-│   │   │       ├── resumes/          # Resume management
-│   │   │       ├── cover-letters/    # AI cover letter generation
-│   │   │       ├── subscription/     # Tier management
-│   │   │       └── users/            # User profile management
+│   │   │       ├── auth/             # JWT auth (register, login, refresh) — used by the app
+│   │   │       ├── french-coach/     # French conversations, interviews, vocabulary — used by the app
+│   │   │       ├── interviews/       # English interview practice & evaluation — used by the app
+│   │   │       ├── linkedin-optimizer/ # LinkedIn profile optimization — used by the app
+│   │   │       ├── subscription/     # Tier management (backend only, not in the app)
+│   │   │       └── users/            # User profile management (backend only, not in the app)
 │   │   └── prisma/
 │   │       ├── schema.prisma
 │   │       └── seed.ts
@@ -50,6 +47,10 @@ JobPilotAI/
 ├── PRD.md
 └── docs/
 ```
+
+> Note: the API also hosts modules for job tracking, resumes, cover letters,
+> analytics, skills, and the job scraper. Those power the web client and are not
+> yet surfaced in the mobile app.
 
 ## Quick Start
 
