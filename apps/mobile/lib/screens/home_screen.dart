@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../auth/auth_state.dart';
+import 'analytics_screen.dart';
+import 'cover_letters_screen.dart';
 import 'french_coach_screen.dart';
 import 'interview_coach_screen.dart';
+import 'jobs_screen.dart';
 import 'linkedin_optimizer_screen.dart';
+import 'resumes_screen.dart';
+import 'scraper_screen.dart';
+import 'settings_screen.dart';
+import 'skills_screen.dart';
 import 'vocabulary_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -45,6 +52,48 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const _FeatureCard(
+            icon: Icons.work_outline,
+            title: 'Job Tracker',
+            subtitle: 'Track applications through your pipeline.',
+            screen: JobsScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.description_outlined,
+            title: 'Resumes',
+            subtitle: 'Store and manage your resume versions.',
+            screen: ResumesScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.email_outlined,
+            title: 'Cover Letters',
+            subtitle: 'Generate AI cover letters from a job posting.',
+            screen: CoverLettersScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.insights,
+            title: 'Analytics',
+            subtitle: 'Funnel and monthly application trends.',
+            screen: AnalyticsScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.rule,
+            title: 'Skill Gap Analysis',
+            subtitle: 'Compare your skills against job requirements.',
+            screen: SkillsScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.search,
+            title: 'Job Scraper',
+            subtitle: 'Search and import jobs from multiple boards.',
+            screen: ScraperScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
             icon: Icons.record_voice_over,
             title: 'French Coach',
             subtitle: 'Practice job interviews with an AI recruiter.',
@@ -70,6 +119,13 @@ class HomeScreen extends StatelessWidget {
             title: 'Interview Coach',
             subtitle: 'Get feedback and improve your answers.',
             screen: InterviewCoachScreen(),
+          ),
+          const SizedBox(height: 12),
+          const _FeatureCard(
+            icon: Icons.settings,
+            title: 'Settings',
+            subtitle: 'Profile, target role, and subscription.',
+            screen: SettingsScreen(),
           ),
         ],
       ),

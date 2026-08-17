@@ -54,6 +54,8 @@ export class CreateInterviewInput {
   isCompleted?: boolean;
 
   @Field()
+  @IsString()
+  @IsNotEmpty()
   jobApplicationId: string;
 }
 

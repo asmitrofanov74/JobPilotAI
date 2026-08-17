@@ -44,6 +44,11 @@ class AuthState extends ChangeNotifier {
     }
   }
 
+  void updateUser(AuthUser updated) {
+    user = updated;
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     user = null;

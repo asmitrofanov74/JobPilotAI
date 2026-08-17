@@ -74,6 +74,10 @@ export class AiService {
     });
 
     const parsed = JSON.parse(raw);
+    const matchScore =
+      typeof parsed.matchScore === 'number'
+        ? parsed.matchScore
+        : parseFloat(String(parsed.matchScore)) || 0;
 
     const report = await this.prisma.skillGapReport.create({
       data: {
@@ -83,7 +87,7 @@ export class AiService {
         requiredSkills: parsed.requiredSkills || [],
         userSkills: input.userSkills.split(',').map((s: string) => s.trim()),
         missingSkills: parsed.missingSkills || [],
-        matchScore: parsed.matchScore || 0,
+        matchScore,
         recommendations: parsed.recommendations || [],
         userId,
       },
@@ -93,7 +97,7 @@ export class AiService {
       report,
       requiredSkills: parsed.requiredSkills || [],
       missingSkills: parsed.missingSkills || [],
-      matchScore: parsed.matchScore || 0,
+      matchScore,
       recommendations: parsed.recommendations || [],
     };
   }

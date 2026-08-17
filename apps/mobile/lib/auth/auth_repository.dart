@@ -21,6 +21,16 @@ class AuthUser {
     return email;
   }
 
+  AuthUser copyWith({String? firstName, String? lastName}) {
+    return AuthUser(
+      id: id,
+      email: email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      subscriptionTier: subscriptionTier,
+    );
+  }
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     final subscription = json['subscription'] as Map<String, dynamic>?;
     return AuthUser(
