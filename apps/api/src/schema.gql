@@ -701,6 +701,7 @@ type Mutation {
   refreshToken(token: String!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
   reviewFrenchVocabularyWord(input: ReviewVocabularyWordInput!): FrenchVocabularyWordType!
+  runApplicationPipeline(input: RunApplicationPipelineInput!): PipelineResultType!
   scrapeCompany(input: ScrapeCompanyInput!): [ScrapedJobType!]!
   scrapeJobs(input: ScrapeJobsInput!): ScrapeResult!
   sendFrenchMessage(input: SendFrenchMessageInput!): SendFrenchMessageResult!
@@ -742,12 +743,32 @@ type PaginationMeta {
   totalPages: Int!
 }
 
+type PipelinePracticeType {
+  id: String!
+  language: PracticeLanguage!
+  questionCount: Int!
+  scenario: String!
+}
+
+type PipelineResultType {
+  coverLetter: CoverLetterType!
+  interview: InterviewType!
+  job: JobType!
+  practice: PipelinePracticeType
+  skillGapReport: SkillGapReportType
+}
+
 enum PostedWithin {
   D3
   D7
   D14
   D30
   H24
+}
+
+enum PracticeLanguage {
+  ENGLISH
+  FRENCH
 }
 
 type PronunciationImprovementType {
@@ -853,6 +874,18 @@ type ResumeType {
 input ReviewVocabularyWordInput {
   score: Int!
   wordId: String!
+}
+
+input RunApplicationPipelineInput {
+  includeSkillGap: Boolean = true
+  interviewType: InterviewTypeEnum = PHONE
+  jobId: String
+  practiceLanguage: PracticeLanguage = ENGLISH
+  questionCount: Int = 5
+  scheduledAt: String
+  scrapedJob: CreateJobInput
+  tone: String = "professional"
+  userSkills: String
 }
 
 type ScorePointType {

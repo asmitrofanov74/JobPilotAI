@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { STATUS_BADGE, PAGE_SIZES, COLUMNS } from '@/lib/constants';
 import { formatDate, formatStatusLabel } from '@/lib/utils/format';
 import { type GqlJob } from '@/lib/graphql/types';
+import { RunPipelineButton } from '@/lib/pipeline/pipeline-dialog';
 
 const STATUS_LABELS: Record<string, string> = {
   '': 'All Statuses',
@@ -231,6 +232,7 @@ export default function JobsPage() {
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <RunPipelineButton jobId={job.id} size="sm" variant="secondary" label="Automate" />
                         {job.jobUrl ? (
                           <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">{t('View')}</a>
                         ) : (

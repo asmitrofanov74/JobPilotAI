@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../pipeline/pipeline_screen.dart';
 import '../scraper/scraper_models.dart';
 import '../scraper/scraper_repository.dart';
 
@@ -101,6 +102,31 @@ class _ScraperScreenState extends State<ScraperScreen> {
     } finally {
       if (mounted) setState(() => _importing = false);
     }
+  }
+
+  Future<void> _importOne(ScrapedJob job) async {
+    setState(() => _importing = true);
+    try {
+      final import = await _repository.import([job]);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Imported ${import.imported}, skipped ${import.skipped}')),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to import: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _importing = false);
+    }
+  }
+
+  Future<void> _runPipeline(ScrapedJob job) async {
+    await runPipelineForScrapedJob(context, job);
   }
 
   @override
@@ -261,6 +287,29 @@ class _ScraperScreenState extends State<ScraperScreen> {
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _importing
+                                      ? null
+                                      : () => _importOne(j),
+                                  icon: const Icon(Icons.download,
+                                      size: 16),
+                                  label: const Text('Import'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: FilledButton.tonalIcon(
+                                  onPressed: () => _runPipeline(j),
+                                  icon: const Icon(Icons.bolt, size: 16),
+                                  label: const Text('Run Pipeline'),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

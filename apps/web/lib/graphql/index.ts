@@ -113,6 +113,48 @@ export const IMPORT_JOBS_MUTATION = `
   }
 `;
 
+export const RUN_APPLICATION_PIPELINE_MUTATION = `
+  mutation RunApplicationPipeline($input: RunApplicationPipelineInput!) {
+    runApplicationPipeline(input: $input) {
+      job {
+        id
+        companyName
+        jobTitle
+        jobDescription
+        status
+        source
+        location
+      }
+      coverLetter {
+        id
+        jobTitle
+        companyName
+        tone
+        isGenerated
+      }
+      skillGapReport {
+        id
+        jobTitle
+        companyName
+        matchScore
+      }
+      interview {
+        id
+        type
+        round
+        scheduledAt
+        jobApplicationId
+      }
+      practice {
+        id
+        language
+        scenario
+        questionCount
+      }
+    }
+  }
+`;
+
 export const RESUMES_QUERY = `
   query Resumes {
     resumes {

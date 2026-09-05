@@ -9,6 +9,6 @@ import { AiModule } from '../ai/ai.module';
 @Module({
   imports: [PrismaModule, AiModule],
   providers: [InterviewsService, InterviewsResolver, EnglishInterviewPracticeService, EnglishInterviewPracticeResolver],
-  exports: [InterviewsService],
+  exports: [InterviewsService, EnglishInterviewPracticeService],
 })
 export class InterviewsModule {}

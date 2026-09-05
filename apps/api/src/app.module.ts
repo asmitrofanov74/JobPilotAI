@@ -19,6 +19,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { ScraperModule } from './modules/scraper/scraper.module';
 import { LinkedinOptimizerModule } from './modules/linkedin-optimizer/linkedin-optimizer.module';
 import { FrenchCoachModule } from './modules/french-coach/french-coach.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { APP_GUARD } from '@nestjs/core';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 
@@ -49,6 +50,7 @@ import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
     ScraperModule,
     LinkedinOptimizerModule,
     FrenchCoachModule,
+    PipelineModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: GqlThrottlerGuard },

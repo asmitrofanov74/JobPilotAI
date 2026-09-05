@@ -28,6 +28,44 @@ export interface GqlPaginationMeta {
   limit: number;
 }
 
+export interface GqlPipelineResult {
+  job: {
+    id: string;
+    companyName: string;
+    jobTitle: string;
+    jobDescription?: string;
+    status: string;
+    source?: string;
+    location?: string;
+  };
+  coverLetter: {
+    id: string;
+    jobTitle: string;
+    companyName: string;
+    tone?: string;
+    isGenerated?: boolean;
+  };
+  skillGapReport?: {
+    id: string;
+    jobTitle: string;
+    companyName: string;
+    matchScore: number;
+  } | null;
+  interview: {
+    id: string;
+    type: string;
+    round?: number | null;
+    scheduledAt?: string | null;
+    jobApplicationId: string;
+  };
+  practice?: {
+    id: string;
+    language: string;
+    scenario: string;
+    questionCount: number;
+  } | null;
+}
+
 export interface GqlPaginatedJobs {
   edges: GqlJob[];
   meta: GqlPaginationMeta;

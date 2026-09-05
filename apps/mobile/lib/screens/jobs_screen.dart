@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../jobs/job_models.dart';
 import '../jobs/jobs_repository.dart';
+import '../pipeline/pipeline_screen.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -767,6 +768,16 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ],
           const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => runPipelineForJob(
+              context,
+              jobId: _job.id,
+              label: '${_job.jobTitle} @ ${_job.companyName}',
+            ),
+            icon: const Icon(Icons.bolt),
+            label: const Text('Run Pipeline'),
+          ),
+          const SizedBox(height: 8),
           FilledButton.tonal(
             onPressed: _changeStatus,
             child: const Text('Change Status'),

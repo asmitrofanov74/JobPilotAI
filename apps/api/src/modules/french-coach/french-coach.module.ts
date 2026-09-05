@@ -26,6 +26,6 @@ import { JobsModule } from '../jobs/jobs.module';
     PronunciationService,
     CareerFrenchCoachService,
   ],
-  exports: [FrenchCoachService],
+  exports: [FrenchCoachService, CareerFrenchCoachService],
 })
 export class FrenchCoachModule {}

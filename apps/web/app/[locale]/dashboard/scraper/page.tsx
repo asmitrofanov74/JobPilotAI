@@ -16,6 +16,7 @@ import { Search, Download, MapPin, DollarSign, ExternalLink, Globe } from 'lucid
 import { SOURCE_BADGE, SOURCE_LABELS, ALL_SOURCES, POSTED_OPTIONS } from '@/lib/constants';
 import { relativeTime } from '@/lib/utils/format';
 import { type GqlScrapedJob, type GqlScrapeResult, type GqlImportResult } from '@/lib/graphql/types';
+import { RunPipelineButton } from '@/lib/pipeline/pipeline-dialog';
 
 export default function ScraperPage() {
   const t = useTranslations();
@@ -200,6 +201,24 @@ export default function ScraperPage() {
                     {job.jobDescription && (
                       <p className="text-sm text-gray-500 mt-2 line-clamp-2">{job.jobDescription}</p>
                     )}
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <RunPipelineButton
+                      size="sm"
+                      variant="secondary"
+                      label="Run Pipeline"
+                      scrapedJob={{
+                        companyName: job.companyName,
+                        jobTitle: job.jobTitle,
+                        jobDescription: job.jobDescription,
+                        jobUrl: job.jobUrl,
+                        location: job.location,
+                        salaryRange: job.salaryRange,
+                        source: job.source,
+                        sourceUrl: job.sourceUrl,
+                        sourceId: job.sourceId,
+                      }}
+                    />
                   </div>
                 </div>
               </Card>
